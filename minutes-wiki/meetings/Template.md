@@ -28,6 +28,9 @@ _Todos until the next meeting. The list should include the supervisor's todos, p
   * Todo2
   * [VS] Todo3
 
+## Resources 
+  * ...
+  * ...
 
 ## Next meeting
 
