@@ -6,3 +6,4 @@ Installed packages:
 * npm install --save @types/d3
 * d3
 * topojson
+* d3-selection
