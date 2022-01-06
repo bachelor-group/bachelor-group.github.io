@@ -3,3 +3,30 @@
     padding:0;
     
 }
+
+
+
+
+/* COPY */
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+  pre {
+    font-size: 7em;
+  }
+  .marks .land {
+    fill: #137B80;
+  }
+  .marks .sphere {
+    fill: #ececec;
+  }
+  .marks .interiors {
+    fill: none;
+    stroke: #43A4A8;
+  }
+  .marks .graticules {
+    fill: none;
+    stroke: #dadada;
+  }
