@@ -8,6 +8,10 @@
 
 
 /* COPY */
+path{
+  color: black;
+}
+
 body {
     margin: 0;
     overflow: hidden;

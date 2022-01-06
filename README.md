@@ -1,1 +1,8 @@
 # visualizing-covid-search-trends
+
+
+Installed packages:
+* npm install --save @types/topojson
+* npm install --save @types/d3
+* d3
+* topojson
