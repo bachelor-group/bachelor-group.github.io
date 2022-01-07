@@ -29,15 +29,23 @@ export const DrawMap = ({ data }: DrawMapProps) => {
             .on("mouseover", function() {
                     select(this)
                         .style("fill", "black")
+                        .style("opacity", 1)
                 svg
-                    .selectAll("." + select(this))
+                        //hvordan targette alt unntatt den man hovrer?
+                    .selectAll("path")
                     .transition()
                     .duration(200)
                     .style("opacity", .5);
                 console.log(select(this))
             })
-            .on("mouseoff", ()=>{
-
+            .on("mouseout", function(){
+                console.log("mouseoff")
+                svg
+                .selectAll("path")
+                .transition()
+                .duration(200)
+                .style("opacity", 1)
+                .style("fill", "")
                 
             });
 
