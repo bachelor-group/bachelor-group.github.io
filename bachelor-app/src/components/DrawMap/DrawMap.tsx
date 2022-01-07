@@ -1,9 +1,9 @@
 import React, { ReactNode, SVGProps } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoEquirectangular,geoMercator, GeoPath, GeoPermissibleObjects, select } from 'd3';
-import { zoom, zoomIdentity} from 'd3-zoom';
+import { geoEquirectangular, geoMercator, GeoPath, GeoPermissibleObjects, select } from 'd3';
+import { zoom, zoomIdentity } from 'd3-zoom';
 import { Selection } from 'd3-selection';
-import {geoPath} from 'd3-geo'
+import { geoPath } from 'd3-geo'
 
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
@@ -18,14 +18,28 @@ export const DrawMap = ({ data }: DrawMapProps) => {
     if (data) {
 
         const svg = select<SVGSVGElement, unknown>("svg#map");
-        const projection = geoMercator() // .fitSize([width, height], { type: "FeatureCollection", features: data.features })
+        const projection = geoMercator().fitSize([width, height], { type: "FeatureCollection", features: data.features })
         path = geoPath(projection);
 
         console.log(data.features.length)
         let features = svg.selectAll("path")
             .data(data.features)
             .enter()
-            .append("path");
+            .append("path")
+            .on("mouseover", function() {
+                    select(this)
+                        .style("fill", "black")
+                svg
+                    .selectAll("." + select(this))
+                    .transition()
+                    .duration(200)
+                    .style("opacity", .5);
+                console.log(select(this))
+            })
+            .on("mouseoff", ()=>{
+
+                
+            });
 
 
         console.log(path)
@@ -40,21 +54,29 @@ export const DrawMap = ({ data }: DrawMapProps) => {
         // });
 
         let Zoom = zoom<SVGSVGElement, unknown>()
-            .scaleExtent([1, 2])
+            .scaleExtent([1, 6])
+            .translateExtent([[0, 0], [width, height]]) // så man ikke kan panna utafor rammene
             .on('zoom', (event) => {
-                let t = event.transform;
-                projection.scale(t.k).translate([t.x, t.y]);
-                console.log(projection)
+                console.log("zooming")
+                svg
+                    .selectAll('path')
+                    .attr('transform', event.transform);
+                // let t = event.transform;
+                // projection.scale(t.k).translate([t.x, t.y]);
+                // console.log(projection)
                 //svg.selectChildren("path").enter().append("path").attr("d")
                 //console.log(svg.selectChildren("path").attr("d"))
-                
+
                 // @ts-ignore
                 features.attr("d", path)
             });
 
+        // hvorfor må denne calles 2 ganger........?
+        svg.call(Zoom.transform, zoomIdentity);
+
         svg.call(Zoom)
-        
-        svg.call(Zoom.transform, zoomIdentity.translate(width/2,height/2).scale(width/Math.PI/2));
+
+        // svg.call(Zoom.transform, zoomIdentity.translate(width / 2, height / 2).scale(width / Math.PI / 2));
 
     }
 
