@@ -7,3 +7,4 @@ Installed packages:
 * d3
 * topojson
 * d3-selection
+* d3-scale-chromatic
