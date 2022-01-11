@@ -34,6 +34,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
     const [CovidData, setCovidData] = useState<DSVRowArray<string>>();
+    const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
 
     let path: GeoPath<any, GeoPermissibleObjects>;
 
@@ -64,7 +65,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                 features.attr("d", path)
             });
         // Translate and scale the initial map
-        svg.call(Zoom.transform, zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3));
+        svg.call(Zoom.transform, InitialMapZoom);
 
         // Use Zoom function
         svg.call(Zoom)
@@ -120,7 +121,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
                 {GeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
-                        onClick={() => toggleInfo(index)} />
+                    transform={InitialMapZoom.toString()}    
+                    onClick={() => toggleInfo(index)} />
                 ))}
                 
             </svg>
