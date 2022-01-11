@@ -34,6 +34,7 @@ const height: number = window.innerHeight - 56;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     // TODO: remove hard-coded value
     const [PathColors, setPathColors] = useState<Array<string>>([]);
+    const [Highlight, setHighlight] = useState(-1);
     const [CovidData, setCovidData] = useState(new Array<CovidData>());
     //const [GeoJson, setGeoJson] = useState<GeoJsonProperties>();
 
@@ -81,7 +82,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             return
         }
         console.log("A")
-        let filteredData = CovidData.filter(e => e.date == "2022-01-05" && e.location_key?.length == 2);
+        let filteredData = CovidData.filter(e => e.date == "2022-01-09" || e.date == "2022-01-08" || e.date == "2022-01-10" && e.location_key?.length == 2);
         // Get data from filteredData
         //@ts-ignore
         let countriesData = GetCountries(filteredData);
@@ -106,14 +107,19 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }, [CovidData, GeoJson]);
 
 
-
+    function mouseOver(index: number) {
+        setHighlight(index)
+    }
+    function mouseLeave() {
+        setHighlight(-1)
+    }
 
     return (
         <>
             <svg width={width} height={height} id={"map"}>
-
                 {GeoJson?.features.map((feature: Feature, index: number) => (
-                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index] }} />
+                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight===index || Highlight === -1 ? 1:0.5 }} 
+                    onMouseEnter={()=>mouseOver(index)} onMouseLeave={()=>mouseLeave()} />
                 ))}
             </svg>
         </>
