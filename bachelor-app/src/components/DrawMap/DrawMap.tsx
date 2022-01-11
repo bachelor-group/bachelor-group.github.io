@@ -1,52 +1,57 @@
-import React, { ReactNode, SVGProps } from 'react'
+import React, { useEffect, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoEquirectangular, geoMercator, GeoPath, GeoPermissibleObjects, select } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { Selection } from 'd3-selection';
 import { geoPath } from 'd3-geo'
+import { interpolateYlOrRd } from "d3-scale-chromatic"
+import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
+import { Color } from 'react-bootstrap/esm/types';
+
+const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
 
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
 }
 
+interface CovidData {
+    cumulative_confirmed: string,
+    cumulative_deceased: string,
+    cumulative_recovered: string,
+    cumulative_tested: string,
+    date: string,
+    location_key: string,
+    new_confirmed: string,
+    new_deceased: string,
+    new_recovered: string,
+    new_tested: string,
+}
+
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
-// https://stackoverflow.com/questions/55972289/how-can-i-scale-my-map-to-fit-my-svg-size-with-d3-and-geojson-path-data
-export const DrawMap = ({ data }: DrawMapProps) => {
+
+export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
+    const [PathColors, setPathColors] = useState<Array<string>>([]);
+    const [Highlight, setHighlight] = useState(-1);
+    const [CovidData, setCovidData] = useState<DSVRowArray<string>>();
+
     let path: GeoPath<any, GeoPermissibleObjects>;
 
-    if (data) {
+    if (GeoJson) {
+        const projection = geoMercator().fitSize([width, height], { type: "FeatureCollection", features: GeoJson.features })
+        path = geoPath(projection);
+    }
+
+    useEffect(() => {
+        csv(covidUrl).then(d => {
+            setCovidData(d)
+        });
 
         const svg = select<SVGSVGElement, unknown>("svg#map");
-        const projection = geoMercator().fitSize([width, height], { type: "FeatureCollection", features: data.features })
-        path = geoPath(projection);
 
-        let features = svg.selectAll("path")
-            .data(data.features)
-            .enter()
-            .append("path")
-            .on("mouseover", function() {
-                    select(this)
-                        .style("fill", "black")
-                        .style("opacity", 1)
-                svg
-                        //TODO: Make every country EXCEPT the hovered country
-                    .selectAll("path")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", .5);
-            })
-            .on("mouseout", function(){
-                svg
-                .selectAll("path")
-                .transition()
-                .duration(200)
-                .style("opacity", 1)
-                .style("fill", "")
-                
-            });
 
         //Zoom function for the map
+        let features = svg.selectAll("path")
         let Zoom = zoom<SVGSVGElement, unknown>()
             .scaleExtent([1, 6])
             .translateExtent([[0, 0], [width, height]]) // Set pan Borders
@@ -55,27 +60,69 @@ export const DrawMap = ({ data }: DrawMapProps) => {
                     .selectAll('path')
                     .attr('transform', event.transform);
 
-                // TODO: remove comment beneath
-                // @ts-ignore
+                //@ts-ignore
                 features.attr("d", path)
             });
-
         // Translate and scale the initial map
-        svg.call(Zoom.transform, zoomIdentity.scale(1.5).translate(-width/Math.PI/2, 2*(-height/Math.PI/2)/3));
+        svg.call(Zoom.transform, zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3));
 
         // Use Zoom function
         svg.call(Zoom)
 
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
+
+    useEffect(() => {
+        if (CovidData === undefined || GeoJson === undefined) {
+            return
+        }
+        let filteredData = CovidData.filter(e => (e.date === "2022-01-09" || e.date === "2022-01-08" || e.date === "2022-01-10") && e.location_key?.length === 2);
+        // Get data from filteredData
+        let countriesData = GetCountries(filteredData);
+        if (!countriesData) {
+            return
+        }
+        // Create and get colors
+        let colorScale = scaleSequential(interpolateYlOrRd).domain([0, countriesData.maxValue])
+        let colors = new Array<string>(0);
+        console.log(GeoJson)
+        GeoJson?.features.forEach((feature: Feature, index: number) => {
+            let countryCode = iso31661NumericToAlpha2[feature.id!];
+            
+            let Color: string = colorScale(countriesData!.countriesData[countryCode]);
+            if (!Color) {
+                Color = "gray"
+            }
+            colors.push(Color);
+        });
+        setPathColors(colors);
+    }, [CovidData, GeoJson]);
+
+
+    // Changes opacity of clicked country
+    function toggleInfo(index: number) {
+        if (index === -1 && Highlight !== -1) {
+            setHighlight(-1)
+        } else if (index !== -1) {
+            if (Highlight !== -1) {
+                setHighlight(-1)
+            } else {
+                setHighlight(index)
+            }
+        }
     }
+
 
     return (
         <>
-            <svg width={width} height={height} id={"map"}>
-
-                {/* {data?.features.map((feature: Feature, index: number) => (
-                    <path key={index} d={path(feature)!} id={"path"} />
-                ))} */}
-
+            <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
+                {GeoJson?.features.map((feature: Feature, index: number) => (
+                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
+                        onClick={() => toggleInfo(index)} />
+                ))}
+                
             </svg>
         </>
     );
@@ -83,3 +130,22 @@ export const DrawMap = ({ data }: DrawMapProps) => {
 
 
 export default DrawMap;
+
+function GetCountries(colorData: DSVRowString<string>[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
+
+    // console.log(colorData)
+    let countriesData: { [name: string]: number } = {};
+    let maxValue: number = 0;
+    colorData.forEach(countryRow => {
+        if (!countryRow.location_key || !countryRow.new_confirmed) {
+            return
+        }
+        let value = parseInt(countryRow.new_confirmed)
+        countriesData[countryRow.location_key] = value;
+
+        if (maxValue < value) {
+            maxValue = value;
+        }
+    });
+    return { countriesData, maxValue }
+}
