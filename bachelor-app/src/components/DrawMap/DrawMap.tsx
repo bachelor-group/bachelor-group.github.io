@@ -1,12 +1,11 @@
-import React, { ReactNode, SVGProps, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoEquirectangular, geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, max, color, csv, svg, DSVRowString } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { Selection } from 'd3-selection';
 import { geoPath } from 'd3-geo'
-// Kan denne stå i lag med d3 imports?
 import { interpolateYlOrRd } from "d3-scale-chromatic"
-import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2, ISO31662Entry } from 'iso-3166';
+import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
 import { Color } from 'react-bootstrap/esm/types';
 
 const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
@@ -30,24 +29,21 @@ interface CovidData {
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
-// https://stackoverflow.com/questions/55972289/how-can-i-scale-my-map-to-fit-my-svg-size-with-d3-and-geojson-path-data
+
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
-    // TODO: remove hard-coded value
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
-    const [CovidData, setCovidData] = useState(new Array<CovidData>());
-    //const [GeoJson, setGeoJson] = useState<GeoJsonProperties>();
+    const [CovidData, setCovidData] = useState<DSVRowArray<string>>();
 
     let path: GeoPath<any, GeoPermissibleObjects>;
+
     if (GeoJson) {
         const projection = geoMercator().fitSize([width, height], { type: "FeatureCollection", features: GeoJson.features })
         path = geoPath(projection);
     }
 
     useEffect(() => {
-        console.log("H")
         csv(covidUrl).then(d => {
-            //@ts-ignore
             setCovidData(d)
         });
 
@@ -64,8 +60,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                     .selectAll('path')
                     .attr('transform', event.transform);
 
-                // TODO: remove comment beneath
-                // @ts-ignore
+                //@ts-ignore
                 features.attr("d", path)
             });
         // Translate and scale the initial map
@@ -74,30 +69,29 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         // Use Zoom function
         svg.call(Zoom)
 
-
+   // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+
+
     useEffect(() => {
-        if (CovidData.length == 0 || GeoJson === undefined) {
+        if (CovidData === undefined || GeoJson === undefined) {
             return
         }
-        console.log("A")
-        let filteredData = CovidData.filter(e => e.date == "2022-01-09" || e.date == "2022-01-08" || e.date == "2022-01-10" && e.location_key?.length == 2);
+        let filteredData = CovidData.filter(e => (e.date === "2022-01-09" || e.date === "2022-01-08" || e.date === "2022-01-10") && e.location_key?.length === 2);
         // Get data from filteredData
-        //@ts-ignore
         let countriesData = GetCountries(filteredData);
         if (!countriesData) {
             return
         }
         // Create and get colors
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, countriesData.maxValue])
-        let colors = new Array<string>(PathColors.length);
+        let colors = new Array<string>(0);
         console.log(GeoJson)
         GeoJson?.features.forEach((feature: Feature, index: number) => {
-            //@ts-ignore
-            let countryCode = iso31661NumericToAlpha2[feature.id];
-            //@ts-ignore
-            let Color: string = colorScale(countriesData?.countriesData[countryCode]);
+            let countryCode = iso31661NumericToAlpha2[feature.id!];
+            
+            let Color: string = colorScale(countriesData!.countriesData[countryCode]);
             if (!Color) {
                 Color = "gray"
             }
@@ -107,20 +101,28 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }, [CovidData, GeoJson]);
 
 
-    function mouseOver(index: number) {
-        setHighlight(index)
+    // Changes opacity of clicked country
+    function toggleInfo(index: number) {
+        if (index === -1 && Highlight !== -1) {
+            setHighlight(-1)
+        } else if (index !== -1) {
+            if (Highlight !== -1) {
+                setHighlight(-1)
+            } else {
+                setHighlight(index)
+            }
+        }
     }
-    function mouseLeave() {
-        setHighlight(-1)
-    }
+
 
     return (
         <>
-            <svg width={width} height={height} id={"map"}>
+            <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
                 {GeoJson?.features.map((feature: Feature, index: number) => (
-                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight===index || Highlight === -1 ? 1:0.5 }} 
-                    onMouseEnter={()=>mouseOver(index)} onMouseLeave={()=>mouseLeave()} />
+                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
+                        onClick={() => toggleInfo(index)} />
                 ))}
+                
             </svg>
         </>
     );
@@ -128,10 +130,6 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
 
 export default DrawMap;
-// function GetColor(countryCode: string, colorScale: ScaleSequential<string, never>): string {
-
-//     return "black";
-//}
 
 function GetCountries(colorData: DSVRowString<string>[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
 
