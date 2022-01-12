@@ -8,6 +8,7 @@ interface LineChartProps {
 export const LineChart = ({Width, Height}: LineChartProps) => {
     return (
         <div>
+            <svg className="plot"></svg>
             <h1> WORK IN PROGRESS</h1>
         </div>
     );

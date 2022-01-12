@@ -6,9 +6,10 @@ interface WordCloudProps {
 
 }
 
-export const WordCloud = ({Width, Height}: WordCloudProps) => {
+export const WordCloud = ({ Width, Height }: WordCloudProps) => {
     return (
         <div>
+            <svg className="plot"></svg>
             <h1> WORK IN PROGRESS</h1>
         </div>
     );

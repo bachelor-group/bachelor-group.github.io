@@ -1,17 +1,29 @@
 * {
-    margin:0;
-    padding:0;
-    
+  margin: 0;
+  padding: 0;
+
 }
+
 svg {
-  height: 100%;
-  width: 100%;
   fill: darkslateblue;
-  stroke: rgb(172, 148, 69); 
+  stroke: rgb(172, 148, 69);
   stroke-width: 0.1px;
 }
+
 #map {
+  height: 100%;
+  width: 100%;
   background-color: #2a2a72;
   background-image: linear-gradient(315deg, #2a2a72 0%, #0b6ba3 74%);
-  
+
+}
+
+.PlotsContainer {
+/* put in the middle */
+
+}
+.plot {
+  border: 1px solid grey;
+  padding: 5px;
+  margin-top: 30px;
 }

@@ -54,7 +54,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         //Zoom function for the map
         let features = svg.selectAll("path")
         let Zoom = zoom<SVGSVGElement, unknown>()
-            .scaleExtent([1, 6])
+            .scaleExtent([1.5, 6])
             .translateExtent([[0, 0], [width, height]]) // Set pan Borders
             .on('zoom', (event) => {
                 svg

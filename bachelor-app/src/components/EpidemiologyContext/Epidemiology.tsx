@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { gray } from 'd3';
+import { useEffect, useMemo, useState } from 'react'
+import { Col, Row } from 'react-bootstrap';
 import { LoadData, DataType } from '../DataContext/LoadData';
 import PlotsContainer from './PlotsContainer';
 
@@ -25,10 +27,13 @@ export interface Plot {
 
 export const Epidemiology = ({ }: EpidemiologyProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
-        [{ PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 400, Width: 800 }]
+        [{ PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },]
     );
 
-    useEffect(() => {
+    useMemo(() => {
         for (let i = 0; i < Plots.length; i++) {
             let Plot = Plots[i];
             let LoadedData = LoadData()
@@ -40,7 +45,9 @@ export const Epidemiology = ({ }: EpidemiologyProps) => {
     }, []);
 
     return (
-        <PlotsContainer Plots={Plots} />
+        <div style={{ display: 'flex', justifyContent: 'center'}}>
+            <PlotsContainer Plots={Plots} />
+        </div>
     );
 }
 
