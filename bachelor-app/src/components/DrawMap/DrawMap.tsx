@@ -74,12 +74,11 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }, []);
 
 
-
     useEffect(() => {
         if (CovidData === undefined || GeoJson === undefined) {
             return
         }
-        let filteredData = CovidData.filter(e => (e.date === "2022-01-09" || e.date === "2022-01-08" || e.date === "2022-01-10") && e.location_key?.length === 2);
+        let filteredData = CovidData.filter(e => e.location_key?.length === 2);
         // Get data from filteredData
         let countriesData = GetCountries(filteredData);
         if (!countriesData) {

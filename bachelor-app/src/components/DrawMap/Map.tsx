@@ -35,15 +35,12 @@ export const LoadMapData = () => {
             
             if (data) {
                 let countries: GeoJsonProperties = feature(data, data.objects.countries);
-                // console.log(countries);
-                // console.log(countries.features);
                 setWorldData(countries)
             }
         })
         console.log("loaded data")
     }, [])
 
-    // console.log(worldData?.objects);
     return (
         <>
             <DrawMap data={worldData}></DrawMap>
