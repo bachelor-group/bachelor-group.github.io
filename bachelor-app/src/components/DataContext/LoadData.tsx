@@ -1,39 +1,21 @@
-export type DataType = {
-    xaxis: string,
-    yaxis: string,
-}
+import { EpidemiologyData } from "./DataTypes"
 
-// TODO: Fix interface, maybe remove all "?"
-export interface EpidemiologyCSV {
-    cumulative_confirmed?: string,
-    cumulative_deceased?: string,
-    cumulative_recovered?: string,
-    cumulative_tested?: string,
-    date?: string,
-    location_key?: string,
-    new_confirmed?: string,
-    new_deceased?: string,
-    new_recovered?: string,
-    new_tested?: string,
-}
+let data: EpidemiologyData[] = []
 
-let data: EpidemiologyCSV[] = []
-
-for (let i = 0; i < 10; i++) {
-    data.push({ new_confirmed: (Math.ceil(Math.random()*10)).toString(), date: (Math.ceil(Math.random()*10)).toString() })
+for (let i = 0; i < 100; i++) {
+    data.push({ new_confirmed: (Math.ceil(Math.random()*5+ i)).toString(), date: (Math.ceil(Math.random()*5+ i)).toString(), cumulative_confirmed: (Math.ceil(Math.random()*12-i+100)).toString() })
 
 }
 
 export const LoadData = () => {
 
-    return new Promise<EpidemiologyCSV[]>((resolve) => {
+    return new Promise<EpidemiologyData[]>((resolve) => {
         setTimeout(() => {
             resolve(
                 data
             )
-        }, (Math.random()*5000 + 5000) )
+        }, (Math.random()*2000 + 2000) )
     })
 }
-
 
 export default LoadData;

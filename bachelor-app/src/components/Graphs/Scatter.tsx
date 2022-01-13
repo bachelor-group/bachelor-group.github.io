@@ -1,28 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { extent, scaleLinear, axisLeft, axisBottom, select } from 'd3';
-import { DataType } from "../DataContext/LoadData";
+import { extent, scaleLinear, axisLeft, axisBottom, select} from 'd3';
+import { Plot } from "./PlotType";
+
 
 interface ScatterProps {
     Width: number,
     Height: number,
-    Data: DataType[]
+    Plot: Plot,
 }
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
-export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
+export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
 
     const axesRef = useRef(null)
     const boundsWidth = Width - MARGIN.right - MARGIN.left -0.5*MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-
-    const [Data2, setData2] = useState(0);
+    const [Data, setData] = useState(Plot.Data);
     
     // Set State on loaded data
     useEffect(() => {
-        let temp = Data2;
-        setData2(temp++);
-    }, [Data]);
+        setData(Plot.Data);
+    }, [Plot]);
 
     // Y axis
     const yScale = useMemo(() => {
@@ -90,6 +89,7 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
     return (
         <div>
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
+                <text x={"50%"} y={MARGIN.top} textAnchor="middle">{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
                 <g
                     width={boundsWidth}
