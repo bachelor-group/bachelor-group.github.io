@@ -29,7 +29,7 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
       if (Data.length == 0){
         return null;
       }
-        const [min, max] = extent(Data.map((d) => d.yaxis));
+        const [min, max] = extent(Data.map((d) => parseInt(d.yaxis)));
         if (min === undefined || max === undefined) {
             throw "Min or Max was undefined";
         }
@@ -41,7 +41,7 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
         if (Data.length == 0){
             return null;
         }
-        const [min, max] = extent(Data.map((d) => d.xaxis));
+        const [min, max] = extent(Data.map((d) => parseInt(d.xaxis)));
         if (min === undefined || max === undefined) {
             throw "Min or Max was undefined";
         }
@@ -66,7 +66,7 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
     }, [xScale, yScale, boundsHeight]);
 
     if (yScale == null || xScale == null){
-        return <h2> Loading Scatter...</h2>;
+        return <></>
     }
 
     // Build the shapes
@@ -75,8 +75,8 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
             <circle
                 key={i}
                 r={4}
-                cx={xScale(d.xaxis)}
-                cy={yScale(d.yaxis)}
+                cx={xScale(parseInt(d.xaxis))}
+                cy={yScale(parseInt(d.yaxis))}
                 opacity={1}
                 stroke="#9a6fb0"
                 fill="#9a6fb0"

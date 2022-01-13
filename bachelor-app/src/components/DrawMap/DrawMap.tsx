@@ -14,19 +14,6 @@ interface DrawMapProps {
     data: GeoJsonProperties | undefined
 }
 
-interface CovidData {
-    cumulative_confirmed: string,
-    cumulative_deceased: string,
-    cumulative_recovered: string,
-    cumulative_tested: string,
-    date: string,
-    location_key: string,
-    new_confirmed: string,
-    new_deceased: string,
-    new_recovered: string,
-    new_tested: string,
-}
-
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
 
