@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import LineChart from "../Graphs/LineChart";
 import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
@@ -9,8 +9,11 @@ interface PlotsProps {
 }
 
 export const PlotsContainer = ({ Plots }: PlotsProps) => {
+    const [temp, setTemp] = useState(Plots)
+
+    //Used to make the container Rerender
     useEffect(() => {
-        console.log(Plots)
+        setTemp(Plots);
     }, [Plots])
 
     return (

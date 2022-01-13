@@ -16,9 +16,16 @@ export const Scatter = ({ Width, Height, Data }: ScatterProps) => {
     const boundsWidth = Width - MARGIN.right - MARGIN.left -0.5*MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
 
+    const [Data2, setData2] = useState(0);
+    
+    // Set State on loaded data
+    useEffect(() => {
+        let temp = Data2;
+        setData2(temp++);
+    }, [Data]);
+
     // Y axis
     const yScale = useMemo(() => {
-        console.log(Data)
       if (Data.length == 0){
         return null;
       }

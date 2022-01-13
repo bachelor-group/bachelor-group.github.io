@@ -18,7 +18,6 @@ export enum PlotType {
 export interface Plot {
     PlotType: PlotType
     Data: DataType[],
-    DataString?: string,
     Height: number,
     Width: number
 }
@@ -27,25 +26,34 @@ export interface Plot {
 
 export const Epidemiology = ({ }: EpidemiologyProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
-        [{ PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
-        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
-        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },
-        { PlotType: PlotType.Scatter, Data: [], DataString: "new_confirmed", Height: 300, Width: 600 },]
-    );
+        [{ PlotType: PlotType.Scatter, Data: [], Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], Height: 300, Width: 600 },
+        { PlotType: PlotType.Scatter, Data: [], Height: 300, Width: 600 },
+        ]);
+    const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "new_confirmed", "new_confirmed", "new_confirmed"]);
+    const [Data, setData] = useState<DataType[]>([]);
 
-    useMemo(() => {
-        for (let i = 0; i < Plots.length; i++) {
-            let Plot = Plots[i];
-            let LoadedData = LoadData()
-            let newPlot: Plot = { PlotType: Plot.PlotType, Data: LoadedData, Height: Plot.Height, Width: Plot.Width };
-            Plots[i] = newPlot;
+
+    // Update Data if new Data is requested
+    useEffect(() => {
+        LoadData().then((d: DataType[]) => {
+            setData(d);
+        })
+    }, [RequestedData]);
+
+    //Handle new Data
+    useEffect(() => {
+        let newPlots: Plot[] = new Array(RequestedData.length);
+        for (let i = 0; i < RequestedData.length; i++) {
+            newPlots[i] = {PlotType: PlotType.Scatter, Data: Data, Height: 300, Width: 600};
         }
-        return () => {
-        }
-    }, []);
+        setPlots(newPlots);
+    }, [Data]);
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center'}}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {Plots[0].Data.length}
             <PlotsContainer Plots={Plots} />
         </div>
     );
