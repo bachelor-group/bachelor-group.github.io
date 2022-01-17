@@ -1,4 +1,9 @@
+import { csv, DSVRowArray } from "d3"
+import { useEffect, useState } from "react"
+import Epidemiology from "../EpidemiologyContext/Epidemiology"
 import { EpidemiologyData, EpidemiologyEnum } from "./DataTypes"
+
+const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/location/NO.csv"
 
 let data: EpidemiologyData[] = []
 
@@ -7,13 +12,10 @@ for (let i = 0; i < 100; i++) {
 }
 
 export const LoadData = () => {
-
     return new Promise<EpidemiologyData[]>((resolve) => {
-        setTimeout(() => {
-            resolve(
-                data
-            )
-        }, (Math.random() * 2000 + 2000))
+        csv(NorwayEpidemiologyUrl).then(d => {
+            resolve(d)
+        });
     })
 }
 

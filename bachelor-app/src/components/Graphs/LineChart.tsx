@@ -1,4 +1,4 @@
-import { axisBottom, axisLeft, extent, group, line, scaleLinear, scaleOrdinal, select, sum } from 'd3';
+import { axisBottom, axisLeft, extent, group, line, scaleLinear, scaleOrdinal, scaleTime, select, sum, timeParse } from 'd3';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EpidemiologyData } from "../DataContext/DataTypes";
 import { Plot } from './PlotType';
@@ -28,20 +28,30 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
             return scaleLinear();
         }
 
-        return scaleLinear().domain([min, max]).range([boundsHeight, 0]);
+        return scaleLinear().domain([min, max]).range([boundsHeight, 0]).nice();
     }, [Plot, boundsHeight]);
 
-    // X axis
+
+    // X axis numbers
+    // const xScale = useMemo(() => {
+    //     const [min, max] = extent(Plot.Data, function (d) {
+    //         return parseInt(d[Plot.Axis[0]]!)
+    //     })
+
+    //     if (min === undefined || max === undefined) {
+    //         return scaleLinear();
+    //     }
+
+    //     return scaleLinear().domain([min, max]).range([0, boundsWidth]).nice();
+    // }, [Plot, boundsWidth]);
+
+
+    let parseTime = timeParse("%Y-%m-%d")
+
+    // X time-axis
     const xScale = useMemo(() => {
-        const [min, max] = extent(Plot.Data, function (d) {
-            return parseInt(d[Plot.Axis[0]]!)
-        })
-
-        if (min === undefined || max === undefined) {
-            return scaleLinear();
-        }
-
-        return scaleLinear().domain([min, max]).range([0, boundsWidth]);
+        const [min, max] = extent(Plot.Data, (d) => parseTime(d.date!));
+        return scaleTime().domain([min!, max!]).range([0, boundsWidth]);
     }, [Plot, boundsWidth]);
 
     //Groups
@@ -69,7 +79,7 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
 
     // Init line-generator
     const reactLine = line<EpidemiologyData>()
-        .x(d => xScale(parseInt((d[Plot.Axis[0]])!)))
+        .x(d => xScale(parseTime((d[Plot.Axis[0]])!)!))
         .y(d => yScale(parseInt((d[Plot.Axis[1]])!)));
 
     //Create line-paths
