@@ -1,19 +1,16 @@
-import { axisBottom, axisLeft, extent, group, line, scaleLinear, select, sum } from 'd3';
+import { axisBottom, axisLeft, extent, group, line, scaleLinear, scaleOrdinal, select, sum } from 'd3';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EpidemiologyData } from "../DataContext/DataTypes";
 import { Plot } from './PlotType';
 
-// type Plot = {
-//     [key: string]: PlotDataType[]
-// }
 
 interface LineChartProps {
     Width: number,
     Height: number,
     Plot: Plot,
-    // Data: EpidemiologyData[],
 }
 
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
 export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
@@ -67,6 +64,9 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, boundsHeight]);
 
+    // Colors
+    const colorscale = scaleOrdinal<string>().range(COLORS)
+
     // Init line-generator
     const reactLine = line<EpidemiologyData>()
         .x(d => xScale(parseInt((d[Plot.Axis[0]])!)))
@@ -89,7 +89,7 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
                 >
                     {paths.map((path, index) => (
                         <path key={index}
-                            d={path} style={{ fill: "none", stroke: "purple", strokeWidth: "1px" }}
+                            d={path} style={{ fill: "none", stroke: colorscale(index.toString()), strokeWidth: "1px" }}
                         ></path>
                     ))}
                 </g>

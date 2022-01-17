@@ -41,7 +41,7 @@ export const Epidemiology = () => {
                 newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
             }
             else {
-                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
+                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
             }
         }
         setPlots(newPlots);
