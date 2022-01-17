@@ -21,13 +21,13 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
             {Plots.map((Plot, index) => {
                 switch (Plot.PlotType) {
                     case PlotType.Scatter:
-                    return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                        return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
                     case PlotType.WorldCloud:
                         return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                     case PlotType.LineChart:
-                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Title={Plot.Title} Plot={Plot} />
+                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`
@@ -36,6 +36,5 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
         </div>
     );
 }
-
 
 export default PlotsContainer;

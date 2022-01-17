@@ -1,6 +1,6 @@
-import { extent, group, line, scaleLinear } from 'd3';
-import React, { useMemo } from 'react';
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
+import { axisBottom, axisLeft, extent, group, line, scaleLinear, select, sum } from 'd3';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { EpidemiologyData } from "../DataContext/DataTypes";
 import { Plot } from './PlotType';
 
 // type Plot = {
@@ -11,98 +11,97 @@ interface LineChartProps {
     Width: number,
     Height: number,
     Plot: Plot,
-    Title: string,
     // Data: EpidemiologyData[],
 }
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
-export const LineChart = ({ Width, Height, Title, Plot }: LineChartProps) => {
-    
-    const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
+export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
+    const axesRef = useRef(null)
+    const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-    //@ts-ignore
-    const reactLine = line().x(d => parseInt((d.new_confirmed))).y(parseInt((d => d.new_confirmed)));
-    if (Plot.Data.length != 0){
-
-        //@ts-ignore
-        console.log(reactLine(Plot.Data));
-    }
-
-    
-    console.log(`GroupBy: ${Plot.GroupBy}`)
-    const sumstat = group(Plot.Data, (d) => d[Plot.GroupBy!]) // nest function allows to group the calculation per level of a factor
+    const [Group, setGroup] = useState(group(Plot.Data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
 
     const yScale = useMemo(() => {
-        if (Plot.Data.length === 0) {
-            return null;
-        }
-        // const [min, max] = extent(function (array: EpidemiologyData[]) {
-        //     let res: number[] = [];
-        //     // Go through dict
-        //     array.forEach(function (Plot) {
-        //         //Go through each value and concat to result array
-        //         Plot.value.forEach((data) => res.concat(parseInt(data.yaxis)))
-        //     });
-        //     return (res);
-        // }(Data)
-        // );
-        const [min, max] = extent(Plot.Data, function(d) {
-            return parseInt(d[Plot.Axis[0]]!)
-        })        
-
-
+        const [min, max] = extent(Plot.Data, function (d) {
+            return parseInt(d[Plot.Axis[1]]!)
+        })
 
         if (min === undefined || max === undefined) {
-            throw "Min or Max was undefined";
+            return scaleLinear();
         }
+
         return scaleLinear().domain([min, max]).range([boundsHeight, 0]);
     }, [Plot, boundsHeight]);
 
-
     // X axis
     const xScale = useMemo(() => {
-        if (Plot.Data.length === 0) {
-            return null;
-        }
-        // const [min, max] = extent(function (array: Plot[]) {
-        //     let res: number[] = [];
-        //     array.forEach(function (Plot) {
-        //         Plot.value.forEach((data) => res.concat(parseInt(data.xaxis)))
-        //     });
-        //     return (res);
-        // }(Data)
-        // );
-
-        const [min, max] = extent(Plot.Data, function(d) {
-            return parseInt(d[Plot.Axis[1]]!)
-        }) 
+        const [min, max] = extent(Plot.Data, function (d) {
+            return parseInt(d[Plot.Axis[0]]!)
+        })
 
         if (min === undefined || max === undefined) {
-            throw "Min or Max was undefined";
+            return scaleLinear();
         }
+
         return scaleLinear().domain([min, max]).range([0, boundsWidth]);
     }, [Plot, boundsWidth]);
 
+    //Groups
+    useEffect(() => {
+        setGroup(group(Plot.Data, (d) => d[Plot.GroupBy!]));
+    }, [Plot]);
 
+    // Draw Axis
+    useEffect(() => {
+        const svgElement = select(axesRef.current);
+        svgElement.selectAll("*").remove();
+        const xAxisGenerator = axisBottom(xScale);
+        svgElement
+            .append("g")
+            .attr("transform", "translate(0," + boundsHeight + ")")
+            .call(xAxisGenerator);
+
+        const yAxisGenerator = axisLeft(yScale);
+
+        svgElement.append("g").call(yAxisGenerator);
+    }, [xScale, yScale, boundsHeight]);
+
+    // Init line-generator
+    const reactLine = line<EpidemiologyData>()
+        .x(d => xScale(parseInt((d[Plot.Axis[0]])!)))
+        .y(d => yScale(parseInt((d[Plot.Axis[1]])!)));
+
+    //Create line-paths
+    let paths: string[] = [];
+    Group.forEach(country => {
+        paths.push(reactLine(country)!)
+    });
 
     return (
         <div>
-            <svg className="plot" id='LinePlot'>
-                {Plot.Data.map((plot, index) => (
-                    <path key={index} 
-                        //@ts-ignore
-                        d={reactLine ? reactLine(sumstat): "Sug en kuk"
-                        }
-                    ></path>
-
-                ))}
+            <svg className="plot" width={Width} height={Height}>
+                <text x={"50%"} y={MARGIN.top} textAnchor="middle">{Plot.Title}</text>
+                <g
+                    width={boundsWidth}
+                    height={boundsHeight}
+                    transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                >
+                    {paths.map((path, index) => (
+                        <path key={index}
+                            d={path} style={{ fill: "none", stroke: "purple", strokeWidth: "1px" }}
+                        ></path>
+                    ))}
+                </g>
+                <g
+                    width={boundsWidth}
+                    height={boundsHeight}
+                    ref={axesRef}
+                    transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                />
             </svg>
-            <h1> WORK IN PROGRESS</h1>
         </div>
     );
-
-}  
-
+}
 
 export default LineChart;
