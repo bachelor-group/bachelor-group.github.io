@@ -3,7 +3,7 @@ import { EpidemiologyData, EpidemiologyEnum } from "./DataTypes"
 let data: EpidemiologyData[] = []
 
 for (let i = 0; i < 100; i++) {
-    data.push({ [EpidemiologyEnum.new_confirmed] : (Math.ceil(Math.random()*5+ i)).toString(), [EpidemiologyEnum.date]: (Math.ceil(Math.random()*5+ i)).toString(), [EpidemiologyEnum.cumulative_confirmed] : (Math.ceil(Math.random()*12-i+100)).toString() })
+    data.push({ [EpidemiologyEnum.new_confirmed] : (Math.ceil(Math.random()*5+ i)).toString(), [EpidemiologyEnum.date]: (Math.ceil(Math.random()*5+ i)).toString(), [EpidemiologyEnum.location_key] : "France" })
 
 }
 

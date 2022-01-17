@@ -11,10 +11,11 @@ export type PlotDataType = {
     yaxis: string,
     }
 export interface Plot {
-    PlotType: PlotType
+    PlotType: PlotType,
     Data: EpidemiologyData[],
-    Axis: EpidemiologyEnum[]
+    Axis: EpidemiologyEnum[],
     Height: number,
-    Width: number
+    Width: number,
     Title: string,
+    GroupBy?: EpidemiologyEnum,
 }

@@ -11,7 +11,9 @@ import PlotsContainer from './PlotsContainer';
 
 export const Epidemiology = () => {
     const [Plots, setPlots] = useState<Plot[]>(
-        [{ PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" },
+        [
+        { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" },
+        { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" },
         { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" },
         { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" },
         ]);
@@ -24,21 +26,26 @@ export const Epidemiology = () => {
         LoadData().then((d: EpidemiologyData[]) => {
             setData(d);
         })
-    }, [RequestedData]);
+}, [RequestedData]);
 
     //Handle new Data
     useEffect(() => {
         let newPlots: Plot[] = new Array(Plots.length);
         for (let i = 0; i < Plots.length; i++) {
             let PlotData: EpidemiologyData[] = []
-            for (let j = 0; j < Data.length; j++) {
-                //@ts-ignore
-                PlotData.push({ [Plots[i].Axis[0]]: Data[j][Plots[i].Axis[0]], [Plots[i].Axis[1]]: Data[j][Plots[i].Axis[1]] })
+
+            if (Plots[i].PlotType === PlotType.Scatter){
+                // Only get relevant data for current plot
+                for (let j = 0; j < Data.length; j++) {
+                    PlotData.push({ [Plots[i].Axis[0]]: Data[j][Plots[i].Axis[0]], [Plots[i].Axis[1]]: Data[j][Plots[i].Axis[1]] })
+                }
+                newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
             }
-            newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases" };
+            else {
+                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
+            }
         }
         setPlots(newPlots);
-        console.log(newPlots);
     }, [Data]);
 
     return (
