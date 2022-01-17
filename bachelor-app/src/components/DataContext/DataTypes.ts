@@ -1,18 +1,30 @@
-// TODO: Fix interface, maybe remove all "?"
-export interface EpidemiologyData {
-    cumulative_confirmed?: string,
-    cumulative_deceased?: string,
-    cumulative_recovered?: string,
-    cumulative_tested?: string,
-    date?: string,
-    location_key?: string,
-    new_confirmed?: string,
-    new_deceased?: string,
-    new_recovered?: string,
-    new_tested?: string,
+export enum EpidemiologyEnum {
+    cumulative_confirmed = "cumulative_confirmed",
+    cumulative_deceased = "cumulative_deceased",
+    cumulative_recovered = "cumulative_recovered",
+    cumulative_tested = "cumulative_tested",
+    date = "date",
+    location_key = "location_key",
+    new_confirmed = "new_confirmed",
+    new_deceased = "new_deceased",
+    new_recovered = "new_recovered",
+    new_tested = "new_tested"
 }
 
-export type PlotDataType = {
-    xaxis: string,
-    yaxis: string,
-}
+// TODO: Fix interface, maybe remove all "?"
+
+export type EpidemiologyData = { [key in EpidemiologyEnum]?: string }
+
+
+// export interface EpidemiologyData {
+//     EpidemiologyRows.cumulative_confirmed: string,
+//     EpidemiologyRows.cumulative_deceased: string,
+//     EpidemiologyRows.cumulative_recovered: string,
+//     EpidemiologyRows.cumulative_tested: string,
+//     EpidemiologyRows.date: string,
+//     EpidemiologyRows.location_key: string,
+//     EpidemiologyRows.new_confirmed: string,
+//     EpidemiologyRows.new_deceased: string,
+//     EpidemiologyRows.new_recovered: string,
+//     EpidemiologyRows.new_tested: string,
+// }

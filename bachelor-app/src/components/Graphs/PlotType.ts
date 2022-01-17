@@ -1,4 +1,4 @@
-import { PlotDataType } from "../DataContext/DataTypes";
+import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 
 export enum PlotType {
     Scatter,
@@ -6,10 +6,14 @@ export enum PlotType {
     WorldCloud
 }
 
+export type PlotDataType = {
+    xaxis: string,
+    yaxis: string,
+    }
 export interface Plot {
     PlotType: PlotType
-    Data: PlotDataType[],
-    Axis?: string[]
+    Data: EpidemiologyData[],
+    Axis: EpidemiologyEnum[]
     Height: number,
     Width: number
     Title: string,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { extent, scaleLinear, axisLeft, axisBottom, select} from 'd3';
+import { extent, scaleLinear, axisLeft, axisBottom, select } from 'd3';
 import { Plot } from "./PlotType";
 
 
@@ -14,41 +14,40 @@ const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
 
     const axesRef = useRef(null)
-    const boundsWidth = Width - MARGIN.right - MARGIN.left -0.5*MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
+    const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Data, setData] = useState(Plot.Data);
-    
+
     // Set State on loaded data
     useEffect(() => {
         setData(Plot.Data);
     }, [Plot]);
-
     // Y axis
     const yScale = useMemo(() => {
-      if (Data.length == 0){
-        return null;
-      }
-        const [min, max] = extent(Data.map((d) => parseInt(d.yaxis)));
+        if (Data.length == 0) {
+            return null;
+        }
+        const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[1]]!)));
         if (min === undefined || max === undefined) {
             throw "Min or Max was undefined";
         }
         return scaleLinear().domain([min, max]).range([boundsHeight, 0]);
-    }, [Data, Height]);
+    }, [Data, boundsHeight]);
 
     // X axis
     const xScale = useMemo(() => {
-        if (Data.length == 0){
+        if (Data.length == 0) {
             return null;
         }
-        const [min, max] = extent(Data.map((d) => parseInt(d.xaxis)));
+        const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[0]]!)));
         if (min === undefined || max === undefined) {
             throw "Min or Max was undefined";
         }
         return scaleLinear().domain([min, max]).range([0, boundsWidth]);
-    }, [Data, Width]);
+    }, [Data, boundsWidth]);
 
     useEffect(() => {
-        if (yScale == null || xScale == null){
+        if (yScale == null || xScale == null) {
             return
         }
         const svgElement = select(axesRef.current);
@@ -64,7 +63,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, boundsHeight]);
 
-    if (yScale == null || xScale == null){
+    if (yScale == null || xScale == null) {
         return <></>
     }
 
@@ -74,12 +73,12 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
             <circle
                 key={i}
                 r={4}
-                cx={xScale(parseInt(d.xaxis))}
-                cy={yScale(parseInt(d.yaxis))}
+                cx={xScale(parseInt(d[Plot.Axis[0]]!))}
+                cy={yScale(parseInt(d[Plot.Axis[1]]!))}
                 opacity={1}
                 stroke="#9a6fb0"
                 fill="#9a6fb0"
-                
+
                 fillOpacity={0.7}
                 strokeWidth={1}
             />
@@ -105,6 +104,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
+                <rect><text>hello</text></rect>
             </svg>
         </div>
     );

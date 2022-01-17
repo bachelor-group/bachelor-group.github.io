@@ -26,8 +26,8 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                     case PlotType.WorldCloud:
                         return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
-                    case PlotType.LineChart:
-                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} />
+                    // case PlotType.LineChart:
+                    //     return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Title={Plot.Title} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`
