@@ -38,10 +38,11 @@ export const Epidemiology = () => {
                 for (let j = 0; j < Data.length; j++) {
                     PlotData.push({ [Plots[i].Axis[0]]: Data[j][Plots[i].Axis[0]], [Plots[i].Axis[1]]: Data[j][Plots[i].Axis[1]] })
                 }
-                newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
+                newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: window.innerHeight*0.45 , Width: window.innerWidth*0.6, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
             }
             else {
-                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key };
+                
+                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: window.innerHeight*0.45 , Width: window.innerWidth*0.6,Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key };
             }
         }
         setPlots(newPlots);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { extent, scaleLinear, axisLeft, axisBottom, select } from 'd3';
+import { extent, scaleLinear, axisLeft, axisBottom, select, timeParse, scaleTime } from 'd3';
 import { Plot } from "./PlotType";
 
 
@@ -31,20 +31,28 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
         if (min === undefined || max === undefined) {
             throw "Min or Max was undefined";
         }
-        return scaleLinear().domain([min, max]).range([boundsHeight, 0]);
+        return scaleLinear().domain([min, max]).range([boundsHeight, 0]).nice();
     }, [Data, boundsHeight]);
 
     // X axis
+    // const xScale = useMemo(() => {
+    //     if (Data.length == 0) {
+    //         return null;
+    //     }
+    //     const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[0]]!)));
+    //     if (min === undefined || max === undefined) {
+    //         throw "Min or Max was undefined";
+    //     }
+    //     return scaleLinear().domain([min, max]).range([0, boundsWidth]);
+    // }, [Data, boundsWidth]);
+
+    let parseTime = timeParse("%Y-%m-%d")
+
+    // X time-axis
     const xScale = useMemo(() => {
-        if (Data.length == 0) {
-            return null;
-        }
-        const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[0]]!)));
-        if (min === undefined || max === undefined) {
-            throw "Min or Max was undefined";
-        }
-        return scaleLinear().domain([min, max]).range([0, boundsWidth]);
-    }, [Data, boundsWidth]);
+        const [min, max] = extent(Plot.Data, (d) => parseTime(d.date!));
+        return scaleTime().domain([min!, max!]).range([0, boundsWidth]);
+    }, [Plot, boundsWidth]);
 
     useEffect(() => {
         if (yScale == null || xScale == null) {
@@ -52,13 +60,13 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
         }
         const svgElement = select(axesRef.current);
         svgElement.selectAll("*").remove();
-        const xAxisGenerator = axisBottom(xScale);
+        const xAxisGenerator = axisBottom(xScale).tickSize(-boundsHeight);
         svgElement
             .append("g")
             .attr("transform", "translate(0," + boundsHeight + ")")
             .call(xAxisGenerator);
 
-        const yAxisGenerator = axisLeft(yScale);
+        const yAxisGenerator = axisLeft(yScale).ticks(10,"s").tickSize(-boundsWidth);;
 
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, boundsHeight]);
@@ -72,8 +80,8 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
         return (
             <circle
                 key={i}
-                r={4}
-                cx={xScale(parseInt(d[Plot.Axis[0]]!))}
+                r={1}
+                cx={xScale(parseTime(d[Plot.Axis[0]]!)!)}
                 cy={yScale(parseInt(d[Plot.Axis[1]]!))}
                 opacity={1}
                 stroke="#9a6fb0"
@@ -88,7 +96,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     return (
         <div>
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
-                <text x={"50%"} y={MARGIN.top} textAnchor="middle">{Plot.Title}</text>
+            <text x={"50%"} y={MARGIN.top*0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
                 <g
                     width={boundsWidth}
