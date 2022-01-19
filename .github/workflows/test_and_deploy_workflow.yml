@@ -34,9 +34,9 @@ jobs:
     - run: npm ci
     - run: CI="" npm run build --if-present
     - run: CI="" npm run deploy
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        # publish_dir: .bachelor-app/build
     # - run: CI="" npm test
     # - name: Deploy
     #   uses: peaceiris/actions-gh-pages@v3
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    #     publish_dir: .bachelor-app/build
