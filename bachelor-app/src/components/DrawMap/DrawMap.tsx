@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
 import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
-import { Selection } from 'd3-selection';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
-import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
-import { Color } from 'react-bootstrap/esm/types';
+import { iso31661NumericToAlpha2 } from 'iso-3166';
 
 const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
 
