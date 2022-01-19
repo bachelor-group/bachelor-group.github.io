@@ -43,7 +43,6 @@ export const LoadMapData = () => {
         console.log("loaded data")
     }, [])
 
-    // console.log(worldData?.objects);
     return (
         <>
             <DrawMap data={worldData}></DrawMap>
