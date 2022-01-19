@@ -12,19 +12,6 @@ interface DrawMapProps {
     data: GeoJsonProperties | undefined
 }
 
-interface CovidData {
-    cumulative_confirmed: string,
-    cumulative_deceased: string,
-    cumulative_recovered: string,
-    cumulative_tested: string,
-    date: string,
-    location_key: string,
-    new_confirmed: string,
-    new_deceased: string,
-    new_recovered: string,
-    new_tested: string,
-}
-
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
 
@@ -52,7 +39,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         //Zoom function for the map
         let features = svg.selectAll("path")
         let Zoom = zoom<SVGSVGElement, unknown>()
-            .scaleExtent([1, 6])
+            .scaleExtent([1.5, 6])
             .translateExtent([[0, 0], [width, height]]) // Set pan Borders
             .on('zoom', (event) => {
                 svg
@@ -72,12 +59,11 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }, []);
 
 
-
     useEffect(() => {
         if (CovidData === undefined || GeoJson === undefined) {
             return
         }
-        let filteredData = CovidData.filter(e => (e.date === "2022-01-09" || e.date === "2022-01-08" || e.date === "2022-01-10") && e.location_key?.length === 2);
+        let filteredData = CovidData.filter(e => e.location_key?.length === 2);
         // Get data from filteredData
         let countriesData = GetCountries(filteredData);
         if (!countriesData) {
