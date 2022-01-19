@@ -1,0 +1,14 @@
+* {
+    margin:0;
+    padding:0;
+    
+}
+svg {
+  height: 100%;
+  width: 100%;
+  fill: darkslateblue;
+  background-color: #2a2a72;
+  background-image: linear-gradient(315deg, #2a2a72 0%, #0b6ba3 74%);
+  stroke: rgb(172, 148, 69); 
+  stroke-width: 0.1px;
+}
