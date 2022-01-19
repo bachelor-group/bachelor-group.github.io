@@ -33,7 +33,7 @@ jobs:
         cache-dependency-path: bachelor-app/package-lock.json
     - run: npm ci
     - run: CI="" npm run build --if-present
-    - run: npm test
+    - run: CI="" npm test
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
