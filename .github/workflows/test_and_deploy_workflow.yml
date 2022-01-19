@@ -9,14 +9,14 @@ on:
   pull_request:
     branches: [ main ]
 
+defaults:
+  run:
+    working-directory: './bachelor-app'
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: './bachelor-app'
 
     strategy:
       matrix:
