@@ -3,12 +3,11 @@ import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { FaGithub } from 'react-icons/fa';
 
 function NavbarC() {
-  const [epidomologyList] = useState(
+  const [epidemiologyList] = useState(
     [
       "Cases", "Deaths", "Hospitalizations"
     ]
   )
-
   return <>
     <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
       <Container>
@@ -16,8 +15,8 @@ function NavbarC() {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <NavDropdown title="Epidemology" id="collasible-nav-dropdown" >
-              {epidomologyList.map((item, i) => <NavDropdown.Item key={i} href={item}>{item}</NavDropdown.Item>)}
+            <NavDropdown title="Epidemiology" id="collasible-nav-dropdown" >
+              {epidemiologyList.map((item, i) => <NavDropdown.Item key={i} href={item}>{item}</NavDropdown.Item>)}
               <NavDropdown.Divider />
               <NavDropdown.Item href="/link to a graph">Graphs</NavDropdown.Item>
             </NavDropdown>
