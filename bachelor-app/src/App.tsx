@@ -1,13 +1,13 @@
 import './App.css';
 import NavbarC from './components/Navbar';
 import LoadMapData from './components/DrawMap/Map';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter  as Router, Routes, Route} from 'react-router-dom';
 import Scatter from './components/Graphs/Scatter';
 import Epidemiology from './components/EpidemiologyContext/Epidemiology';
 
 function App() {
   return (
-    <Router>
+    <Router basename='/'>
       <NavbarC />
       <Routes>
         <Route path="/" element={<LoadMapData />} />
