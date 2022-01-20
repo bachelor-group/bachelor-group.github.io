@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import Epidemiology from "../EpidemiologyContext/Epidemiology"
 import { EpidemiologyData, EpidemiologyEnum } from "./DataTypes"
 
-const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/location/NO.csv"
+// const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/location/NO.csv"
+const NorwayEpidemiologyUrl = "csvData/epidemiology_min.csv"
 const URL2 = "https://storage.googleapis.com/covid19-open-data/v3/location/DK.csv"
 
 let data: EpidemiologyData[] = []
@@ -19,12 +20,13 @@ export const LoadData = () => {
             d.forEach(element => {
                 Array2.push(element)
             });
-            csv(URL2).then(d2 => {
-                d2.forEach(element => {
-                    Array2.push(element)
-                }) 
-                resolve(Array2);
-            });
+            console.log(Array2)
+            // csv(URL2).then(d2 => {
+            //     d2.forEach(element => {
+            //         Array2.push(element)
+            //     }) 
+            //     resolve(Array2);
+            // });
         });
     })
 }
