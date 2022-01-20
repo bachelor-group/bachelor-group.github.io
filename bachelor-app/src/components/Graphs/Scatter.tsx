@@ -24,7 +24,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     }, [Plot]);
     // Y axis
     const yScale = useMemo(() => {
-        if (Data.length == 0) {
+        if (Data.length === 0) {
             return null;
         }
         const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[1]]!)));

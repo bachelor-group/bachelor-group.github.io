@@ -132,7 +132,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
             </svg>
             <DateHistogram
-                data={CovidData!}
+                Data={CovidData!}
                 width={width}
                 height={dateHistogramSize * height}
                 setBrushExtent={setBrushExtent}
