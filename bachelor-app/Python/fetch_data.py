@@ -16,6 +16,6 @@ if __name__=="__main__":
 
     fetch_data_columns("epidemiology_min.csv", epidemiology, "date", "location_key", "new_confirmed")
     fetch_data_columns("demographics_min.csv", demographics, "location_key", "population")
-    fetch_data_columns("deaths_min.csv", epidemiology, "date", "location_ekey", "new_deceased", "cumulative_deceased")
+    fetch_data_columns("deaths_min.csv", epidemiology, "date", "location_key", "new_deceased", "cumulative_deceased")
     
     
