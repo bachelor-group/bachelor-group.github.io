@@ -1,18 +1,21 @@
 import pandas as pd
 
-# must be in /bachelor-app/Python/ directory
 
-# vaccination = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv", header=None, skiprows=0, index_col=False)
-vaccination = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv", skiprows=0, index_col=False)
-vaccination_labels = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv").columns.tolist()
-
-def write_label_to_file(category: str, label: str, data: int):
-    filename = label+".csv"
-    data[label].to_csv(category+"/"+filename)
+def fetch_data_columns(filename: str, dt: str, *args: str):
+    columns = []
+    for arg in args:
+        columns.append(arg)
+    dt.to_csv("public/csvData/"+filename, index=False, columns=columns)
 
 
-for i in range(len(vaccination_labels)):
-    write_label_to_file("vaccinations", vaccination_labels[i], vaccination)
+if __name__=="__main__":
+    epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv")
+    demographics = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/demographics.csv")
+    search_trends = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/google-search-trends.csv")
+    vaccinations = pd.cread_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv")
 
-# dates = pd.read_csv("vaccinations/date.csv")
-# print(dates)
+    fetch_data_columns("epidemiology_min.csv", epidemiology, "date", "location_key", "new_confirmed")
+    fetch_data_columns("demographics_min.csv", demographics, "location_key", "population")
+    fetch_data_columns("deaths_min.csv", epidemiology, "date", "location_ekey", "new_deceased", "cumulative_deceased")
+    
+    
