@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
 import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
@@ -7,33 +7,22 @@ import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
 import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
 import { Color } from 'react-bootstrap/esm/types';
-import { DateHistogram } from './DateHistogram';
+import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
+import { EpidemiologyData } from '../DataContext/DataTypes';
 
-// const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
+const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
 const covidUrlUpdated = "csvData/epidemiology_min.csv"
-
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
 }
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
-
-const dateHistogramSize = 0.2;
-
-// TODO: total_confirmed blir ikke sendt inn, men må regnes ut, enten js eller python (om python så blir den sendt inn)
-export type CovidDataType = {
-   date: string,
-   total_confirmed: number 
-   location_key?: string,
-   new_confirmed?: number
-
-}
-
+const dateHistogramSize: number = 0.2;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
-    const [CovidData, setCovidData] = useState<CovidDataType[]>();
+    const [CovidData, setCovidData] = useState<EpidemiologyData[]>();
     const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
 
     const [brushExtent, setBrushExtent] = useState();
@@ -46,9 +35,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }
 
     useEffect(() => {
-        csv(covidUrlUpdated).then(d  => {
-            //TODO
-            //@ts-ignore
+        csv(covidUrl).then(d => {
             setCovidData(d)
         });
 
@@ -82,11 +69,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         if (CovidData === undefined || GeoJson === undefined) {
             return
         }
-        let filteredData = CovidData.filter(e => e.location_key?.length === 2 && e.date === '2022-01-18');
-        console.log(filteredData)
+        let filteredData = CovidData.filter(e => e.location_key?.length === 2);
         // Get data from filteredData
         let countriesData = GetCountries(filteredData);
-        console.log(countriesData)
         if (!countriesData) {
             return
         }
@@ -120,7 +105,19 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         }
     }
 
-    // https://www.youtube.com/watch?v=Gf40jrJTsQU
+    const xValue = (d: EpidemiologyMinimum) => d.date;
+    // const xAxisLabel = 'Time';
+    //
+    //TODO GIVE REAL DATA:
+    const data: EpidemiologyMinimum[] = [{ date: "10-01-2022", total_confirmed: 123123 }, { date: "10-01-2022", total_confirmed: 123123 }, { date: "12-02-2021", total_confirmed: 123123 }]
+
+    const filteredData = brushExtent
+        ? data.filter(d => {
+            const date = xValue(d);
+            return date > brushExtent[0] && date < brushExtent[1];
+        })
+        : data;
+
     return (
         <>
             <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
@@ -132,10 +129,11 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
             </svg>
             <DateHistogram
-                Data={CovidData!}
+                Data={data}
                 width={width}
                 height={dateHistogramSize * height}
                 setBrushExtent={setBrushExtent}
+                xValue={xValue}
             />
         </>
     );
@@ -144,7 +142,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
 export default DrawMap;
 
-function GetCountries(colorData: CovidDataType[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
+function GetCountries(colorData: DSVRowString<string>[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
 
     // console.log(colorData)
     let countriesData: { [name: string]: number } = {};
@@ -153,7 +151,7 @@ function GetCountries(colorData: CovidDataType[]): undefined | { countriesData: 
         if (!countryRow.location_key || !countryRow.new_confirmed) {
             return
         }
-        let value = countryRow.new_confirmed
+        let value = parseInt(countryRow.new_confirmed)
         countriesData[countryRow.location_key] = value;
 
         if (maxValue < value) {

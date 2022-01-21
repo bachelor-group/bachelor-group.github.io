@@ -1,4 +1,5 @@
 import { ScaleLinear, ScaleTime } from "d3";
+import { ReactNode } from "react";
 
 export const AxisBottom = ({
     xScale,
@@ -10,11 +11,11 @@ export const AxisBottom = ({
     innerHeight: number,
     tickFormat: any,
     tickOffset: number
-}) =>
-    xScale.ticks().map(tickValue => (
+}): ReactNode =>
+    xScale.ticks().map((tickValue, index) => (
         <g
             className="tick"
-            key={tickValue}
+            key={index}
             transform={`translate(${xScale(tickValue)},0)`}
         >
             <line y2={innerHeight} />
@@ -25,11 +26,11 @@ export const AxisBottom = ({
     ));
 
 export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }: { yScale: ScaleTime<number, number, never>, innerWidth: number, tickOffset: number }) =>
-    yScale.ticks().map(tickValue => (
+    yScale.ticks().map((tickValue, index) => (
         <g className="tick" transform={`translate(0,${yScale(tickValue)})`}>
             <line x2={innerWidth} />
             <text
-                key={tickValue}
+                key={index}
                 style={{ textAnchor: 'end' }}
                 x={-tickOffset}
                 dy=".32em"
@@ -40,21 +41,21 @@ export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }: { yScale: Scale
     ));
 
 
-export const Marks = ({
-    binnedData,
-    xScale,
-    yScale,
-    tooltipFormat,
-    innerHeight
-}: {binnedData: any, xScale:ScaleLinear<number, number, never>, yScale: ScaleLinear<number, number, never>, tooltipFormat: any, innerHeight: number}) =>
-    binnedData.map(d => (
-        <rect
-            className="mark"
-            x={xScale(d.x0)}
-            y={yScale(d.y)}
-            width={xScale(d.x1) - xScale(d.x0)}
-            height={innerHeight - yScale(d.y)}
-        >
-            <title>{tooltipFormat(d.y)}</title>
-        </rect>
-    ));
+// export const Marks = ({
+//     binnedData,
+//     xScale,
+//     yScale,
+//     tooltipFormat,
+//     innerHeight
+// }: {binnedData: any, xScale:ScaleLinear<number, number, never>, yScale: ScaleLinear<number, number, never>, tooltipFormat: any, innerHeight: number}) =>
+//     binnedData.map(d => (
+//         <rect
+//             className="mark"
+//             x={xScale(d.x0)}
+//             y={yScale(d.y)}
+//             width={xScale(d.x1) - xScale(d.x0)}
+//             height={innerHeight - yScale(d.y)}
+//         >
+//             <title>{tooltipFormat(d.y)}</title>
+//         </rect>
+    // ));

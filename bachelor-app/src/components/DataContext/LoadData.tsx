@@ -20,13 +20,12 @@ export const LoadData = () => {
             d.forEach(element => {
                 Array2.push(element)
             });
-            console.log(Array2)
-            // csv(URL2).then(d2 => {
-            //     d2.forEach(element => {
-            //         Array2.push(element)
-            //     }) 
-            //     resolve(Array2);
-            // });
+            csv(URL2).then(d2 => {
+                d2.forEach(element => {
+                    Array2.push(element)
+                }) 
+                resolve(Array2);
+            });
         });
     })
 }
