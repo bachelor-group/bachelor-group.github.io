@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import LineChart from "../Graphs/LineChart";
+import Lollipop from "../Graphs/Lollipop";
 import { Plot, PlotType } from "../Graphs/PlotType";
 import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
@@ -28,6 +29,9 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
 
                     case PlotType.LineChart:
                         return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+
+                    case PlotType.Lollipop:
+                        return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`

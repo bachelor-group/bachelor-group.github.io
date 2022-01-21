@@ -11,10 +11,11 @@ import PlotsContainer from './PlotsContainer';
 export const Epidemiology = () => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key },
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Cases" },
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Cases" },
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Cases" },
+            { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
     const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
     const [Data, setData] = useState<EpidemiologyData[]>([]);
@@ -30,21 +31,25 @@ export const Epidemiology = () => {
     //Handle new Data
     useEffect(() => {
         let newPlots: Plot[] = new Array(Plots.length);
-        for (let i = 0; i < Plots.length; i++) {
+        Plots.forEach((Plot, i) => {
+
+            let xAxis: EpidemiologyEnum = Plot.Axis[0];
+            let yAxis: EpidemiologyEnum = Plot.Axis[1];
+            let newPlot: Plot;
             let PlotData: EpidemiologyData[] = []
 
-            if (Plots[i].PlotType === PlotType.Scatter) {
-                // Only get relevant data for current plot
-                for (let j = 0; j < Data.length; j++) {
-                    PlotData.push({ [Plots[i].Axis[0]]: Data[j][Plots[i].Axis[0]], [Plots[i].Axis[1]]: Data[j][Plots[i].Axis[1]] })
+            for (let j = 0; j < Data.length; j++) {
+                if (Plot.GroupBy !== undefined) {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
+                } else {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis]})
                 }
-                newPlots[i] = { PlotType: PlotType.Scatter, Data: PlotData, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: window.innerHeight*0.45 , Width: window.innerWidth*0.6, Title: "New Cases", GroupBy: EpidemiologyEnum.location_key };
             }
-            else {
-                
-                newPlots[i] = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: window.innerHeight*0.45 , Width: window.innerWidth*0.6,Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key };
-            }
-        }
+            
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlots[i] = newPlot;
+        })
+        console.log(newPlots)
         setPlots(newPlots);
     }, [Data]);
 
