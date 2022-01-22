@@ -108,13 +108,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const xValue = (d: EpidemiologyMinimum) => d.date;
     //
     //TODO GIVE REAL DATA:
-    const data: EpidemiologyMinimum[] = [{ date: "10-01-2022", total_confirmed: 123123 }, { date: "10-01-2022", total_confirmed: 123123 }, { date: "12-02-2021", total_confirmed: 123123 }]
-   // not needed? 
-   // atleast not used atm
-    const row = (d: any) => {
-        d.total_confirmed = + d.total_confirmed;
-        d.date = new Date(d.date);
-    }
+    const data: EpidemiologyMinimum[] = [{ date: "2022-01-12", total_confirmed: 23 }, { date: "2022-05-15", total_confirmed: 100 }, { date: "2022-10-28", total_confirmed: 70 }]
+
 
     const filteredData = brushExtent
         ? data.filter(d => {
@@ -132,13 +127,16 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                         onClick={() => toggleInfo(index)} />
                 ))}
 
-            <DateHistogram
-                Data={data}
-                width={width}
-                height={dateHistogramSize * height}
-                setBrushExtent={setBrushExtent}
-                xValue={xValue}
-            />
+                <g transform={`translate(0, ${height - dateHistogramSize * height})`}>
+                    <DateHistogram
+                        Data={data}
+                        width={width}
+                        height={dateHistogramSize * height}
+                        setBrushExtent={setBrushExtent}
+                        xValue={xValue}
+                    />
+
+                </g>
             </svg>
         </>
     );

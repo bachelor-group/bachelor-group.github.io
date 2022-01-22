@@ -1,5 +1,4 @@
-import { ScaleLinear, line, text } from "d3";
-import { ReactNode } from "react";
+import { ScaleLinear } from "d3";
 
 
 export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }:
@@ -13,7 +12,7 @@ export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }:
                     key={index}
                     style={{ textAnchor: 'end' }}
                     x={-tickOffset}
-                    dy=".32em"
+                    dy=".3em"
                 >
                     {tickValue}
                 </text>

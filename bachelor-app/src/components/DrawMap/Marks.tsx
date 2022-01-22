@@ -4,18 +4,16 @@ export const Marks = ({
     binnedData,
     xScale,
     yScale,
-    // tooltipFormat,
-    circleRadius,
+    tooltipFormat,
     innerHeight
 }: {
     binnedData: any,
     xScale: ScaleTime<number, number, never>,
     yScale: ScaleLinear<number, number, never>,
-    // tooltipFormat: any,
-    circleRadius: number,
+    tooltipFormat: any,
     innerHeight: number
 }) =>
-    binnedData.map(d => (
+    binnedData.map((d: any) => (
         <rect
             className="mark"
             x={xScale(d.x0)}
@@ -23,7 +21,8 @@ export const Marks = ({
             width={xScale(d.x1) - xScale(d.x0)}
             height={innerHeight - yScale(d.y)}
         >
-            {/* <title>{tooltipFormat(d.y)}</title> */}
+            <title>HVA ER DETTE?????? FJERN??????????{tooltipFormat(d.y)}</title>
         </rect>
     ));
+    
 export default Marks

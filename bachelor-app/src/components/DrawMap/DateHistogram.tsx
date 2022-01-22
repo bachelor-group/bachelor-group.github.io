@@ -1,3 +1,4 @@
+import { time } from 'console';
 import { scaleLinear, scaleTime, max, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse } from 'd3';
 import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject } from 'react';
 import AxisBottom from './AxisBottom';
@@ -18,15 +19,16 @@ interface HistogramProps {
     xValue: (d: EpidemiologyMinimum) => string
 }
 
-const margin = { top: 0, right: 30, bottom: 20, left: 45 };
+const margin = { top: 20, right: 50, bottom: 30, left: 125 };
 const xAxisLabelOffset = 54;
-const yAxisLabelOffset = 30;
-const xAxisTickFormat = timeFormat('%m/%d/%Y');
+const yAxisLabelOffset = 80;
+
+const xAxisTickFormat = timeFormat('%d/%m/%Y');
 
 
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total Cases";
-const xAxisLabel = "Date"; 
+const xAxisLabel = "Date";
 
 export const DateHistogram = ({
     Data,
@@ -40,51 +42,43 @@ export const DateHistogram = ({
 
     let parseTime = timeParse("%Y-%m-%d")
 
+
     const xScale = useMemo(() => {
+        console.log(parseTime(Data[0].date))
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
         return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
     }, [Data, innerWidth, xValue]);
 
+
     const binnedData = useMemo(() => {
         const [start, stop] = xScale.domain();
-        return bin<Date, Date>()
-        //HV FAAEN HVA FAEN HVA FAEN HVA FAEN HVA FAEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // .value(xValue)
-        // ??????????????????+ wtfffffff bro
-        .value((d) => d)
-        .domain([start, stop])
-        .thresholds(timeMonths(start, stop))(Data)
-        .map(array => ({
-            y: sum(array, yValue),
-            x0: array.x0,
-            x1: array.x1
-        }));
+        return bin<EpidemiologyMinimum, Date>()
+            .value((d) => parseTime(d.date!)!)
+            .domain([start, stop])
+            .thresholds(timeMonths(start, stop))(Data)
+            .map(array => ({
+                y: sum(array, yValue),
+                x0: array.x0,
+                x1: array.x1
+            }));
     }, [xValue, yValue, xScale, Data]);
+
 
     const yScale = useMemo(
         () =>
             scaleLinear()
-                // .domain([0, max(binnedData, d => d.y)])
+                .domain([0, max(binnedData, d => d.y)!])
                 .range([innerHeight, 0]),
         [binnedData, innerHeight]
     );
 
-    // const yScale = useMemo(() => {
-    //     if (Data.length === 0) {
-    //         return null;
-    //     }
-    //     const [min, max] = extent(Data.map((d) => d["total_confirmed"]!));
-    //     if (min === undefined || max === undefined) {
-    //         throw "Min or Max was undefined";
-    //     }
-    //     return scaleLinear().domain([min, max]).range([innerHeight, 0]).nice();
-    // }, [Data, innerHeight]);
-
     const brushRef = useRef<RefObject<SVGGElement>>();
+
 
     useEffect(() => {
         const brush = brushX().extent([[0, 0], [innerWidth, innerHeight]]);
-        // brush(select(brushRef.current));
+        //@ts-ignore
+        brush(select(brushRef.current));
         brush.on('brush end', (event) => {
             setBrushExtent(event.selection && event.selection.map(xScale.invert));
         });
@@ -109,7 +103,7 @@ export const DateHistogram = ({
                 >
                     {yAxisLabel}
                 </text>
-                <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={5} />
+                <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={10} />
                 <text
                     className="axis-label"
                     x={innerWidth / 2}
@@ -117,17 +111,17 @@ export const DateHistogram = ({
                     textAnchor="middle"
                 >
                     {xAxisLabel}
-                </text>
+                 </text>
                 <Marks
                     binnedData={binnedData}
                     xScale={xScale}
                     yScale={yScale}
                     // TODO FIX D iTYPE
-                    // tooltipFormat={(d: any) => d}
-                    circleRadius={2}
+                    tooltipFormat={(d: any) => d}
                     innerHeight={innerHeight}
-                 /> 
-                {/* <g ref={brushRef} /> */}
+                />
+                {/*            @ts-ignore      */}
+                <g ref={brushRef} />
             </g>
         </>
     );
