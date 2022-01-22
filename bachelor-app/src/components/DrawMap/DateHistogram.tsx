@@ -1,8 +1,9 @@
 import { scaleLinear, scaleTime, max, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse } from 'd3';
-import { useRef, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
-import { EpidemiologyData } from '../DataContext/DataTypes';
-import { Plot } from '../Graphs/PlotType';
-import { AxisBottom, AxisLeft } from './Axis';
+import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject } from 'react';
+import AxisBottom from './AxisBottom';
+import AxisLeft from './AxisLeft';
+import Marks from './Marks';
+
 
 export type EpidemiologyMinimum = {
     date: string,
@@ -14,7 +15,7 @@ interface HistogramProps {
     width: number,
     height: number,
     setBrushExtent: Dispatch<SetStateAction<undefined>>,
-    xValue: (d: EpidemiologyMinimum) => Date
+    xValue: (d: EpidemiologyMinimum) => string
 }
 
 const margin = { top: 0, right: 30, bottom: 20, left: 45 };
@@ -24,14 +25,15 @@ const xAxisTickFormat = timeFormat('%m/%d/%Y');
 
 
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
-const yAxisLabel = 'Total Dead and Missing';
+const yAxisLabel = "Total Cases";
+const xAxisLabel = "Date"; 
 
 export const DateHistogram = ({
     Data,
     width,
     height,
     setBrushExtent,
-    xValue
+    xValue,
 }: HistogramProps) => {
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
@@ -47,20 +49,22 @@ export const DateHistogram = ({
         const [start, stop] = xScale.domain();
         return bin<Date, Date>()
         //HV FAAEN HVA FAEN HVA FAEN HVA FAEN HVA FAEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            .value(xValue)
-            .domain([start, stop])
-            .thresholds(timeMonths(start, stop))(Data)
-            .map(array => ({
-                y: sum(array, yValue),
-                x0: array.x0,
-                x1: array.x1
-            }));
+        // .value(xValue)
+        // ??????????????????+ wtfffffff bro
+        .value((d) => d)
+        .domain([start, stop])
+        .thresholds(timeMonths(start, stop))(Data)
+        .map(array => ({
+            y: sum(array, yValue),
+            x0: array.x0,
+            x1: array.x1
+        }));
     }, [xValue, yValue, xScale, Data]);
 
     const yScale = useMemo(
         () =>
             scaleLinear()
-                .domain([0, max(binnedData, d => d.y)])
+                // .domain([0, max(binnedData, d => d.y)])
                 .range([innerHeight, 0]),
         [binnedData, innerHeight]
     );
@@ -76,7 +80,7 @@ export const DateHistogram = ({
     //     return scaleLinear().domain([min, max]).range([innerHeight, 0]).nice();
     // }, [Data, innerHeight]);
 
-    const brushRef = useRef();
+    const brushRef = useRef<RefObject<SVGGElement>>();
 
     useEffect(() => {
         const brush = brushX().extent([[0, 0], [innerWidth, innerHeight]]);
@@ -88,9 +92,10 @@ export const DateHistogram = ({
 
     return (
         <>
+
             <rect width={width} height={height} fill="white" />
             <g transform={`translate(${margin.left},${margin.top})`}>
-                {/* <AxisBottom
+                <AxisBottom
                     xScale={xScale}
                     innerHeight={innerHeight}
                     tickFormat={xAxisTickFormat}
@@ -118,10 +123,10 @@ export const DateHistogram = ({
                     xScale={xScale}
                     yScale={yScale}
                     // TODO FIX D iTYPE
-                    tooltipFormat={(d: any) => d}
+                    // tooltipFormat={(d: any) => d}
                     circleRadius={2}
                     innerHeight={innerHeight}
-                /> */}
+                 /> 
                 {/* <g ref={brushRef} /> */}
             </g>
         </>
