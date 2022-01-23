@@ -17,7 +17,6 @@ function Lollipop({ Width, Height, Plot }: LollipopProps) {
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const Data = Plot.Data.slice(90, 100);
-    console.log(Data)
 
     // Y axis
     const yScale = useMemo(() => {
@@ -32,9 +31,6 @@ function Lollipop({ Width, Height, Plot }: LollipopProps) {
 
 
     useEffect(() => {
-        if (yScale == null || xScale == null) {
-            return
-        }
         const svgElement = select(axesRef.current);
         svgElement.selectAll("*").remove();
         const xAxisGenerator = axisBottom(xScale).tickSize(-boundsHeight);

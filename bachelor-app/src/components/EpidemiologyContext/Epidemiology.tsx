@@ -52,7 +52,6 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
             newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
-        console.log(newPlots)
         setPlots(newPlots);
     }, [Data]);
 

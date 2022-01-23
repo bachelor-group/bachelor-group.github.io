@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
 import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
@@ -28,7 +28,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         path = geoPath(projection);
     }
 
-    useEffect(() => {
+    useMemo(() => {
         csv(covidUrl).then(d => {
             setCovidData(d)
         });
@@ -55,7 +55,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         // Use Zoom function
         svg.call(Zoom)
 
-   // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
@@ -72,10 +72,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         // Create and get colors
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, countriesData.maxValue])
         let colors = new Array<string>(0);
-        console.log(GeoJson)
         GeoJson?.features.forEach((feature: Feature, index: number) => {
             let countryCode = iso31661NumericToAlpha2[feature.id!];
-            
+
             let Color: string = colorScale(countriesData!.countriesData[countryCode]);
             if (!Color) {
                 Color = "gray"
@@ -105,10 +104,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
                 {GeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
-                    transform={InitialMapZoom.toString()}    
-                    onClick={() => toggleInfo(index)} />
+                        transform={InitialMapZoom.toString()}
+                        onClick={() => toggleInfo(index)} />
                 ))}
-                
+
             </svg>
         </>
     );
