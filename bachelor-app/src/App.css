@@ -22,3 +22,10 @@ svg {
   padding: 5px;
   margin-top: 30px;
 }
+
+#main {
+  width: 80%;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+}
