@@ -1,4 +1,3 @@
-import { time } from 'console';
 import { scaleLinear, scaleTime, max, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse } from 'd3';
 import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject } from 'react';
 import AxisBottom from './AxisBottom';

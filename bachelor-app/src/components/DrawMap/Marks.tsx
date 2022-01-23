@@ -21,7 +21,7 @@ export const Marks = ({
             width={xScale(d.x1) - xScale(d.x0)}
             height={innerHeight - yScale(d.y)}
         >
-            <title>HVA ER DETTE?????? FJERN??????????{tooltipFormat(d.y)}</title>
+            <title>{tooltipFormat(d.y)}</title>
         </rect>
     ));
     
