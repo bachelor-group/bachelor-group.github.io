@@ -44,15 +44,16 @@ export const DateHistogram = ({
 
 
     const xScale = useMemo(() => {
-        console.log(parseTime(Data[0].date))
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
+        // return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
         return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
     }, [Data, innerWidth, xValue]);
 
 
     const binnedData = useMemo(() => {
+        console.log(xValue)
         const [start, stop] = xScale.domain();
-        return bin<EpidemiologyMinimum, Date>()
+        const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date!)!)
             .domain([start, stop])
             .thresholds(timeMonths(start, stop))(Data)
@@ -61,6 +62,9 @@ export const DateHistogram = ({
                 x0: array.x0,
                 x1: array.x1
             }));
+        console.log(bar)
+
+        return bar
     }, [xValue, yValue, xScale, Data]);
 
 
@@ -87,7 +91,7 @@ export const DateHistogram = ({
     return (
         <>
 
-            <rect width={width} height={height} fill="white" />
+            <rect width={width} height={height} fill="white"/>
             <g transform={`translate(${margin.left},${margin.top})`}>
                 <AxisBottom
                     xScale={xScale}
@@ -111,7 +115,7 @@ export const DateHistogram = ({
                     textAnchor="middle"
                 >
                     {xAxisLabel}
-                 </text>
+                </text>
                 <Marks
                     binnedData={binnedData}
                     xScale={xScale}

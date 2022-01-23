@@ -106,9 +106,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }
 
     const xValue = (d: EpidemiologyMinimum) => d.date;
-    //
+
     //TODO GIVE REAL DATA:
-    const data: EpidemiologyMinimum[] = [{ date: "2022-01-12", total_confirmed: 23 }, { date: "2022-05-15", total_confirmed: 100 }, { date: "2022-10-28", total_confirmed: 70 }]
+    const data: EpidemiologyMinimum[] = [{ date: "2022-01-12", total_confirmed: 23 }, { date: "2022-01-13", total_confirmed: 100 }, { date: "2022-01-14", total_confirmed: 70 }]
 
 
     const filteredData = brushExtent
@@ -135,7 +135,6 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                         setBrushExtent={setBrushExtent}
                         xValue={xValue}
                     />
-
                 </g>
             </svg>
         </>
