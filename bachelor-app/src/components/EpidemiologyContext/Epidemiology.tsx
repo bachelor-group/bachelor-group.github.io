@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
 import { EpidemiologyData, EpidemiologyEnum } from '../DataContext/DataTypes';
-import { LoadData } from '../DataContext/LoadData';
+import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from './PlotsContainer';
 
 
 // TODO: Create a handleData that uses the string value so we can Send different data...
+interface Props {
+    LoadData?: typeof _LoadData
+}
 
-export const Epidemiology = () => {
+export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key },
@@ -23,7 +26,7 @@ export const Epidemiology = () => {
 
     // Update Data if new Data is requested
     useEffect(() => {
-        LoadData().then((d: EpidemiologyData[]) => {
+        _LoadData().then((d: EpidemiologyData[]) => {
             setData(d);
         })
     }, [RequestedData]);
@@ -42,10 +45,10 @@ export const Epidemiology = () => {
                 if (Plot.GroupBy !== undefined) {
                     PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
                 } else {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis]})
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
                 }
             }
-            
+
             newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
