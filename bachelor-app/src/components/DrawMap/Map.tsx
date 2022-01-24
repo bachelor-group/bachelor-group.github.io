@@ -62,7 +62,7 @@ export const LoadMapData = () => {
     return (
         <>
             <DrawMap data={worldData}></DrawMap>
-            <svg width={width} height={height}>
+            <svg width={width} height={height*0.2}>
                 <DateHistogram
                     Data={data}
                     width={width}

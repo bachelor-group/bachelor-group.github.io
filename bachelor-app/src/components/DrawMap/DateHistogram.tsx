@@ -50,7 +50,6 @@ export const DateHistogram = ({
 
 
     const binnedData = useMemo(() => {
-        console.log(xValue)
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date!)!)
@@ -61,7 +60,6 @@ export const DateHistogram = ({
                 x0: array.x0,
                 x1: array.x1
             }));
-        console.log(bar)
 
         return bar
     }, [xValue, yValue, xScale, Data]);

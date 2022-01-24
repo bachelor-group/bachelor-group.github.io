@@ -7,8 +7,10 @@ def fetch_data_columns(filename: str, dt: str, *args: str):
         columns.append(arg)
     dt.to_csv("public/csvData/"+filename, index=False, columns=columns)
 
+
 def date_total_confirmed():
     pass
+
 
 if __name__=="__main__":
     epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv")
