@@ -9,7 +9,6 @@ interface ChosenCountriesProps {
 export const ChosenCountries = ({ Countries }: ChosenCountriesProps) => {
 
     useEffect(()=>{
-        console.log(Countries);
 
     }, [Countries])
 
