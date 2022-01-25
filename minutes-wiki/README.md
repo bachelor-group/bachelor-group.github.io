@@ -8,7 +8,7 @@ Bachelor Thesis Erlend & Stian
 
 ## Upcoming Meeting
 
-* [26.01.22](meetings/16.01.22.md)
+* [26.01.22](meetings/26.01.22.md)
 <!-- 
 * [2.02.22](meetings/2.02.22.md)
 * [9.02.22](meetings/9.02.22.md)
