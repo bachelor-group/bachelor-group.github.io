@@ -29,3 +29,7 @@ svg {
   display: flex;
   justify-content: center;
 }
+.selected-countries:hover{
+  text-decoration:line-through;
+  cursor: pointer;
+}

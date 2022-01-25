@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
+import SelectCountry from '../CountrySelector/SelectCountry';
 import { EpidemiologyData, EpidemiologyEnum } from '../DataContext/DataTypes';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { Plot, PlotType } from '../Graphs/PlotType';
@@ -57,18 +58,21 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
     }, [Data]);
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-            {
-                Data.length === 0 ?
-                    <Row md="auto" className="align-items-center">
-                        <Col style={{ width: "500px" }}>
-                            <ProgressBar animated now={100} />
-                        </Col>
-                    </Row>
-                    :
-                    < PlotsContainer Plots={Plots} />
-            }
-        </div>
+        <>
+            <SelectCountry AllCountries={["Norge", "Sweden", "US", "gb", "Ogaboga", "Nederland",  "eiring :P"]} />
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                {
+                    Data.length === 0 ?
+                        <Row md="auto" className="align-items-center">
+                            <Col style={{ width: "500px" }}>
+                                <ProgressBar animated now={100} />
+                            </Col>
+                        </Row>
+                        :
+                        < PlotsContainer Plots={Plots} />
+                }
+            </div>
+        </>
     );
 }
 
