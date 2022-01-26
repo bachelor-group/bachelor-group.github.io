@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
-    const [Plots, setPlots] = useState<Plot[]>(
+    const [Plots, setPlots] = useState<Plot<EpidemiologyData, EpidemiologyEnum>[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key },
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: 300, Width: 600, Title: "New Tested In", GroupBy: EpidemiologyEnum.location_key },
@@ -34,12 +34,12 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
 
     //Handle new Data
     useEffect(() => {
-        let newPlots: Plot[] = new Array(Plots.length);
+        let newPlots: Plot<EpidemiologyData, EpidemiologyEnum>[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
-            let xAxis: EpidemiologyEnum = Plot.Axis[0];
-            let yAxis: EpidemiologyEnum = Plot.Axis[1];
-            let newPlot: Plot;
+            let xAxis = Plot.Axis[0];
+            let yAxis = Plot.Axis[1];
+            let newPlot: Plot<EpidemiologyData, EpidemiologyEnum>;
             let PlotData: EpidemiologyData[] = []
 
             for (let j = 0; j < Data.length; j++) {

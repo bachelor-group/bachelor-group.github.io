@@ -6,6 +6,8 @@ import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import LineChart from "./LineChart";
 import { Plot, PlotType } from "./PlotType";
+import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
+import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 
 let container: HTMLDivElement | null = null;
 beforeEach(() => {
@@ -24,7 +26,7 @@ afterEach(() => {
 });
 
 it("renders with or without a name", () => {
-  let FAKEPLOT: Plot = { PlotType: PlotType.LineChart, Data: [], Axis: [], Height: 100, Width: 100, Title: "A Title" }
+  let FAKEPLOT: Plot<EpidemiologyData | SearchTrendData, EpidemiologyEnum | SearchTrendsEnum> = { PlotType: PlotType.LineChart, Data: [], Axis: [], Height: 100, Width: 100, Title: "A Title" }
   act(() => {
     render(<LineChart Width={100} Height={100} Plot={FAKEPLOT} />, container);
   });

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
+import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 import LineChart from "../Graphs/LineChart";
 import Lollipop from "../Graphs/Lollipop";
 import { Plot, PlotType } from "../Graphs/PlotType";
@@ -6,7 +8,7 @@ import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
 
 interface PlotsProps {
-    Plots: Plot[]
+    Plots: Plot<EpidemiologyData | SearchTrendData, EpidemiologyEnum | SearchTrendsEnum>[]
 }
 
 export const PlotsContainer = ({ Plots }: PlotsProps) => {
