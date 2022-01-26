@@ -3,10 +3,11 @@ import { FaTimes } from 'react-icons/fa';
 
 interface ChosenCountriesProps {
     Countries: string[]
+    removedCountry: (country: string) => void
 
 }
 
-export const ChosenCountries = ({ Countries }: ChosenCountriesProps) => {
+export const ChosenCountries = ({ Countries, removedCountry }: ChosenCountriesProps) => {
 
     useEffect(()=>{
 
@@ -14,8 +15,7 @@ export const ChosenCountries = ({ Countries }: ChosenCountriesProps) => {
 
     const removeCountry = ((country: string) => {
         // emit to SelectCountry to remove it.
-        console.log("remove: ", country)
-        
+        removedCountry(country)
     });
 
     return (

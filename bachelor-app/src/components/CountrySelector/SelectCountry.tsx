@@ -1,45 +1,43 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ChosenCountries from "./ChosenCountries";
+import ReactTags, { Tag } from 'react-tag-autocomplete'
 
 interface SelectCountryProps {
-    AllCountries: string[]
+    AllCountries: Tag[]
 
 }
 
-export const SelectCountry = ({ AllCountries  }: SelectCountryProps) => {
+export const SelectCountry = ({ AllCountries }: SelectCountryProps) => {
 
-    const [value, setValue] = useState('')
-    const [display, setDisplay] = useState<boolean>(false);
-    const [selectedCountries, setSelectedCountries] = useState<string[]>([])
-    const [allCountries, setAllCountries] = useState<string[]>(AllCountries)
+    const [tags, setTags] = useState<Tag[]>([])
+    const reactTags = useRef<Tag>()
 
 
-    const addCountry = (country: string) => {
-        setValue("")
-        setSelectedCountries([...selectedCountries, country])
-        // and remove it from the list
-        removeCountry(country)
-    };
-    
-    const removeCountry = (removedCountry: string) => {
-        // remove country from state
-        setAllCountries(allCountries.filter(country => country !== removedCountry));
-    };
+    const onDelete = useCallback((tagIndex) => {
+        setTags(tags.filter((_, i) => i !== tagIndex))
+    }, [tags])
 
-    // hide country list if not searching
-    useEffect(() => {
-        if (value === "") {
-            setDisplay(false)
-        } else {
-            setDisplay(true)
-        }
 
-    }, [value])
+    const onAddition = useCallback((newTag) => {
+        setTags([...tags, newTag])
+    }, [tags])
 
 
     return (
         <>
-            <div>
+            <ReactTags
+            //@ts-ignore
+                ref={reactTags}
+                tags={tags}
+                suggestions={AllCountries}
+                onDelete={onDelete}
+                onAddition={onAddition}
+                minQueryLength={1}
+                placeholderText={"Add country"}
+                removeButtonText={"Remove country"}
+            />
+
+            {/* <div>
                 <input
                     type="text"
                     value={value}
@@ -56,15 +54,15 @@ export const SelectCountry = ({ AllCountries  }: SelectCountryProps) => {
                                     return false
                                 }
                             })
-                            .map((country, index)  => (
-                                    <p key={index} onClick={()=>addCountry(country)} >{country}</p>
+                            .map((country, index) => (
+                                <p key={index} onClick={() => addCountry(country)} >{country}</p>
                             ))
                         }
                     </div>
                     : <></>
                 }
-            </div>
-            <ChosenCountries Countries={selectedCountries} />
+            </div> */}
+            {/* <ChosenCountries Countries={selectedCountries} removedCountry={removeCountry} /> */}
 
         </>
     );
