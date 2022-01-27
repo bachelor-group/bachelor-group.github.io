@@ -30,6 +30,7 @@ svg {
   justify-content: center;
 }
 
+/* from: https://github.com/i-like-robots/react-tags  */
 .react-tags {
   position: relative;
   padding: 6px 0 0 6px;

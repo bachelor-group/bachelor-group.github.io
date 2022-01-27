@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ChosenCountries from "./ChosenCountries";
 import ReactTags, { Tag } from 'react-tag-autocomplete'
 
 interface SelectCountryProps {
@@ -10,17 +9,32 @@ interface SelectCountryProps {
 export const SelectCountry = ({ AllCountries }: SelectCountryProps) => {
 
     const [tags, setTags] = useState<Tag[]>([])
+    const [allCountries, setAllCountries]= useState<Tag[]>(AllCountries)
     const reactTags = useRef<Tag>()
 
 
     const onDelete = useCallback((tagIndex) => {
+        const deletedTag = tags.filter((_, i) => i === tagIndex)
+
         setTags(tags.filter((_, i) => i !== tagIndex))
+
+        // on remove, need to add back to allCountries
+        if (deletedTag.length === 1) {
+            setAllCountries([...allCountries, deletedTag[0]])
+        }
     }, [tags])
 
 
     const onAddition = useCallback((newTag) => {
         setTags([...tags, newTag])
+
+        // remove from suggestion list:
+        setAllCountries(allCountries.filter(Tag => Tag.name !== newTag.name))
     }, [tags])
+    
+    useEffect(()=>{
+        
+    }, [allCountries])
 
 
     return (
@@ -29,41 +43,14 @@ export const SelectCountry = ({ AllCountries }: SelectCountryProps) => {
             //@ts-ignore
                 ref={reactTags}
                 tags={tags}
-                suggestions={AllCountries}
+                suggestions={allCountries}
                 onDelete={onDelete}
                 onAddition={onAddition}
-                minQueryLength={1}
+                minQueryLength={0}
                 placeholderText={"Add country"}
                 removeButtonText={"Remove country"}
+                maxSuggestionsLength={6}
             />
-
-            {/* <div>
-                <input
-                    type="text"
-                    value={value}
-                    onChange={e => setValue(e.target.value)}
-                />
-                {display ?
-                    <div>
-                        {allCountries
-                            .filter(country => {
-                                if (!value) return true
-                                if (country.toLowerCase().includes(value.toLowerCase())) {
-                                    return true
-                                } else {
-                                    return false
-                                }
-                            })
-                            .map((country, index) => (
-                                <p key={index} onClick={() => addCountry(country)} >{country}</p>
-                            ))
-                        }
-                    </div>
-                    : <></>
-                }
-            </div> */}
-            {/* <ChosenCountries Countries={selectedCountries} removedCountry={removeCountry} /> */}
-
         </>
     );
 }
