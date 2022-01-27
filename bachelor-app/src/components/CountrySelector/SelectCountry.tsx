@@ -22,7 +22,7 @@ export const SelectCountry = ({ AllCountries }: SelectCountryProps) => {
         if (deletedTag.length === 1) {
             setAllCountries([...allCountries, deletedTag[0]])
         }
-    }, [tags])
+    }, [tags, allCountries])
 
 
     const onAddition = useCallback((newTag) => {
@@ -30,7 +30,7 @@ export const SelectCountry = ({ AllCountries }: SelectCountryProps) => {
 
         // remove from suggestion list:
         setAllCountries(allCountries.filter(Tag => Tag.name !== newTag.name))
-    }, [tags])
+    }, [tags, allCountries])
     
     useEffect(()=>{
         
