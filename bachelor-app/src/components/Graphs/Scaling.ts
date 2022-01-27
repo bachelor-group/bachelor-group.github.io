@@ -1,5 +1,6 @@
 import { extent, scaleLinear, scaleTime, timeParse } from "d3";
 import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
+import { DataType } from "../DataContext/MasterDataType";
 import { Plot } from '../Graphs/PlotType';
 
 // Scale, Return a scale to use for Axis for a graph
@@ -31,11 +32,9 @@ export const Scale = (Plot: Plot, bounds: number, getter: ((d: EpidemiologyData)
 let parseTime = timeParse("%Y-%m-%d")
 
 // DataAccessor, Function for accessing a property of data
-export const DataAccessor = (property: EpidemiologyEnum) => {
-    if (property === EpidemiologyEnum.date) {
-        return (d: EpidemiologyData) => parseTime(d.date!)
+export const DataAccessor = (property: keyof DataType) => {
+    if (property === "date"){
+        return (d: DataType) => parseTime(d.date!)
     }
-    else {
-        return (d: EpidemiologyData) => parseInt(d[property]!)
-    }
+        return (d: DataType) => parseInt(d[property]!)
 }

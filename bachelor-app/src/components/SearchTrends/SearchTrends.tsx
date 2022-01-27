@@ -1,32 +1,31 @@
-import { axisBottom, axisLeft, csv, scaleBand, scaleLinear, select } from 'd3';
-import React, { useEffect, useState } from 'react';
-import { EpidemiologyEnum } from '../DataContext/DataTypes';
-import { SearchTrendData, SearchTrendsEnum } from '../DataContext/SearchTrendType';
+import { useEffect, useState } from 'react';
+import { DataType } from '../DataContext/MasterDataType';
+import { SearchTrendsEnum } from '../DataContext/SearchTrendType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Plot, PlotType } from '../Graphs/PlotType';
-import {LoadSearchTrends as _LoadData} from './LoadSearchTrends';
+import { LoadSearchTrends as _LoadData } from './LoadSearchTrends';
 
 interface Props {
     LoadData?: typeof _LoadData
 }
 
 
-export interface SearchTrendPlot {
-    PlotType: PlotType,
-    Data: SearchTrendData[],
-    Axis: SearchTrendsEnum[],
-    Height: number,
-    Width: number,
-    Title: string,
-    GroupBy?: SearchTrendsEnum,
-}
+// export interface SearchTrendPlot {
+//     PlotType: PlotType,
+//     Data: SearchTrendData[],
+//     Axis: SearchTrendsEnum[],
+//     Height: number,
+//     Width: number,
+//     Title: string,
+//     GroupBy?: SearchTrendsEnum,
+// }
 
 
-function SearchTrends({LoadData = _LoadData}: Props) {
-    const [Data, setData] = useState<SearchTrendData[]>([])
-    const [Plots, setPlots] = useState<SearchTrendPlot[]>(
+function SearchTrends({ LoadData = _LoadData }: Props) {
+    const [Data, setData] = useState<DataType[]>([])
+    const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.Lollipop, Data: [], Axis: [SearchTrendsEnum.search_trends_testicular_pain, SearchTrendsEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
+            { PlotType: PlotType.Lollipop, Data: [], Axis: [SearchTrendsEnum.search_trends_common_cold, SearchTrendsEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
 
@@ -41,13 +40,13 @@ function SearchTrends({LoadData = _LoadData}: Props) {
 
     //Handle new Data
     useEffect(() => {
-        let newPlots: SearchTrendPlot[] = new Array(Plots.length);
+        let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
-            let xAxis: SearchTrendsEnum = Plot.Axis[0];
-            let yAxis: SearchTrendsEnum = Plot.Axis[1];
-            let newPlot: SearchTrendPlot;
-            let PlotData: SearchTrendData[] = []
+            let xAxis = Plot.Axis[0];
+            let yAxis = Plot.Axis[1];
+            let newPlot: Plot;
+            let PlotData: DataType[] = []
 
             for (let j = 0; j < Data.length; j++) {
                 if (Plot.GroupBy !== undefined) {
@@ -73,8 +72,5 @@ function SearchTrends({LoadData = _LoadData}: Props) {
         </div>
     );
 }
-
-
-
 
 export default SearchTrends;

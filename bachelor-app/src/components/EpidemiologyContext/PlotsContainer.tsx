@@ -8,10 +8,11 @@ import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
 
 interface PlotsProps {
-    Plots: Plot<EpidemiologyData | SearchTrendData, EpidemiologyEnum | SearchTrendsEnum>[]
+    Plots: Plot[]
 }
 
 export const PlotsContainer = ({ Plots }: PlotsProps) => {
+    //TODO check if temp really is needed here
     const [temp, setTemp] = useState(Plots)
 
     //Used to make the container Rerender

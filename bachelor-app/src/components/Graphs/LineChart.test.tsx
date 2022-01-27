@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 it("renders with or without a name", () => {
-  let FAKEPLOT: Plot<EpidemiologyData | SearchTrendData, EpidemiologyEnum | SearchTrendsEnum> = { PlotType: PlotType.LineChart, Data: [], Axis: [], Height: 100, Width: 100, Title: "A Title" }
+  let FAKEPLOT: Plot = { PlotType: PlotType.LineChart, Data: [], Axis: [], Height: 100, Width: 100, Title: "A Title" }
   act(() => {
     render(<LineChart Width={100} Height={100} Plot={FAKEPLOT} />, container);
   });

@@ -10,9 +10,7 @@ let data: SearchTrendData[] = []
 
 export const LoadSearchTrends = () => {
     return new Promise<SearchTrendData[]>((resolve) => {
-        console.log("LOADING DATA")
         csv(SearchTrendUrl).then(d => {
-            console.log("DATA IS HERE")
             resolve(d);
         });
     })
