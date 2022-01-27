@@ -66,7 +66,9 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
                 { id: 4, name: "The United States of America" },
                 { id: 5, name: "Great Britain" },
                 { id: 6, name: "Netherlands" }
-            ]} />
+            ]}
+            Data={Data} />
+
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 {
                     Data.length === 0 ?
