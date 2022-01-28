@@ -8,32 +8,43 @@ const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 // const URL2 = "https://storage.googleapis.com/covid19-open-data/v3/location/DK.csv"
 
-export const LoadData = (countries: TagExtended[]) => {
+export const LoadData = (requestedCountries: TagExtended[], loadedCountries: TagExtended[], data: EpidemiologyData[]) => {
     return new Promise<EpidemiologyData[]>((resolve) => {
+        let loaded_csv: number = loadedCountries.length;
+        if (requestedCountries.length > loadedCountries.length) {
+
+            csv(url + requestedCountries.at(-1)!.location_key + ".csv").then(d => {
+                d.forEach(element => {
+                    data.push(element)
+                });
+                loaded_csv++
+                if (requestedCountries.length === loaded_csv) {
+                    resolve(data);
+                    return;
+                }
+            });
+        }
+        loaded_csv = 0;
         let data: EpidemiologyData[] = []
-        let loaded_csv: number = 0;
-        if (countries.length === 0) {
+        if (requestedCountries.length === 0) {
             csv(NorwayEpidemiologyUrl).then(d => {
                 d.forEach(element => {
                     data.push(element)
                 });
                 resolve(data);
             });
-
         } else {
-            countries.forEach((country) => {
+            requestedCountries.forEach((country) => {
                 csv(url + country.location_key + ".csv").then(d => {
-                    console.log(url+country.location_key+".csv")
                     d.forEach(element => {
                         data.push(element)
                     });
                     loaded_csv++
-                    if (countries.length === loaded_csv) {
+                    if (requestedCountries.length === loaded_csv) {
                         resolve(data);
                     }
                 });
             });
-
         }
     })
 }
