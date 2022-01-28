@@ -5,60 +5,46 @@ import { EpidemiologyData } from "../DataContext/DataTypes";
 import { csv } from "d3";
 import { resolve } from "node:path/win32";
 
-interface SelectCountryProps {
-    AllCountries: Tag[]
-    Data: EpidemiologyData[]
+
+interface TagExtended extends Tag {
+    location_key: string
 
 }
+
 const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
 
-
 const LoadData = () => {
-    return new Promise<EpidemiologyData[]>((resolve) => {
-        let IndexData: any[] = []
+    return new Promise<TagExtended[]>((resolve) => {
+        let Data: TagExtended[] = []
         csv(url).then(d => {
-            d.forEach(element => {
-                IndexData.push(element.country_name)
+            d.forEach((element, index) => {
+                Data.push({ id: index, name: element.country_name!, location_key: element.country_code! })
             });
-            resolve(IndexData);
+            resolve(Data);
         });
     })
 }
-// let Countries: string[] = []
 
-// for (let i = 0; i < IndexData.length; i++) {
-//     Countries.push(IndexData[i].country_name)
+export const SelectCountry = () => {
 
-// }
-
-
-export const SelectCountry = ({ AllCountries, Data }: SelectCountryProps) => {
-
-    const [tags, setTags] = useState<Tag[]>([])
-    const [allCountries, setAllCountries] = useState<Tag[]>(AllCountries)
+    const [tags, setTags] = useState<TagExtended[]>([])
+    const [allCountries, setAllCountries] = useState<Tag[]>([])
+    const [data, setData] = useState<TagExtended[]>([])
     const reactTags = useRef<Tag>()
 
-    let IndexData = LoadData()
 
-    //@ts-ignore
-    let locations = [...new Set(IndexData)]
+    useEffect(() => {
+        LoadData().then((d: TagExtended[]) => {
+            setData(d)
+        })
+    }, [])
 
-    console.log(locations)
+    // remove in future if we should also display regions of country
+    // just set suggestion list to data
+    useEffect(() => {
+        setAllCountries(data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i))
 
-
-    // const location_keys: string[] = []
-    // let locations = new Set<string>();
-
-    // console.log(iso31661)
-    // for (let i = 0; i < Data.length; i++) {
-    //     location_keys.push(Data[i].location_key!)
-    // }
-    // Data.forEach((location) => console.log(location.location_key))
-    //@ts-ignore https://stackoverflow.com/questions/33464504/using-spread-syntax-and-new-set-with-typescript - seems to be ok to use here
-    // locations = [...new Set(Data.forEach((location))]
-    // console.log(locations)
-
-
+    }, [data])
 
     const onDelete = useCallback((tagIndex) => {
         const deletedTag = tags.filter((_, i) => i === tagIndex)

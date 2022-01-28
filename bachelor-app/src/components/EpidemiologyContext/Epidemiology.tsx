@@ -59,15 +59,7 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
 
     return (
         <>
-            <SelectCountry AllCountries={[
-                { id: 1, name: "Norway" },
-                { id: 2, name: "Sweden" },
-                { id: 3, name: "Italy" },
-                { id: 4, name: "The United States of America" },
-                { id: 5, name: "Great Britain" },
-                { id: 6, name: "Netherlands" }
-            ]}
-            Data={Data} />
+            <SelectCountry />
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 {
