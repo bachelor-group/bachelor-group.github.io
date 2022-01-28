@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { axisLeft, axisBottom, select } from 'd3';
 import { Plot } from "./PlotType";
 import { DataAccessor, Scale } from "./Scaling";
-
+import { GraphTooltip } from "./Tooltip";
 
 interface ScatterProps {
     Width: number,
@@ -66,18 +66,19 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     // Build the shapes
     const allShapes = Data.map((d, i) => {
         return (
-            <circle
-                key={i}
-                r={1}
-                cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
-                cy={yScale(parseInt(d[Plot.Axis[1]]!))}
-                opacity={1}
-                stroke="#9a6fb0"
-                fill="#9a6fb0"
-
-                fillOpacity={0.7}
-                strokeWidth={1}
-            />
+            GraphTooltip(Plot, d,
+                <circle
+                    key={i}
+                    r={2}
+                    cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
+                    cy={yScale(parseInt(d[Plot.Axis[1]]!))}
+                    opacity={1}
+                    stroke="#9a6fb0"
+                    fill="#9a6fb0"
+                    fillOpacity={0.7}
+                    strokeWidth={1}
+                />
+            )
         );
     });
 
@@ -100,7 +101,6 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
-                <rect><text>hello</text></rect>
             </svg>
         </div>
     );
