@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
-import SelectCountry from '../CountrySelector/SelectCountry';
+import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
 import { EpidemiologyData, EpidemiologyEnum } from '../DataContext/DataTypes';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { Plot, PlotType } from '../Graphs/PlotType';
@@ -22,16 +22,17 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
             { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
-    const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
+    // const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
     const [Data, setData] = useState<EpidemiologyData[]>([]);
+    const [Countries, setCountries] = useState<TagExtended[]>([]);
 
 
     // Update Data if new Data is requested
     useEffect(() => {
-        _LoadData().then((d: EpidemiologyData[]) => {
+        _LoadData(Countries).then((d: EpidemiologyData[]) => {
             setData(d);
         })
-    }, [RequestedData]);
+    }, [Countries]);
 
     //Handle new Data
     useEffect(() => {
@@ -57,9 +58,13 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         setPlots(newPlots);
     }, [Data]);
 
+    const allCountries = (countries: TagExtended[]) => {
+        setCountries(countries)
+    };
+
     return (
         <>
-            <SelectCountry />
+            <SelectCountry selectedCountries={allCountries} />
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 {

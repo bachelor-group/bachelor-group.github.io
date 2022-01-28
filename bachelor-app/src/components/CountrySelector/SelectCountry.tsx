@@ -6,7 +6,7 @@ import { csv } from "d3";
 import { resolve } from "node:path/win32";
 
 
-interface TagExtended extends Tag {
+export interface TagExtended extends Tag {
     location_key: string
 
 }
@@ -25,7 +25,7 @@ const LoadData = () => {
     })
 }
 
-export const SelectCountry = () => {
+export const SelectCountry = ({ selectedCountries }: { selectedCountries: (countries: TagExtended[]) => void }) => {
 
     const [tags, setTags] = useState<TagExtended[]>([])
     const [allCountries, setAllCountries] = useState<Tag[]>([])
@@ -46,23 +46,34 @@ export const SelectCountry = () => {
 
     }, [data])
 
+
+    useEffect(() => {
+        // emit to parent a new country is added:
+        selectedCountries(data.filter(d => tags.find(t => t.id === d.id)))
+    }, [tags])
+
+
     const onDelete = useCallback((tagIndex) => {
-        const deletedTag = tags.filter((_, i) => i === tagIndex)
+        if (tagIndex !== -1) {
+            const deletedTag = tags.filter((_, i) => i === tagIndex)
+            // bug here? with indexing? be aware!
+            setTags(tags.filter((_, i) => i !== tagIndex))
 
-        setTags(tags.filter((_, i) => i !== tagIndex))
-
-        // on remove, need to add back to allCountries
-        if (deletedTag.length === 1) {
+            // on remove, need to add back to allCountries
             setAllCountries([...allCountries, deletedTag[0]])
+
         }
     }, [tags, allCountries])
 
 
+    // newTag er bare en Tag, så får ikke med landskoden... om vi ikk efår det er det nok ikke vits å laste inn data, og så filtrere bort regions?
+    // id'ene stemmer overens, så mulig vi må bare sjekke med datalisten
     const onAddition = useCallback((newTag) => {
         setTags([...tags, newTag])
 
         // remove from suggestion list:
         setAllCountries(allCountries.filter(Tag => Tag.name !== newTag.name))
+
     }, [tags, allCountries])
 
 
