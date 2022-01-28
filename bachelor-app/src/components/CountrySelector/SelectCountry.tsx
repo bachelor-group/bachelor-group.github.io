@@ -3,7 +3,6 @@ import ReactTags, { Tag } from 'react-tag-autocomplete'
 import { iso31661 } from 'iso-3166'
 import { EpidemiologyData } from "../DataContext/DataTypes";
 import { csv } from "d3";
-import { resolve } from "node:path/win32";
 
 
 export interface TagExtended extends Tag {
@@ -18,12 +17,15 @@ const LoadData = () => {
         let Data: TagExtended[] = []
         csv(url).then(d => {
             d.forEach((element, index) => {
-                Data.push({ id: index, name: element.country_name!, location_key: element.country_code! })
+                if (element.location_key === element.country_code) {
+                    Data.push({ id: Data.length, name: element.country_name!, location_key: element.country_code! })
+                }
             });
             resolve(Data);
         });
     })
 }
+
 
 export const SelectCountry = ({ selectedCountries }: { selectedCountries: (countries: TagExtended[]) => void }) => {
 
@@ -42,7 +44,8 @@ export const SelectCountry = ({ selectedCountries }: { selectedCountries: (count
     // remove in future if we should also display regions of country
     // just set suggestion list to data
     useEffect(() => {
-        setAllCountries(data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i))
+        // setAllCountries(data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i))
+        setAllCountries(data)
 
     }, [data])
 

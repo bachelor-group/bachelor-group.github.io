@@ -24,13 +24,17 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         ]);
     // const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
     const [Data, setData] = useState<EpidemiologyData[]>([]);
+    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [Countries, setCountries] = useState<TagExtended[]>([]);
 
 
     // Update Data if new Data is requested
     useEffect(() => {
-        _LoadData(Countries).then((d: EpidemiologyData[]) => {
+        _LoadData(Countries, LoadedCountries, Data).then((d: EpidemiologyData[]) => {
             setData(d);
+
+            // ensure deep copy
+            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
         })
     }, [Countries]);
 
@@ -59,6 +63,7 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
     }, [Data]);
 
     const allCountries = (countries: TagExtended[]) => {
+        console.log(countries)
         setCountries(countries)
     };
 
