@@ -4,28 +4,21 @@ import { SearchTrendsEnum } from '../DataContext/SearchTrendType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import { LoadSearchTrends as _LoadData } from './LoadSearchTrends';
+import { SearchTrendsList } from './Old_script';
 
 interface Props {
     LoadData?: typeof _LoadData
 }
 
 
-// export interface SearchTrendPlot {
-//     PlotType: PlotType,
-//     Data: SearchTrendData[],
-//     Axis: SearchTrendsEnum[],
-//     Height: number,
-//     Width: number,
-//     Title: string,
-//     GroupBy?: SearchTrendsEnum,
-// }
+const HARDCODED = SearchTrendsList
 
 
 function SearchTrends({ LoadData = _LoadData }: Props) {
     const [Data, setData] = useState<DataType[]>([])
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.Lollipop, Data: [], Axis: [SearchTrendsEnum.search_trends_common_cold, SearchTrendsEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
+            { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in ${Data[0]}` },
         ]);
 
 
@@ -52,11 +45,11 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                 if (Plot.GroupBy !== undefined) {
                     PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
                 } else {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
+                    PlotData.push(Data[j])
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends for AU in ${Data[730] ? Data[730]["date"] : "Unkown"}`, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);

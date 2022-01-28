@@ -6,6 +6,8 @@ import Lollipop from "../Graphs/Lollipop";
 import { Plot, PlotType } from "../Graphs/PlotType";
 import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
+import { SearchTrendsList } from "../SearchTrends/Old_script";
+
 
 interface PlotsProps {
     Plots: Plot[]
@@ -34,7 +36,7 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                         return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
                     case PlotType.Lollipop:
-                        return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                        return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`

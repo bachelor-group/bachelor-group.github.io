@@ -26,6 +26,9 @@ svg {
 #main {
   width: 80%;
   margin: auto;
+  margin-top: 10px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
 }

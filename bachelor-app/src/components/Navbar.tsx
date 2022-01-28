@@ -19,7 +19,7 @@ function NavbarC() {
             <NavDropdown title="Epidemiology" id="collasible-nav-dropdown" >
               {epidemiologyList.map((item, i) => <NavDropdown.Item key={i} href={item}>{item}</NavDropdown.Item>)}
               <NavDropdown.Divider />
-              <NavDropdown.Item href="#/Scatter">Scatter</NavDropdown.Item>
+              <NavDropdown.Item href="#/EpidemiologyPlots">Graphs</NavDropdown.Item>
             </NavDropdown>
             <Nav.Link href="#/Searchtrends">Search Trends</Nav.Link>
             <Nav.Link href="#/Vaccinations">Vaccination</Nav.Link>
