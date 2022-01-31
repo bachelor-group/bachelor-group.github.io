@@ -1,9 +1,10 @@
-import { axisBottom, axisLeft, group, line, max, min, scaleOrdinal, select, zoom } from 'd3';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { axisBottom, axisLeft, bisector, group, line, max, min, ScaleLinear, scaleOrdinal, scaleTime, ScaleTime, select, zoom } from 'd3';
+import { useEffect, useMemo, useRef, useState, MouseEvent } from 'react';
 import { EpidemiologyData } from "../DataContext/DataTypes";
 import { zoomIdentity } from 'd3-zoom';
 import { Plot } from './PlotType';
 import { DataAccessor, Scale } from './Scaling';
+import { DataType } from '../DataContext/MasterDataType';
 
 
 interface LineChartProps {
@@ -21,6 +22,9 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Group, setGroup] = useState(group(Plot.Data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
+    const [Tooltipx, setTooltipx] = useState(50);
+    const [dots, setdots] = useState<number[][]>([]);
+    const [showToolTip, setShowTooltip] = useState(false);
 
     const yValue = useMemo(() => {
         return DataAccessor(Plot.Axis[1]);
@@ -40,9 +44,12 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
         return Scale(Plot, boundsWidth, xValue);
     }, [Plot, boundsWidth]);
 
+    // zoomedxScale is currently the domain
+    const [zoomedxScale, setzoomedxScale] = useState<Date[] | number[]>([]);
     //Groups
     useEffect(() => {
         setGroup(group(Plot.Data, (d) => d[Plot.GroupBy!]));
+        setzoomedxScale(Scale(Plot, boundsWidth, xValue).domain());
     }, [Plot]);
 
     // Draw Axis
@@ -77,18 +84,16 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
             .scaleExtent([1, 32])
             .on("zoom", ((event) => {
                 let t = event.transform
-                t.x = min([t.x, 0]);
-                t.y = min([t.y, 0]);
-                t.x = max([t.x, (1 - t.k) * Width]);
-                t.y = max([t.y, (1 - t.k) * Height]);
 
                 // recover the new scale
-                var newX = t.rescaleX(xScale);
-                var newY = t.rescaleY(yScale);
+                let newxScale = event.transform.rescaleX(xScale);
+                let newyScale = event.transform.rescaleY(yScale);
+
+                setzoomedxScale(newxScale.domain())
 
                 // update axes with these new boundaries
-                xAxis.call(axisBottom(newX))
-                yAxis.call(axisLeft(newY))
+                xAxis.call(axisBottom(newxScale))
+                yAxis.call(axisLeft(newyScale))
 
                 // update circle position
                 select(svgRef.current)
@@ -123,9 +128,34 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
         countries.push(country!);
     });
 
+    // TODO: NEEDS MAJOR REFACTORING
+    //ToolTip boys
+    function test(event: MouseEvent<SVGSVGElement, globalThis.MouseEvent>) {
+        //console.log(zoomedxScale)
+
+        if (typeof zoomedxScale[0] != "number") {
+            // Create a scale with zoom
+            let tester = scaleTime().domain(zoomedxScale).range([0, boundsWidth])
+
+            // Find Date of hovered pixel
+            let Date = tester.invert(event.nativeEvent.offsetX - MARGIN.left - 5).toISOString().split("T")[0]
+            let id = Plot.Data.findIndex((d) => d["date"] == Date);
+
+            // Create points dots and move line to pointer
+            let newdots: number[][] = []
+            Group.forEach((countryData, country) => {
+                console.log(countryData[id]["date"])
+                console.log(yValue(countryData[id]))
+                newdots.push([(event.nativeEvent.offsetX - MARGIN.left - 5), yScale(yValue(countryData[id])!)])
+            })
+            setdots(newdots);
+            setTooltipx(event.nativeEvent.offsetX - MARGIN.left - 5);
+        }
+    }
+
     return (
-        <div>
-            <svg className="plot" width={Width} height={Height} ref={svgRef}>
+        <div style={{ position: "relative" }}>
+            <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (test(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
                 <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 <g
                     width={boundsWidth}
@@ -139,15 +169,23 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
                     ))}
 
 
-                    {/* .style("fill", function(d){ return color(d)}) */}
+                    {/* Tooltips */}
+                    <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
 
+                    {dots.map((points, index) => (
+                        <circle cx={points[0]} cy={points[1]} r={4} fill={colorscale(countries[index])} opacity={showToolTip ? 1 : 0} />
+                    ))}
                 </g>
+
+                {/* Axis */}
                 <g
                     width={boundsWidth}
                     height={boundsHeight}
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
+
+                {/* Legend */}
                 <g width={80} height={countries.length * 25} transform={`translate(${[MARGIN.left + boundsWidth / 20, MARGIN.top].join(",")})`} >
                     <rect x={0} y={0} width={50} height={countries.length * 25} fill={"#ffffff"} strokeWidth={1} stroke={"gray"} />
                     {countries.map((country, i) =>
