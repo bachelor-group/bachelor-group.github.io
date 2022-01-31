@@ -34,7 +34,6 @@ export const SelectCountry = ({ selectedCountries }: { selectedCountries: (count
     const [data, setData] = useState<TagExtended[]>([])
     const reactTags = useRef<Tag>()
 
-
     useEffect(() => {
         LoadData().then((d: TagExtended[]) => {
             setData(d)
@@ -78,11 +77,12 @@ export const SelectCountry = ({ selectedCountries }: { selectedCountries: (count
         setAllCountries(allCountries.filter(Tag => Tag.name !== newTag.name))
 
     }, [tags, allCountries])
-
+    
 
     return (
         <>
             <ReactTags
+                data-testid="tag"
                 //@ts-ignore
                 ref={reactTags}
                 tags={tags}

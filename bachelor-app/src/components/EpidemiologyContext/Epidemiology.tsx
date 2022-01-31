@@ -62,14 +62,13 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         setPlots(newPlots);
     }, [Data]);
 
-    const allCountries = (countries: TagExtended[]) => {
-        console.log(countries)
+    const selectedCountries = (countries: TagExtended[]) => {
         setCountries(countries)
     };
 
     return (
         <>
-            <SelectCountry selectedCountries={allCountries} />
+            <SelectCountry selectedCountries={selectedCountries} />
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 {
