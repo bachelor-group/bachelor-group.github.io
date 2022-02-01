@@ -1,23 +1,22 @@
-import { fireEvent, logRoles, render, screen } from "@testing-library/react";
-import { csv } from "d3";
-import { useState } from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { unmountComponentAtNode } from "react-dom";
-import { Tag } from "react-tag-autocomplete";
-import { promises } from "stream";
 import SelectCountry, { TagExtended } from "./SelectCountry";
-
-const TIMEOUT_LONG = 6000
-const TIMEOUT_MEDIUM = 3000
-const TIMEOUT_SHORT = 100
 
 
 let dummyCountries: TagExtended[] = []
 let container: HTMLDivElement | null = null;
+
+let fakeParentState: TagExtended[]  = []
+const fakeParentStateFunction = (countries: TagExtended[]) => {
+  fakeParentState = countries;
+}
+
 beforeEach(() => {
   // setup a DOM element as a render target
   container = document.createElement("div");
   document.body.appendChild(container);
-  dummyCountries = []
+  dummyCountries = [];
+  fakeParentState = [];
 });
 
 afterEach(() => {
@@ -83,6 +82,43 @@ ${8}
     const element = dummyCountries[i];
     let CountryToSelect = await screen.findByText(element.name)
     fireEvent.click(CountryToSelect)
+  }
+  input.blur()
+
+  //Expect selected tags to be present
+  for (let i = 0; i < NumberOfCountriesToSelect; i++) {
+    await screen.findByText(dummyCountries[i].name)
+  }
+
+  // Next non selected country should not be there
+  expect(screen.queryByText(dummyCountries[NumberOfCountriesToSelect].name)).toBeNull()
+
+  input.focus()
+
+  //Now Selected and 6 non-selected countries should be there
+  //Expect selected tags to be present
+  for (let i = 0; i < (NumberOfCountriesToSelect + 6 < dummyCountries.length ? NumberOfCountriesToSelect + 6 : dummyCountries.length); i++) {
+    await screen.findByText(dummyCountries[i].name)
+  }
+});
+
+
+test.each`
+NumberOfCountriesToSelect
+${1}
+${2}
+${3}
+${4}
+`('Test that StateFunction gets called with NumberofCountries: $NumberOfCountriesToSelect', async ({ NumberOfCountriesToSelect }) => {
+  render(<SelectCountry selectedCountries={fakeParentStateFunction} LoadData={FakeData} />);
+  let input = await screen.findByPlaceholderText("Add country")
+  input.focus()
+
+  for (let i = 0; i < NumberOfCountriesToSelect; i++) {
+    const element = dummyCountries[i];
+    let CountryToSelect = await screen.findByText(element.name)
+    fireEvent.click(CountryToSelect)
+    expect(fakeParentState.length).toBe(i+1)
   }
   input.blur()
 
