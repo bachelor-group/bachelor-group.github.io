@@ -26,7 +26,6 @@ export const LoadMapData = () => {
                 setWorldData(countries)
             }
         })
-        console.log("loaded data")
     }, [])
 
     return (

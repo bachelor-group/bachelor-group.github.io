@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
 import { EpidemiologyEnum, hasKey } from '../DataContext/DataTypes';
+import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
@@ -21,16 +22,20 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
             { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
-    const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
     const [Data, setData] = useState<DataType[]>([]);
+    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
+    const [Countries, setCountries] = useState<TagExtended[]>([]);
 
 
     // Update Data if new Data is requested
     useEffect(() => {
-        _LoadData().then((d: DataType[]) => {
+        _LoadData(Countries, LoadedCountries, Data).then((d: DataType[]) => {
             setData(d);
+
+            // ensure deep copy
+            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
         })
-    }, [RequestedData]);
+    }, [Countries]);
 
     //Handle new Data
     useEffect(() => {
@@ -59,19 +64,27 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         setPlots(newPlots);
     }, [Data]);
 
+    const selectedCountries = (countries: TagExtended[]) => {
+        setCountries(countries)
+    };
+
     return (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-            {
-                Data.length === 0 ?
-                    <Row md="auto" className="align-items-center">
-                        <Col style={{ width: "500px" }}>
-                            <ProgressBar animated now={100} />
-                        </Col>
-                    </Row>
-                    :
-                    < PlotsContainer Plots={Plots} />
-            }
-        </div>
+        <>
+            <SelectCountry selectedCountries={selectedCountries} />
+
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                {
+                    Data.length === 0 ?
+                        <Row md="auto" className="align-items-center">
+                            <Col style={{ width: "500px" }}>
+                                <ProgressBar animated now={100} />
+                            </Col>
+                        </Row>
+                        :
+                        < PlotsContainer Plots={Plots} />
+                }
+            </div>
+        </>
     );
 }
 
