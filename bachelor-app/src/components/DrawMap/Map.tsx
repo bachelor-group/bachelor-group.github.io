@@ -4,16 +4,6 @@ import { feature } from 'topojson';
 import { Topology } from 'topojson-specification'
 import { GeoJsonProperties } from "geojson";
 import DrawMap from './DrawMap';
-import { iso31662, iso31661Alpha2ToNumeric, ISO31662Entry } from 'iso-3166'
-
-
-
-// console.log(iso31662)
-// console.log(iso31661Alpha2ToNumeric)
-
-// console.log(iso31661Alpha2ToNumeric["NO"])
-
-// console.log(iso31662.find(x=> x.code === "AD-02"))
 
 export const LoadMapData = () => {
     const JsonUrl = "https://d3js.org/world-50m.v1.json"
@@ -36,7 +26,6 @@ export const LoadMapData = () => {
                 setWorldData(countries)
             }
         })
-        console.log("loaded data")
     }, [])
 
     return (

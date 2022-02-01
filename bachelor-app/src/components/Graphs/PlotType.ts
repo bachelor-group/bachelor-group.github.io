@@ -3,13 +3,15 @@ import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 export enum PlotType {
     Scatter,
     LineChart,
-    WorldCloud
+    WorldCloud,
+    Lollipop,
 }
 
 export type PlotDataType = {
     xaxis: string,
     yaxis: string,
     }
+
 export interface Plot {
     PlotType: PlotType,
     Data: EpidemiologyData[],

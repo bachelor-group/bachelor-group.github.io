@@ -1,8 +1,9 @@
-import { axisBottom, axisLeft, curveBasis, curveCatmullRom, extent, format, group, line, max, min, scaleLinear, scaleOrdinal, scaleTime, select, sum, timeParse, zoom } from 'd3';
+import { axisBottom, axisLeft, group, line, max, min, scaleOrdinal, select, zoom } from 'd3';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
-import { zoomIdentity, D3ZoomEvent, ZoomScale } from 'd3-zoom';
+import { EpidemiologyData } from "../DataContext/DataTypes";
+import { zoomIdentity } from 'd3-zoom';
 import { Plot } from './PlotType';
+import { DataAccessor, Scale } from './Scaling';
 
 
 interface LineChartProps {
@@ -21,49 +22,28 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Group, setGroup] = useState(group(Plot.Data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
 
+    const yValue = useMemo(() => {
+        return DataAccessor(Plot.Axis[1]);
+    }, [Plot]);
+
     const yScale = useMemo(() => {
-        const [min, max] = extent(Plot.Data, function (d) {
-            return parseInt(d[Plot.Axis[1]]!)
-        })
-
-        if (min === undefined || max === undefined) {
-            return scaleLinear();
-        }
-
-        return scaleLinear().domain([min, max]).range([boundsHeight, 0]).nice();
+        return Scale(Plot, boundsHeight, yValue, "Y");
     }, [Plot, boundsHeight]);
-
-    let parseTime = timeParse("%Y-%m-%d")
 
     // Get x value
     const xValue = useMemo(() => {
-        if (Plot.Axis[0] === EpidemiologyEnum.date) {
-            return (d: EpidemiologyData) => parseTime(d.date!)
-        }
-        else {
-            return (d: EpidemiologyData) => parseInt(d[Plot.Axis[0]]!)
-        }
-    }, [Plot, boundsWidth]);
+        return DataAccessor(Plot.Axis[0]);
+    }, [Plot]);
 
     // X Axis
     const xScale = useMemo(() => {
-        const [min, max] = extent(Plot.Data, (d) => xValue(d));
-
-        if (Plot.Axis[0] === EpidemiologyEnum.date) {
-            return scaleTime().domain([min!, max!]).range([0, boundsWidth]);
-        }
-        else {
-            return scaleLinear().domain([min!, max!]).range([0, boundsWidth]).nice();
-        }
-
+        return Scale(Plot, boundsWidth, xValue);
     }, [Plot, boundsWidth]);
 
     //Groups
     useEffect(() => {
         setGroup(group(Plot.Data, (d) => d[Plot.GroupBy!]));
     }, [Plot]);
-
-
 
     // Draw Axis
     const [xAxis, yAxis] = useMemo(() => {
@@ -85,7 +65,6 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
         return AxisBoys
     }, [xScale, yScale, boundsHeight]);
 
-
     //ZOOM
     const Zoom = useMemo(() => {
         let svg = select<SVGSVGElement, unknown>(svgRef.current!)
@@ -100,8 +79,8 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
                 let t = event.transform
                 t.x = min([t.x, 0]);
                 t.y = min([t.y, 0]);
-                t.x = max([t.x, (1-t.k) * Width]);
-                t.y = max([t.y, (1-t.k) * Height]);
+                t.x = max([t.x, (1 - t.k) * Width]);
+                t.y = max([t.y, (1 - t.k) * Height]);
 
                 // recover the new scale
                 var newX = t.rescaleX(xScale);
@@ -133,7 +112,7 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
     // Init line-generator
     const reactLine = line<EpidemiologyData>()
         .x(d => xScale(xValue(d)!))
-        .y(d => yScale(parseInt((d[Plot.Axis[1]])!)))
+        .y(d => yScale(yValue(d)!))
     // .curve(curveBasis);
 
     //Create line-paths
