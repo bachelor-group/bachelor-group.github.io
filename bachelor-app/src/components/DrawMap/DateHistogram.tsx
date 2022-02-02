@@ -1,5 +1,6 @@
 import { scaleLinear, scaleTime, max, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse } from 'd3';
 import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject } from 'react';
+import { DataAccessor, Scale } from '../Graphs/Scaling';
 import AxisBottom from './AxisBottom';
 import AxisLeft from './AxisLeft';
 import Marks from './Marks';
@@ -15,14 +16,14 @@ interface HistogramProps {
     width: number,
     height: number,
     setBrushExtent: Dispatch<SetStateAction<undefined>>,
-    xValue: (d: EpidemiologyMinimum) => string
+    // xValue: (d: EpidemiologyMinimum) => string
 }
 
 export interface binData {
-    total_new_cases: number,
+    total_confirmed: (d: EpidemiologyMinimum) => number,
     date_start: Date,
     date_end: Date
-    
+
 }
 
 const margin = { top: 30, right: 50, bottom: 30, left: 125 };
@@ -41,7 +42,7 @@ export const DateHistogram = ({
     width,
     height,
     setBrushExtent,
-    xValue,
+    // xValue,
 }: HistogramProps) => {
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
@@ -49,38 +50,60 @@ export const DateHistogram = ({
     let parseTime = timeParse("%Y-%m-%d")
 
 
+    // const xScale = useMemo(() => {
+    //     const [min, max] = extent(Data, (d) => parseTime(d.date!));
+    //     // return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
+    //     const timeScale = scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
+    //     return timeScale
+    // }, [Data, innerWidth, xValue]);
+
+    // Get x value
+    const xValue = useMemo(() => {
+        return DataAccessor("date");
+    }, []);
+
+    // X Axis
     const xScale = useMemo(() => {
+
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
-        // return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
-        return scaleTime().domain([min!, max!]).range([0, innerWidth]).nice();
-    }, [Data, innerWidth, xValue]);
+
+        let StartOfBounds = 0;
+        let EndOfBounds = innerWidth;
+
+        return scaleTime().domain([min!, max!]).range([StartOfBounds, EndOfBounds]);
+    }, [Data, innerWidth]);
 
 
     const binnedData: binData[] = useMemo(() => {
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
-            .value((d) => parseTime(d.date!)!)
+            .value((d) => parseTime(d.date)!)
             .domain([start, stop])
             .thresholds(timeMonths(start, stop))(Data)
             .map(array => ({
-                total_new_cases: sum(array, yValue),
+                total_confirmed: yValue,
                 date_start: array.x0!,
                 date_end: array.x1!
             }))
             ;
-            console.log(bar)
+        // console.log(bar)
 
         return bar
     }, [xValue, yValue, xScale, Data]);
 
 
-    const yScale = useMemo(
-        () =>
-            scaleLinear()
-                .domain([0, max(binnedData, d => d.total_new_cases)!])
-                .range([innerHeight, 0]),
-        [binnedData, innerHeight]
-    );
+    // const yScale = useMemo(
+    //     () =>
+    //         scaleLinear()
+    //             .domain([0, max(binnedData, d => d.total_confirmed)!])
+    //             .range([innerHeight, 0]),
+    //     [binnedData, innerHeight]
+    // );
+    const yScale = useMemo(() => {
+        const [min, max] = extent(Data, yValue);
+
+        return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
+    }, [])
 
     // const brushRef = useRef<RefObject<SVGGElement>>();
 

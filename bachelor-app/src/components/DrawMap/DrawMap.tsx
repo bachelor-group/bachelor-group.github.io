@@ -103,7 +103,32 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         }
     }
 
-    const data: EpidemiologyMinimum[] = [{ date: "2022-02-12", total_confirmed: 23 }, { date: "2022-02-13", total_confirmed: 23 }, { date: "2021-01-13", total_confirmed: 100 }, { date: "2021-08-14", total_confirmed: 70 }]
+    const data: EpidemiologyMinimum[] = [
+        { date: "2020-01-01", total_confirmed: 23 },
+        { date: "2021-01-02", total_confirmed: 83 },
+        { date: "2021-01-03", total_confirmed: 100 },
+        { date: "2021-02-01", total_confirmed: 70 },
+        { date: "2021-02-02", total_confirmed: 23 },
+        { date: "2021-02-13", total_confirmed: 83 },
+        { date: "2021-05-13", total_confirmed: 100 },
+        { date: "2021-05-07", total_confirmed: 70 },
+        { date: "2021-05-01", total_confirmed: 23 },
+        { date: "2021-01-01", total_confirmed: 23 },
+        { date: "2021-01-01", total_confirmed: 20 },
+        { date: "2021-01-01", total_confirmed: 22 },
+        { date: "2021-02-13", total_confirmed: 83 },
+        { date: "2022-01-13", total_confirmed: 130 },
+        { date: "2022-01-01", total_confirmed: 20 },
+        { date: "2022-02-13", total_confirmed: 13 },
+        { date: "2022-01-23", total_confirmed: 100 },
+        { date: "2022-01-01", total_confirmed: 78 },
+        { date: "2022-02-13", total_confirmed: 87 },
+        { date: "2022-01-13", total_confirmed: 160 },
+        { date: "2022-09-01", total_confirmed: 75 },
+        { date: "2022-02-13", total_confirmed: 84 },
+        { date: "2022-09-13", total_confirmed: 200 },
+        { date: "2022-09-01", total_confirmed: 70 },
+    ]
 
     const xValue = (d: EpidemiologyMinimum) => d.date;
     return (
@@ -120,7 +145,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                     width={width}
                     height={dateHistogramSize * height}
                     setBrushExtent={setBrushExtent}
-                    xValue={xValue}
+                    // xValue={xValue}
                 />
 
             </svg>

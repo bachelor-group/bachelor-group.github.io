@@ -19,12 +19,14 @@ export const Marks = ({
             <rect
                 className="mark"
                 x={xScale(d.date_start)}
-                y={yScale(d.total_new_cases)}
-                width={xScale(d.date_end) - xScale(d.date_start)}
-                height={innerHeight - yScale(d.total_new_cases)}
-                onClick={() => console.log(binnedData[index].date_start)}
+                // x={xScale(d.date_start)-(0.5*xScale(d.date_start))}
+                y={yScale(d.total_confirmed)}
+                width={(xScale(d.date_end) - xScale(d.date_start))}
+                height={innerHeight - yScale(d.total_confirmed)}
+                // onClick={() => console.log(binnedData[index].date_start)}
+                onClick={() => console.log(index)}
             >
-                {/* <title>{tooltipFormat(d.total_new_cases)}</title> */}
+                {/* <title>{tooltipFormat(d.total_confirmed)}</title> */}
             </rect>
         ))}
     </>
