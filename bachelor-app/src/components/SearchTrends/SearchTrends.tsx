@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
 import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsEnum } from '../DataContext/SearchTrendType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Plot, PlotType } from '../Graphs/PlotType';
-import { LoadSearchTrends as _LoadData } from './LoadSearchTrends';
+import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { SearchTrendsList } from './Old_script';
+import SearchTrendsData from './SearchTrendsData';
 
 interface Props {
     LoadData?: typeof _LoadData
@@ -20,16 +22,20 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
         [
             { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in ${Data[0]}` },
         ]);
-
+    const [Countries, setCountries] = useState<TagExtended[]>([]);
+    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
 
     //let Data = LoadData().then((d) => setData)
 
     // Update Data if new Data is requested
     useEffect(() => {
-        LoadData().then((d) => {
+        LoadData(Countries, LoadedCountries, Data).then((d) => {
             setData(d);
+
+            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
+            // console.log(d)
         })
-    }, []);
+    }, [Countries]);
 
     //Handle new Data
     useEffect(() => {
@@ -55,14 +61,18 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
         setPlots(newPlots);
     }, [Data]);
 
-    // const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
-    //const [Data, setData] = useState<SearchTrendsData[]>([]);
+    const selectedCountries = (countries: TagExtended[]) => {
+        setCountries(countries)
+    }
 
     return (
-        <div id="main">
-            <h1>This is the Search Trends page!</h1>
-            <PlotsContainer Plots={Plots} />
-        </div>
+        <>
+            <SelectCountry selectedCountries={selectedCountries} LoadData={SearchTrendsData} />
+            <div id="main">
+                <PlotsContainer Plots={Plots} />
+            </div>
+
+        </>
     );
 }
 

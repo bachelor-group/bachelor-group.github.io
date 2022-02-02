@@ -20,7 +20,7 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const Data = Plot.Data;
     //TODO Remove
-    let HARDCODED_INDEX = 0;
+    let HARDCODED_INDEX = 730;
 
 
     // Y axis
@@ -32,7 +32,7 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
 
     // X axis
     let xScale = useMemo(() => {
-        if (Data.length == 0) {
+        if (Data.length === 0) {
             return scaleLinear()
         }
         const [min, max] = extent(YAxis, (element) => parseFloat(Data[HARDCODED_INDEX][element]!));
@@ -64,7 +64,7 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
                     height={boundsHeight}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 >
-                    {Data.length != 0 ?
+                    {Data.length !== 0 ?
                         YAxis.map((element) => (
                             <>
                                 <line stroke='black' strokeWidth={"1px"} x1={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} x2={xScale(0)} y1={yScale(element)} y2={yScale(element)}></line>
