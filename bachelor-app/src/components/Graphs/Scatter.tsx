@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { extent, scaleLinear, axisLeft, axisBottom, select, timeParse, scaleTime } from 'd3';
+import { axisLeft, axisBottom, select } from 'd3';
 import { Plot } from "./PlotType";
-
+import { DataAccessor, Scale } from "./Scaling";
+import { GraphTooltip } from "./Tooltip";
 
 interface ScatterProps {
     Width: number,
@@ -22,36 +23,23 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     useEffect(() => {
         setData(Plot.Data);
     }, [Plot]);
-    // Y axis
+
+    const yValue = useMemo(() => {
+        return DataAccessor(Plot.Axis[1]);
+    }, [Plot]);
+
     const yScale = useMemo(() => {
-        if (Data.length === 0) {
-            return null;
-        }
-        const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[1]]!)));
-        if (min === undefined || max === undefined) {
-            throw "Min or Max was undefined";
-        }
-        return scaleLinear().domain([min, max]).range([boundsHeight, 0]).nice();
-    }, [Data, boundsHeight]);
+        return Scale(Plot, boundsHeight, yValue, "Y");
+    }, [Plot, boundsHeight]);
 
-    // X axis
-    // const xScale = useMemo(() => {
-    //     if (Data.length == 0) {
-    //         return null;
-    //     }
-    //     const [min, max] = extent(Data.map((d) => parseInt(d[Plot.Axis[0]]!)));
-    //     if (min === undefined || max === undefined) {
-    //         throw "Min or Max was undefined";
-    //     }
-    //     return scaleLinear().domain([min, max]).range([0, boundsWidth]);
-    // }, [Data, boundsWidth]);
+    // Get x value
+    const xValue = useMemo(() => {
+        return DataAccessor(Plot.Axis[0]);
+    }, [Plot]);
 
-    let parseTime = timeParse("%Y-%m-%d")
-
-    // X time-axis
+    // X Axis
     const xScale = useMemo(() => {
-        const [min, max] = extent(Plot.Data, (d) => parseTime(d.date!));
-        return scaleTime().domain([min!, max!]).range([0, boundsWidth]);
+        return Scale(Plot, boundsWidth, xValue);
     }, [Plot, boundsWidth]);
 
     useEffect(() => {
@@ -66,7 +54,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
             .attr("transform", "translate(0," + boundsHeight + ")")
             .call(xAxisGenerator);
 
-        const yAxisGenerator = axisLeft(yScale).ticks(10,"s").tickSize(-boundsWidth);;
+        const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-boundsWidth);;
 
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, boundsHeight]);
@@ -78,25 +66,26 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     // Build the shapes
     const allShapes = Data.map((d, i) => {
         return (
-            <circle
-                key={i}
-                r={1}
-                cx={xScale(parseTime(d[Plot.Axis[0]]!)!)}
-                cy={yScale(parseInt(d[Plot.Axis[1]]!))}
-                opacity={1}
-                stroke="#9a6fb0"
-                fill="#9a6fb0"
-
-                fillOpacity={0.7}
-                strokeWidth={1}
-            />
+            GraphTooltip(Plot, d,
+                <circle
+                    key={i}
+                    r={2}
+                    cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
+                    cy={yScale(parseInt(d[Plot.Axis[1]]!))}
+                    opacity={1}
+                    stroke="#9a6fb0"
+                    fill="#9a6fb0"
+                    fillOpacity={0.7}
+                    strokeWidth={1}
+                />
+            )
         );
     });
 
     return (
         <div>
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
-            <text x={"50%"} y={MARGIN.top*0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
+                <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
                 <g
                     width={boundsWidth}
@@ -112,7 +101,6 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
-                <rect><text>hello</text></rect>
             </svg>
         </div>
     );

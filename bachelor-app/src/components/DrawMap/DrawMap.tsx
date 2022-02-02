@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
 import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
-import { Selection } from 'd3-selection';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
 import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
@@ -34,7 +33,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         path = geoPath(projection);
     }
 
-    useEffect(() => {
+    useMemo(() => {
         csv(covidUrl).then(d => {
             setCovidData(d)
         });
@@ -78,7 +77,6 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         // Create and get colors
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, countriesData.maxValue])
         let colors = new Array<string>(0);
-        console.log(GeoJson)
         GeoJson?.features.forEach((feature: Feature, index: number) => {
             let countryCode = iso31661NumericToAlpha2[feature.id!];
 

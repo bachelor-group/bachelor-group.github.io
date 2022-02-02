@@ -1,23 +1,13 @@
-import { geoMercator, geoPath, json } from 'd3';
-import { resolve } from 'node:path/win32';
-import React, { useEffect, useState } from 'react'
+import { json } from 'd3';
+import { useEffect, useState } from 'react'
 import { feature } from 'topojson';
 import { Topology } from 'topojson-specification'
 import { GeoJsonProperties } from "geojson";
-import { setConstantValue } from 'typescript';
 import DrawMap from './DrawMap';
 import { iso31662, iso31661Alpha2ToNumeric, ISO31662Entry } from 'iso-3166'
 import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
 
 
-
-// console.log(iso31662)
-// console.log(iso31661Alpha2ToNumeric)
-
-// console.log(iso31661Alpha2ToNumeric["NO"])
-
-// console.log(iso31662.find(x=> x.code === "AD-02"))
-//
 const xValue = (d: EpidemiologyMinimum) => d.date;
 
 const width: number = window.innerWidth;
@@ -46,7 +36,6 @@ export const LoadMapData = () => {
                 setWorldData(countries)
             }
         })
-        console.log("loaded data")
     }, [])
 
 

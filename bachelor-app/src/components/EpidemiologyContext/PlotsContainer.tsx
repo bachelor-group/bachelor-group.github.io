@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
+import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
+import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 import LineChart from "../Graphs/LineChart";
+import Lollipop from "../Graphs/Lollipop";
 import { Plot, PlotType } from "../Graphs/PlotType";
 import Scatter from "../Graphs/Scatter";
 import WordCloud from "../Graphs/WordCloud";
+import { SearchTrendsList } from "../SearchTrends/Old_script";
+
 
 interface PlotsProps {
     Plots: Plot[]
 }
 
 export const PlotsContainer = ({ Plots }: PlotsProps) => {
+    //TODO check if temp really is needed here
     const [temp, setTemp] = useState(Plots)
 
     //Used to make the container Rerender
@@ -28,6 +34,9 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
 
                     case PlotType.LineChart:
                         return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+
+                    case PlotType.Lollipop:
+                        return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`

@@ -19,14 +19,14 @@ function NavbarC() {
             <NavDropdown title="Epidemiology" id="collasible-nav-dropdown" >
               {epidemiologyList.map((item, i) => <NavDropdown.Item key={i} href={item}>{item}</NavDropdown.Item>)}
               <NavDropdown.Divider />
-              <NavDropdown.Item><Link to="/Scatter">Scatter</Link></NavDropdown.Item>
+              <NavDropdown.Item href="#/EpidemiologyPlots">Graphs</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link><Link to="/Searchtrends">Search Trends</Link></Nav.Link>
-            <Nav.Link><Link to="/Vaccination">Vaccination</Link></Nav.Link>
-            <Nav.Link><Link to="/Mobility">Mobility</Link></Nav.Link>
+            <Nav.Link href="#/Searchtrends">Search Trends</Nav.Link>
+            <Nav.Link href="#/Vaccinations">Vaccination</Nav.Link>
+            <Nav.Link href="#/Mobility">Mobility</Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link><Link to="/About">About</Link></Nav.Link>
+            <Nav.Link href="#/About">About</Nav.Link>
             <Nav.Link href="https://github.com/bachelor-group/visualizing-covid-search-trends">
               <FaGithub />
             </Nav.Link>
