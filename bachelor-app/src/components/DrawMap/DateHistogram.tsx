@@ -18,7 +18,14 @@ interface HistogramProps {
     xValue: (d: EpidemiologyMinimum) => string
 }
 
-const margin = { top: 20, right: 50, bottom: 30, left: 125 };
+export interface binData {
+    total_new_cases: number,
+    date_start: Date,
+    date_end: Date
+    
+}
+
+const margin = { top: 30, right: 50, bottom: 30, left: 125 };
 const xAxisLabelOffset = 54;
 const yAxisLabelOffset = 80;
 
@@ -49,17 +56,19 @@ export const DateHistogram = ({
     }, [Data, innerWidth, xValue]);
 
 
-    const binnedData = useMemo(() => {
+    const binnedData: binData[] = useMemo(() => {
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date!)!)
             .domain([start, stop])
             .thresholds(timeMonths(start, stop))(Data)
             .map(array => ({
-                y: sum(array, yValue),
-                x0: array.x0,
-                x1: array.x1
-            }));
+                total_new_cases: sum(array, yValue),
+                date_start: array.x0!,
+                date_end: array.x1!
+            }))
+            ;
+            console.log(bar)
 
         return bar
     }, [xValue, yValue, xScale, Data]);
@@ -68,28 +77,29 @@ export const DateHistogram = ({
     const yScale = useMemo(
         () =>
             scaleLinear()
-                .domain([0, max(binnedData, d => d.y)!])
+                .domain([0, max(binnedData, d => d.total_new_cases)!])
                 .range([innerHeight, 0]),
         [binnedData, innerHeight]
     );
 
-    const brushRef = useRef<RefObject<SVGGElement>>();
+    // const brushRef = useRef<RefObject<SVGGElement>>();
 
 
-    useEffect(() => {
-        const brush = brushX().extent([[0, 0], [innerWidth, innerHeight]]);
-        //@ts-ignore
-        brush(select(brushRef.current));
-        brush.on('brush end', (event) => {
-            setBrushExtent(event.selection && event.selection.map(xScale.invert));
-        });
-    }, [innerWidth, innerHeight]);
+    // useEffect(() => {
+    //     const brush = brushX().extent([[0, 0], [innerWidth, innerHeight]]);
+    //     //@ts-ignore
+    //     // brush(select(brushRef.current));
+    //     brush.on('brush end', (event) => {
+    //         setBrushExtent(event.selection && event.selection.map(xScale.invert));
+    //     });
+    // }, [innerWidth, innerHeight]);
+
 
     return (
         <>
 
-            <rect width={width} height={height} fill="white"/>
-            <g transform={`translate(${margin.left},${margin.top})`}>
+            <rect width={width} height={height} fillOpacity={0} />
+            <g fillOpacity={0.4} fill={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
                 <AxisBottom
                     xScale={xScale}
                     innerHeight={innerHeight}
@@ -101,28 +111,29 @@ export const DateHistogram = ({
                     textAnchor="middle"
                     transform={`translate(${-yAxisLabelOffset},${innerHeight /
                         2}) rotate(-90)`}
+                    fillOpacity={1}
                 >
                     {yAxisLabel}
                 </text>
                 <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={10} />
-                <text
+                {/* <text
                     className="axis-label"
                     x={innerWidth / 2}
                     y={innerHeight + xAxisLabelOffset}
                     textAnchor="middle"
                 >
                     {xAxisLabel}
-                </text>
+                </text> */}
                 <Marks
                     binnedData={binnedData}
                     xScale={xScale}
                     yScale={yScale}
                     // TODO FIX D iTYPE
-                    tooltipFormat={(d: any) => d}
+                    // tooltipFormat={(d: any) => d}
                     innerHeight={innerHeight}
                 />
                 {/*            @ts-ignore      */}
-                <g ref={brushRef} />
+                {/* <g ref={brushRef} /> */}
             </g>
         </>
     );

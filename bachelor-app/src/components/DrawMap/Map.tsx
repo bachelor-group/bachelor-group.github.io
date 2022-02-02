@@ -62,7 +62,7 @@ export const LoadMapData = () => {
     return (
         <>
             <DrawMap data={worldData}></DrawMap>
-            <svg width={width} height={height*0.2}>
+            {/* <svg width={width} height={height*0.2} fillOpacity={10}>
                 <DateHistogram
                     Data={data}
                     width={width}
@@ -70,7 +70,7 @@ export const LoadMapData = () => {
                     setBrushExtent={setBrushExtent}
                     xValue={xValue}
                 />
-            </svg>
+            </svg> */}
 
 
         </>);

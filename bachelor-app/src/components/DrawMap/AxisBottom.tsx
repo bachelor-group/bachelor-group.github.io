@@ -18,6 +18,8 @@ export const AxisBottom = ({
                 className="tick"
                 key={index}
                 transform={`translate(${xScale(tickValue)},0)`}
+                fill={"white"}
+                fillOpacity={1}
             >
                 <line y2={innerHeight} />
                 <text style={{ textAnchor: 'middle' }} dy=".70em" y={innerHeight + tickOffset}>

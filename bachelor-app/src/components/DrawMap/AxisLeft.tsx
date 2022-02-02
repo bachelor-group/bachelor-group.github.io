@@ -6,7 +6,8 @@ export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }:
 ) => {
     return <>
         {yScale.ticks().map((tickValue, index) => (
-            <g key={index} className="tick" transform={`translate(0,${yScale(tickValue)})`}>
+            <g key={index} className="tick" transform={`translate(0,${yScale(tickValue)})`}
+                fillOpacity={1}>
                 <line x2={innerWidth} />
                 <text
                     style={{ textAnchor: 'end' }}

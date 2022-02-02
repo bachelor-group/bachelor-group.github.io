@@ -17,7 +17,7 @@ interface DrawMapProps {
 }
 
 const width: number = window.innerWidth;
-const height: number = window.innerHeight - 56 - 0.2*window.innerHeight;
+const height: number = window.innerHeight - 56 //- 0.2*window.innerHeight;
 const dateHistogramSize: number = 0.2;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [PathColors, setPathColors] = useState<Array<string>>([]);
@@ -105,6 +105,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         }
     }
 
+    const data: EpidemiologyMinimum[] = [{ date: "2022-02-12", total_confirmed: 23 }, { date: "2022-02-13", total_confirmed: 23 }, { date: "2021-01-13", total_confirmed: 100 }, { date: "2021-08-14", total_confirmed: 70 }]
+
+    const xValue = (d: EpidemiologyMinimum) => d.date;
     return (
         <>
             <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
@@ -113,6 +116,14 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                         transform={InitialMapZoom.toString()}
                         onClick={() => toggleInfo(index)} />
                 ))}
+
+                <DateHistogram
+                    Data={data}
+                    width={width}
+                    height={dateHistogramSize * height}
+                    setBrushExtent={setBrushExtent}
+                    xValue={xValue}
+                />
 
             </svg>
         </>
