@@ -4,6 +4,7 @@ import { Button } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { Plot } from './PlotType';
+import { useSpring, animated, useTransition } from 'react-spring'
 
 interface BarRaceProps {
     Width: number,
@@ -61,7 +62,6 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
                 newBarsData.push(newBar)
             }
-            console.log(newBarsData[0])
             setBarsData(newBarsData);
         }
     }, [Data])
@@ -92,7 +92,7 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
         if (Plot.Data.length !== 0) {
             setData(Plot.Data)
         }
-    });
+    }, [Plot]);
 
     // Y axis
     const yScale = useMemo(() => {
@@ -136,12 +136,20 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
                     height={boundsHeight}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 >
+
+
+
                     {barsData.length !== 0 ?
                         barsData[cur].sorted.map((element, i) => (
+                            // <animated.g
+                            // style={props}
+                            // >
                             <>
                                 <rect stroke='black' fill={element.colour.toString()} strokeWidth={"1px"} x={xScale(0)} width={xScale(barsData[cur].sorted[i].value)} y={yScale(i)} height={yScale(1) - yScale(0) - barPadding}
-                                style={{ transitionDuration: `${tickerInterval}ms`, transitionProperty: `width fill`}}/>
+                                    style={{ transitionDuration: `${tickerInterval}ms`, transitionProperty: `width fill` }} />
+                                <text style={{ transitionDuration: `${tickerInterval}ms` }} x={xScale(element.value) - 5} y={yScale(i) + (yScale(1) - yScale(0)) / 2} textAnchor='end' alignmentBaseline='middle' fontSize={10}> {element.property.slice(14).replace("_", " ")} </text>
                             </>
+                            // </animated.g>
                         ))
                         :
                         <h2>Loading...</h2>}
@@ -152,6 +160,7 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
                     height={boundsHeight}
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                    style={{ transitionDuration: `${tickerInterval}ms` }}
                 />
             </svg>
         </div>
