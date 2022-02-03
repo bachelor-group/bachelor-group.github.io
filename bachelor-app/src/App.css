@@ -124,6 +124,7 @@ svg {
 }
 
 .react-tags__suggestions {
+  z-index: 1;
   position: absolute;
   top: 100%;
   left: 0;

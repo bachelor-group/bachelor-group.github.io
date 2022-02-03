@@ -7,6 +7,7 @@ export enum PlotType {
     LineChart,
     WorldCloud,
     Lollipop,
+    BarRace,
 }
 
 export type PlotDataType = {

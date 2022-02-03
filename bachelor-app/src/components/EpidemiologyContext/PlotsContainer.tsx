@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
+import BarRace from "../Graphs/BarRace";
 import LineChart from "../Graphs/LineChart";
 import Lollipop from "../Graphs/Lollipop";
 import { Plot, PlotType } from "../Graphs/PlotType";
@@ -37,6 +38,9 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
 
                     case PlotType.Lollipop:
                         return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
+
+                    case PlotType.BarRace:
+                        return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                     default:
                         throw `Plottype: ${Plot.PlotType} not supported`

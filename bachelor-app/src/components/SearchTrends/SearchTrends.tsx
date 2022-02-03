@@ -20,7 +20,8 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
     const [Data, setData] = useState<DataType[]>([])
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in ${Data[0]}` },
+            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: 800, Title: `3, 2 ,1 ... RACE!` },
+            { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in 2021-12-31` },
         ]);
     const [Countries, setCountries] = useState<TagExtended[]>([]);
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
@@ -55,7 +56,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends for AU in ${Data[730] ? Data[730]["date"] : "Unkown"}`, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
