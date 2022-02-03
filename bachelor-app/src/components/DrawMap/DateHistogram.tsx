@@ -89,8 +89,6 @@ export const DateHistogram = ({
         return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
     }, [])
 
-
-
     function clickedDate(event: any) {
         // Find Date of hovered pixel
         let date = xScale.invert(event.nativeEvent.offsetX).toISOString().split("T")[0]
