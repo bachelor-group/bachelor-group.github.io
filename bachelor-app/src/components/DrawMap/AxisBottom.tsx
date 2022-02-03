@@ -1,5 +1,4 @@
 import { ScaleTime } from "d3";
-import { ReactNode } from "react";
 
 export const AxisBottom = ({
     xScale,
@@ -15,8 +14,8 @@ export const AxisBottom = ({
     return <>
         {xScale.ticks().map((tickValue, index) => (
             <g
-                className="tick"
                 key={index}
+                className="tick"
                 transform={`translate(${xScale(tickValue)},0)`}
                 fill={"white"}
                 fillOpacity={1}
