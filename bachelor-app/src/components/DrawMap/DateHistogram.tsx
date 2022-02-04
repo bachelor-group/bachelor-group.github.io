@@ -1,5 +1,7 @@
-import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays } from 'd3';
-import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject } from 'react';
+import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
+import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject, useState } from 'react';
+import { setConstantValue } from 'typescript';
+import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import { DataAccessor, Scale } from '../Graphs/Scaling';
 import AxisBottom from './AxisBottom';
 import AxisLeft from './AxisLeft';
@@ -20,7 +22,7 @@ interface HistogramProps {
 export interface binData {
     total_confirmed: number,
     date_start: Date,
-    date_end: Date 
+    date_end: Date
 
 }
 
@@ -34,16 +36,17 @@ const xAxisTickFormat = timeFormat('%d/%m/%Y');
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total New Cases";
 
-export const DateHistogram = ({
-    Data,
-    width,
-    height,
-}: HistogramProps) => {
+export const DateHistogram = ({ Data, width, height, }: HistogramProps) => {
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
+    const axesRef = useRef(null)
 
     let parseTime = timeParse("%Y-%m-%d")
 
+    // useEffect(() => {
+    //     setHistogramlData(Data)
+
+    // }, [Data])
 
     // const xValue = (d: EpidemiologyMinimum) => parseTime(d.date)!;
     // Get x value
@@ -59,7 +62,6 @@ export const DateHistogram = ({
 
 
     const binnedData: binData[] = useMemo(() => {
-        // console.log("binned memo")
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date)!)
@@ -75,7 +77,8 @@ export const DateHistogram = ({
         // console.log(bar)
 
         return bar
-    }, [Data]);
+    // }, [Data, HistogramData]);
+    }, [Data ]);
 
 
     // const yScale = useMemo(
@@ -88,23 +91,40 @@ export const DateHistogram = ({
     const yScale = useMemo(() => {
         const [min, max] = extent(Data, yValue);
         return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
-    }, [])
+    }, [Data])
 
 
     function clickedDate(event: any) {
         // Find Date of hovered pixel
-        let date = xScale.invert(event.nativeEvent.offsetX).toISOString().split("T")[0]
+        let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
         console.log(date)
-        let bisectDate = bisector(function (d: EpidemiologyMinimum) { return d["date"]; }).center;
-        let index = bisectDate(Data, date)
-        console.log(Data[index])
+        // let bisectDate = bisector(function (d: EpidemiologyMinimum) { return d["date"]; }).center;
+        // let index = bisectDate(Data, date)
+        // console.log(Data[index])
     }
+
+    useEffect(() => {
+        if (yScale == null || xScale == null) {
+            return
+        }
+        const svgElement = select(axesRef.current);
+        svgElement.selectAll("*").remove();
+        const xAxisGenerator = axisBottom(xScale).tickSize(-innerHeight);
+        svgElement
+            .append("g")
+            .attr("transform", "translate(0," + innerHeight + ")")
+            .call(xAxisGenerator);
+
+        const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-innerWidth);;
+
+        svgElement.append("g").call(yAxisGenerator);
+    }, [xScale, yScale, innerHeight]);
 
     return (
         <>
 
             <rect width={width} height={height} fillOpacity={0} />
-            <g fillOpacity={0.4} fill={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
+            <g fillOpacity={0.7} fill={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
                 <text
                     className="axis-label"
                     textAnchor="middle"
@@ -114,13 +134,21 @@ export const DateHistogram = ({
                 >
                     {yAxisLabel}
                 </text>
-                <AxisBottom
+                {/* <AxisBottom
                     xScale={xScale}
                     innerHeight={innerHeight}
                     tickFormat={xAxisTickFormat}
                     tickOffset={5}
+                /> */}
+                {/* <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={10} /> */}
+
+                <g
+                    width={innerWidth}
+                    height={innerHeight}
+                    ref={axesRef}
+                    stroke={"white"}
+                    strokeWidth={0.5}
                 />
-                <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={10} />
                 <Marks
                     binnedData={binnedData}
                     xScale={xScale}
@@ -128,7 +156,7 @@ export const DateHistogram = ({
                     innerHeight={innerHeight}
                 />
 
-                <rect width={innerWidth} height={innerHeight} fillOpacity={0} onClick={(event) => clickedDate(event)} className="rekd">
+                <rect width={innerWidth} height={innerHeight} fillOpacity={0} fill={"orange"} onClick={(event) => clickedDate(event)} className="rekd">
                 </rect>
             </g>
         </>

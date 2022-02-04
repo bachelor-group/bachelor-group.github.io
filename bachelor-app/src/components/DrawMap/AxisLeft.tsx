@@ -13,8 +13,9 @@ export const AxisLeft = ({ yScale, innerWidth, tickOffset = 3 }:
                     style={{ textAnchor: 'end' }}
                     x={-tickOffset}
                     dy=".3em"
+                    
                 >
-                    {tickValue}
+                    {tickValue/1000000}M
                 </text>
             </g>
 

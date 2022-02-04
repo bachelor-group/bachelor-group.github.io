@@ -28,6 +28,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [Highlight, setHighlight] = useState(-1);
     const [CovidData, setCovidData] = useState<EpidemiologyData[]>();
     const [Data, setData] = useState<DataType[]>([]);
+    const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
     const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
 
     let path: GeoPath<any, GeoPermissibleObjects>;
@@ -38,23 +39,20 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }
 
     useEffect(() => {
-        console.log("UseEffect Data changed")
         var HistogramData = new Map<string, number>()
-        console.log("Data: ",Data)
         Data.forEach(d => {
             if (HistogramData.has(d.date!)) {
-                console.log("")
-                console.log("prvious: ", HistogramData.get(d.date!))
-                console.log("diff: ", parseInt(d.new_confirmed!))
-                console.log("new: ", HistogramData.get(d.date!)!+parseInt(d.new_confirmed!))
+                if (!isNaN(parseInt(d.new_confirmed!))) {
+                    HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
+                }
 
-                HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
             } else {
-                console.log(d.new_confirmed)
-                HistogramData.set(d.date!, parseInt(d.new_confirmed!))
+                if (!isNaN(parseInt(d.new_confirmed!))) {
+                    HistogramData.set(d.date!, parseInt(d.new_confirmed!))
+                }
             }
         })
-        console.log(HistogramData)
+        setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
     }, [Data])
 
 
@@ -64,11 +62,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             setCovidData(d)
         });
 
-
         //splice for easier troubleshooting
         _LoadCountries().then((d: TagExtended[]) => {
-            // LoadData(d, []).then((d: DataType[]) => {
-            LoadData(d.splice(0,3), []).then((d: DataType[]) => {
+            LoadData(d, []).then((d: DataType[]) => {
+                // LoadData(d.splice(0,3), []).then((d: DataType[]) => {
                 setData(d)
             })
         })
@@ -138,27 +135,27 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         }
     }
 
-    const data: EpidemiologyMinimum[] = [
-        // { date: "2020-01-01", total_confirmed: 23 },
-        { date: "2021-01-02", total_confirmed: 1 },
-        { date: "2021-01-13", total_confirmed: 2 },
-        { date: "2021-02-01", total_confirmed: 3 },
-        { date: "2021-02-12", total_confirmed: 3 },
-        { date: "2021-03-13", total_confirmed: 4 },
-        { date: "2021-05-13", total_confirmed: 5 },
-        { date: "2021-05-17", total_confirmed: 6 },
-        { date: "2021-08-01", total_confirmed: 7 },
-        { date: "2021-08-13", total_confirmed: 8 },
-        { date: "2022-01-13", total_confirmed: 9 },
-        { date: "2022-05-13", total_confirmed: 10 },
-        { date: "2022-06-01", total_confirmed: 11 },
-        { date: "2022-06-13", total_confirmed: 12 },
-        { date: "2022-06-23", total_confirmed: 13 },
-        { date: "2022-09-01", total_confirmed: 14 },
-        { date: "2022-09-13", total_confirmed: 15 },
-        { date: "2022-09-23", total_confirmed: 16 },
-        { date: "2022-10-29", total_confirmed: 17 },
-    ]
+    // const data: EpidemiologyMinimum[] = [
+    //     { date: "2020-01-01", total_confirmed: 23 },
+    //     { date: "2021-01-02", total_confirmed: 1 },
+    //     { date: "2021-01-13", total_confirmed: 2 },
+    //     { date: "2021-02-01", total_confirmed: 3 },
+    //     { date: "2021-02-12", total_confirmed: 3 },
+    //     { date: "2021-03-13", total_confirmed: 4 },
+    //     { date: "2021-05-13", total_confirmed: 5 },
+    //     { date: "2021-05-17", total_confirmed: 6 },
+    //     { date: "2021-08-01", total_confirmed: 7 },
+    //     { date: "2021-08-13", total_confirmed: 8 },
+    //     { date: "2022-01-13", total_confirmed: 9 },
+    //     { date: "2022-05-13", total_confirmed: 10 },
+    //     { date: "2022-06-01", total_confirmed: 11 },
+    //     { date: "2022-06-13", total_confirmed: 12 },
+    //     { date: "2022-06-23", total_confirmed: 13 },
+    //     { date: "2022-09-01", total_confirmed: 14 },
+    //     { date: "2022-09-13", total_confirmed: 15 },
+    //     { date: "2022-09-23", total_confirmed: 16 },
+    //     { date: "2022-10-29", total_confirmed: 17 },
+    // ]
 
     return (
         <>
@@ -170,7 +167,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                 ))}
 
                 <DateHistogram
-                    Data={data}
+                    Data={HistogramData}
+                    // Data={data}
                     width={width}
                     height={dateHistogramSize * height}
                 />

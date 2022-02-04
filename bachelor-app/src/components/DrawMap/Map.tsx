@@ -51,15 +51,6 @@ export const LoadMapData = () => {
     return (
         <>
             <DrawMap data={worldData}></DrawMap>
-            {/* <svg width={width} height={height*0.2} fillOpacity={10}>
-                <DateHistogram
-                    Data={data}
-                    width={width}
-                    height={dateHistogramSize * height}
-                    setBrushExtent={setBrushExtent}
-                    xValue={xValue}
-                />
-            </svg> */}
 
 
         </>);

@@ -177,3 +177,7 @@ svg {
 .rekd {
  cursor:pointer; 
 }
+#map .tick line {
+  color: white;
+  stroke-width: 0.2;
+}
