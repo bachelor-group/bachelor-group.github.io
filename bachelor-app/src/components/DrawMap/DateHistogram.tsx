@@ -17,6 +17,7 @@ interface HistogramProps {
     Data: EpidemiologyMinimum[],
     width: number,
     height: number,
+    selectedDate: (date: string)=>void
 }
 
 export interface binData {
@@ -36,7 +37,8 @@ const xAxisTickFormat = timeFormat('%d/%m/%Y');
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total New Cases";
 
-export const DateHistogram = ({ Data, width, height, }: HistogramProps) => {
+export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramProps) => {
+
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
     const axesRef = useRef(null)
@@ -78,7 +80,7 @@ export const DateHistogram = ({ Data, width, height, }: HistogramProps) => {
 
         return bar
     // }, [Data, HistogramData]);
-    }, [Data ]);
+    }, [Data]);
 
 
     // const yScale = useMemo(
@@ -98,6 +100,7 @@ export const DateHistogram = ({ Data, width, height, }: HistogramProps) => {
         // Find Date of hovered pixel
         let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
         console.log(date)
+        selectedDate(date)
         // let bisectDate = bisector(function (d: EpidemiologyMinimum) { return d["date"]; }).center;
         // let index = bisectDate(Data, date)
         // console.log(Data[index])
