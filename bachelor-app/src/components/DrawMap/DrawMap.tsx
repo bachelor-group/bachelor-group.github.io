@@ -102,16 +102,31 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
 
     useEffect(() => {
-        if (Data === undefined || GeoJson === undefined) {
+        if (Data === undefined || GeoJson === undefined || CovidData === undefined) {
             return
         }
         let filteredData = Data.filter(d => d.date === chosenDate);
+        let filteredRecentData = CovidData.filter(d => d.location_key!.length === 2);
 
         // Get data from filteredData
-        let countriesData = GetCountries(filteredData);
+
+        let countriesData: {
+            countriesData: {
+                [name: string]: number;
+            };
+            maxValue: number;
+        } | undefined
+
+        if (chosenDate !== undefined) {
+            countriesData = GetCountries(filteredData);
+        } else {
+            countriesData = GetCountries(filteredRecentData);
+        }
+
         if (!countriesData) {
             return
         }
+
         // Create and get colors
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, countriesData.maxValue])
         let colors = new Array<string>(0);
@@ -125,7 +140,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             colors.push(Color);
         });
         setPathColors(colors);
-    }, [GeoJson, Data, chosenDate]);
+        //trengs egt CovidData ? funka uten
+    }, [GeoJson, Data, chosenDate, CovidData]);
 
 
     // Changes opacity of clicked country
