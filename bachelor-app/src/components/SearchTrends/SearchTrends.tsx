@@ -67,7 +67,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} LoadData={SearchTrendsData} />
+            <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
             <div id="main">
                 <PlotsContainer Plots={Plots} />
             </div>

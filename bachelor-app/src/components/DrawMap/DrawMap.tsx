@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, sum } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -8,9 +8,14 @@ import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 
 import { Color } from 'react-bootstrap/esm/types';
 import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
 import { EpidemiologyData } from '../DataContext/DataTypes';
+import { DataType } from '../DataContext/MasterDataType';
+import { TagExtended, _LoadCountries } from '../CountrySelector/SelectCountry';
+import LoadData from '../DataContext/LoadData';
 
 const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
 const covidUrlUpdated = "csvData/epidemiology_min.csv"
+const fullEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv"
+
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
 }
@@ -22,9 +27,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
     const [CovidData, setCovidData] = useState<EpidemiologyData[]>();
+    const [Data, setData] = useState<DataType[]>([]);
     const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
-
-    const [brushExtent, setBrushExtent] = useState();
 
     let path: GeoPath<any, GeoPermissibleObjects>;
 
@@ -33,10 +37,41 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         path = geoPath(projection);
     }
 
+    useEffect(() => {
+        console.log("UseEffect Data changed")
+        var HistogramData = new Map<string, number>()
+        console.log("Data: ",Data)
+        Data.forEach(d => {
+            if (HistogramData.has(d.date!)) {
+                console.log("")
+                console.log("prvious: ", HistogramData.get(d.date!))
+                console.log("diff: ", parseInt(d.new_confirmed!))
+                console.log("new: ", HistogramData.get(d.date!)!+parseInt(d.new_confirmed!))
+
+                HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
+            } else {
+                console.log(d.new_confirmed)
+                HistogramData.set(d.date!, parseInt(d.new_confirmed!))
+            }
+        })
+        console.log(HistogramData)
+    }, [Data])
+
+
+
     useMemo(() => {
         csv(covidUrl).then(d => {
             setCovidData(d)
         });
+
+
+        //splice for easier troubleshooting
+        _LoadCountries().then((d: TagExtended[]) => {
+            // LoadData(d, []).then((d: DataType[]) => {
+            LoadData(d.splice(0,3), []).then((d: DataType[]) => {
+                setData(d)
+            })
+        })
 
         const svg = select<SVGSVGElement, unknown>("svg#map");
 

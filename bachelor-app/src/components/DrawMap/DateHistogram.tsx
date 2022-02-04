@@ -59,6 +59,7 @@ export const DateHistogram = ({
 
 
     const binnedData: binData[] = useMemo(() => {
+        // console.log("binned memo")
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date)!)
@@ -71,7 +72,7 @@ export const DateHistogram = ({
                     date_end: array.x1!
                 }
             });
-        console.log(bar)
+        // console.log(bar)
 
         return bar
     }, [Data]);
@@ -93,6 +94,7 @@ export const DateHistogram = ({
     function clickedDate(event: any) {
         // Find Date of hovered pixel
         let date = xScale.invert(event.nativeEvent.offsetX).toISOString().split("T")[0]
+        console.log(date)
         let bisectDate = bisector(function (d: EpidemiologyMinimum) { return d["date"]; }).center;
         let index = bisectDate(Data, date)
         console.log(Data[index])
@@ -126,7 +128,7 @@ export const DateHistogram = ({
                     innerHeight={innerHeight}
                 />
 
-                <rect width={innerWidth} height={innerHeight} fillOpacity={0} onClick={(event) => clickedDate(event)} >
+                <rect width={innerWidth} height={innerHeight} fillOpacity={0} onClick={(event) => clickedDate(event)} className="rekd">
                 </rect>
             </g>
         </>

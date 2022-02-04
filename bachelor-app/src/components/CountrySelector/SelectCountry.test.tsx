@@ -39,12 +39,12 @@ let FakeData = () => {
 }
 
 test('renders SelectCountry', () => {
-  render(<SelectCountry selectedCountries={() => []} LoadData={FakeData} />);
+  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} />);
 });
 
 
 test('renders SelectCountry check first 6 countries match', async () => {
-  render(<SelectCountry selectedCountries={() => []} LoadData={FakeData} />);
+  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
@@ -55,7 +55,7 @@ test('renders SelectCountry check first 6 countries match', async () => {
 });
 
 test('render selectcountry and makes sure only 6 suggestions are displayed', async () => {
-  render(<SelectCountry selectedCountries={() => ([])} LoadData={FakeData} />);
+  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} />);
   let input = await screen.findAllByPlaceholderText("Add country")
   input[0].focus()
 
@@ -74,7 +74,7 @@ ${6}
 ${7}
 ${8}
 `('checks that selected countries are correct, number of selected countries: $NumberOfCountriesToSelect', async ({ NumberOfCountriesToSelect }) => {
-  render(<SelectCountry selectedCountries={() => ([])} LoadData={FakeData} />);
+  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
@@ -110,7 +110,7 @@ ${2}
 ${3}
 ${4}
 `('Test that StateFunction gets called with NumberofCountries: $NumberOfCountriesToSelect', async ({ NumberOfCountriesToSelect }) => {
-  render(<SelectCountry selectedCountries={fakeParentStateFunction} LoadData={FakeData} />);
+  render(<SelectCountry selectedCountries={fakeParentStateFunction} LoadCountries={FakeData} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
