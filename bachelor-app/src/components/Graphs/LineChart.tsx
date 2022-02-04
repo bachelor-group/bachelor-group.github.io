@@ -19,6 +19,7 @@ const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
     const axesRef = useRef(null)
     const svgRef = useRef(null)
+    const divRef = useRef(null)
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Group, setGroup] = useState(group(Plot.Data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
@@ -143,11 +144,40 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
 
             // Create points dots and move line to pointer
             let newdots: number[][] = []
+            let dataPoints: { country: string, data: DataType }[] = []
             Group.forEach((countryData, country) => {
                 console.log(countryData[id]["date"])
                 console.log(yValue(countryData[id]))
+                dataPoints.push({ country: country!, data: countryData[id] })
                 newdots.push([(event.nativeEvent.offsetX - MARGIN.left - 5), yScale(yValue(countryData[id])!)])
             })
+
+            let divHtml = "";
+            dataPoints.forEach((e) => {
+                divHtml += `<strong>${e.country}</strong>: ${e.data[Plot.Axis[1]]}`
+            })
+
+            //@ts-ignore
+            let div = select(divRef.current).attr("style", `left: ${event.nativeEvent.offsetX + 10}px; top: ${event.nativeEvent.offsetY}px; position: absolute`).selectAll("div").data(dataPoints, d => d.location_key)
+
+
+            div
+                .enter()
+                .append("div")
+                .text(d => `${d.country}: ${d.data[Plot.Axis[1]]}`)
+                .style("color", d => colorscale(d.country))
+                // .attr("style", "z-index: 50; position: absolute");
+
+            div.transition().duration(0)
+            .text(d => `${d.country}: ${d.data[Plot.Axis[1]]}`)
+            .style("color", d => colorscale(d.country))
+            
+
+            div.exit().remove()
+
+
+
+            console.log(dataPoints)
             setdots(newdots);
             setTooltipx(event.nativeEvent.offsetX - MARGIN.left - 5);
         }
@@ -196,6 +226,7 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
                     )}
                 </g>
             </svg>
+            <div ref={divRef} style={{opacity: showToolTip ? 1:0}} className='tool-tip'></div>
         </div>
     );
 }
