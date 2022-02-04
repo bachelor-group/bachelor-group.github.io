@@ -7,6 +7,7 @@ import { Plot, PlotType } from '../Graphs/PlotType';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { SearchTrendsList } from './Old_script';
 import SearchTrendsData from './SearchTrendsData';
+import { Col, ProgressBar, Row } from 'react-bootstrap';
 
 interface Props {
     LoadData?: typeof _LoadData
@@ -18,13 +19,13 @@ const HARDCODED = SearchTrendsList
 
 function SearchTrends({ LoadData = _LoadData }: Props) {
     const [Data, setData] = useState<DataType[]>([])
-    const [Plots, setPlots] = useState<Plot[]>(
-        [
-            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: 800, Title: `3, 2 ,1 ... RACE!` },
-            { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in 2021-12-31` },
-        ]);
     const [Countries, setCountries] = useState<TagExtended[]>([]);
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
+    const [Plots, setPlots] = useState<Plot[]>(
+        [
+            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: 800, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}` },
+            { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in 2021-12-31` },
+        ]);
 
     //let Data = LoadData().then((d) => setData)
 
@@ -56,7 +57,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
@@ -70,7 +71,16 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
         <>
             <SelectCountry selectedCountries={selectedCountries} LoadData={SearchTrendsData} />
             <div id="main">
-                <PlotsContainer Plots={Plots} />
+                {
+                    Data.length === 0 ?
+                        <Row md="auto" className="align-items-center">
+                            <Col style={{ width: "500px" }}>
+                                <ProgressBar animated now={100} />
+                            </Col>
+                        </Row>
+                        :
+                        < PlotsContainer Plots={Plots} />
+                }
             </div>
 
         </>

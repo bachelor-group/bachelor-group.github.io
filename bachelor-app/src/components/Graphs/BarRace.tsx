@@ -1,35 +1,34 @@
-import { ascending, axisBottom, axisLeft, descending, extent, hsl, HSLColor, interval, scaleBand, scaleLinear, scaleOrdinal, select, tickIncrement, timeout, Timer } from 'd3';
+import { ascending, axisBottom, axisLeft, axisTop, descending, easeLinear, extent, format, hsl, HSLColor, interpolateRound, interval, max, scaleBand, scaleLinear, scaleOrdinal, select, selectAll, tickIncrement, timeout, Timer } from 'd3';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { Plot } from './PlotType';
-import { useSpring, animated, useTransition } from 'react-spring'
+// import { useSpring, animated, useTransition } from 'react-spring'
 
 interface BarRaceProps {
     Width: number,
     Height: number,
     Plot: Plot,
-    YAxis: (keyof DataType)[]
 }
 
-const MARGIN = { top: 30, right: 30, bottom: 50, left: 200 };
+const MARGIN = { top: 50, right: 30, bottom: 50, left: 50 };
 let top_n = 12;
 
 type Bar = {
     Data: DataType,
-    sorted: { property: (keyof DataType), value: number, colour: HSLColor }[],
+    sorted: { property: (keyof DataType), lastValue: number, value: number, colour: HSLColor, rank: number }[],
 }
 
 let tickerInterval = 1000;
 
-function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
+function BarRace({ Width, Height, Plot }: BarRaceProps) {
     const axesRef = useRef(null)
-    YAxis = YAxis.slice(0, 10)
+    const boundsRef = useRef(null);
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Data, setData] = useState<DataType[]>([]);
-    const [cur, setCur] = useState(0)
+    const [startAnimation, setStartAnimation] = useState(true)
     const [barsData, setBarsData] = useState<Bar[]>([]);
     const [countries, setCountries] = useState<string[]>([]);
     const [ticker, setTicker] = useState<Timer>();
@@ -51,40 +50,168 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
                 colourDict[SearchTrendsList[i]] = hsl(Math.random() * 360, 0.75, 0.75)
             }
 
+            let prevBar: Bar | null = null;
+
             for (let i = 0; i < Data.length; i++) {
                 const element = Data[i];
                 let newBar: Bar = { Data: element, sorted: [] };
-                let unsorted_list: { property: (keyof DataType), value: number, colour: HSLColor }[] = []
+                let unsorted_list: { property: (keyof DataType), lastValue: number, value: number, colour: HSLColor, rank: number }[] = []
                 for (let i = 0; i < SearchTrendsList.length; i++) {
                     const element = SearchTrendsList[i];
-                    unsorted_list.push({ property: element, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]! })
+                    unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 })
                 }
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
+                for (let j = 0; j < newBar.sorted.length; j++) {
+                    newBar.sorted[j].rank = j;
+                    if (i === 0) {
+                        newBar.sorted[j].lastValue = 0;
+                    } else {
+                        newBar.sorted[j].lastValue = prevBar!.sorted[prevBar!.sorted.findIndex(e => e.property === newBar.sorted[j].property)].value
+                    }
+                }
                 newBarsData.push(newBar)
+                prevBar = newBar;
             }
             setBarsData(newBarsData);
         }
     }, [Data])
 
-    useEffect(() => {
-        if (cur !== 0) {
-            setTicker(timeout((e) => {
-                console.log(cur)
-                setCur((cur) => cur + 1);
-            }, tickerInterval))
-        }
-
-    }, [cur])
-
-    function Animate() {
-        if (ticker === undefined) {
-            setCur(1)
+    async function Animate() {
+        // Animation is already playing
+        if (ticker !== undefined) {
+            ticker.stop();
+            setTicker(undefined);
         }
         else {
-            console.log("YO BROTHER STOP WTF MAN")
-            ticker.stop()
-            setTicker(undefined);
-            setCur(0)
+            let cursor = -1
+            let svg = select(".bar-race")
+            let tickDuration = 200
+            setTicker(interval(e => {
+                cursor = cursor + 1
+                if (cursor === barsData.length - 1) ticker!.stop();
+
+                xScale.domain([0, max(barsData[cursor].sorted, d => d.value)!]);
+
+                svg.select('.x-axis')
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    //@ts-ignore
+                    .call(xAxisGenerator);
+
+                let currentSlice = barsData[cursor].sorted
+
+                // @ts-ignore
+                let bars = select(boundsRef.current).selectAll("rect").data(currentSlice, d => d.property);
+                bars
+                    .enter()
+                    .append('rect')
+                    .attr("x", xScale(0) + 1)
+                    .attr("width", d => xScale(d.value))
+                    .attr("y", d => yScale(d.rank) + 5)
+                    .attr("height", yScale(1) - yScale(0) - barPadding)
+                    .style("fill", (d) => d.colour.toString())
+                    .style("stroke", "black")
+                    .style("stroke-width", "1px")
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    .attr("y", d => yScale(d.rank));
+
+                bars
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    .attr("width", d => xScale(d.value))
+                    .attr("y", d => yScale(d.rank) + 5);
+
+                bars
+                    .exit()
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    //@ts-ignore
+                    .attr("width", d => xScale(d.value))
+                    //@ts-ignore    
+                    .attr("y", d => yScale(d.rank) + 5)
+                    .remove();
+
+
+
+                // @ts-ignore
+                let labels = select(boundsRef.current).selectAll('.label').data(currentSlice, d => d.property);
+
+                labels
+                    .enter()
+                    .append('text')
+                    .attr("class", 'label')
+                    .attr("x", d => xScale(d.value) - 8)
+                    .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 5)
+                    .attr('text-anchor', 'end')
+                    .html(d => d.property.slice(14).replace("_", " "))
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 5);
+
+                labels
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    .attr("x", d => xScale(d.value) - 8)
+                    .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 5);
+
+                labels
+                    .exit()
+                    .transition()
+                    .duration(tickDuration)
+                    .ease(easeLinear)
+                    //@ts-ignore
+                    .attr("x", d => xScale(d.value) - 8)
+                    //@ts-ignore
+                    .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 5)
+                    .remove();
+
+                // // @ts-ignore
+                // let valueLabels = svg.selectAll('.valueLabel').data(currentSlice, d => d.property);
+
+                // valueLabels
+                //     .enter()
+                //     .append('text')
+                //     .attr("class", 'label')
+                //     .attr("x", d => xScale(d.value) + 5)
+                //     .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
+                //     .text(d => format(',.0f')(d.lastValue))
+                //     .transition()
+                //     .duration(tickDuration)
+                //     .ease(easeLinear)
+                //     .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2);
+
+                // valueLabels
+                //     .transition()
+                //     .duration(tickDuration)
+                //     .ease(easeLinear)
+                //     .attr("x", d => xScale(d.value) + 5)
+                //     .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
+                //     .tween("text", function (d) {
+                //         let i = interpolateRound(d.lastValue, d.value);
+                //         return function (t) {
+                //             //@ts-ignore
+                //             this.textContent = format(',')(i(t));
+                //         };
+                //     });
+
+                // valueLabels
+                //     .exit()
+                //     .transition()
+                //     .duration(tickDuration)
+                //     .ease(easeLinear)
+                //     //@ts-ignore
+                //     .attr("x", d => xScale(d.value) + 5)
+                //     //@ts-ignore
+                //     .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
+                //     .remove();
+            }, tickDuration));
         }
     }
 
@@ -104,66 +231,77 @@ function BarRace({ Width, Height, YAxis, Plot }: BarRaceProps) {
         if (Data.length === 0) {
             return scaleLinear()
         }
-        const [min, max] = extent(barsData[cur].sorted, (element) => element.value);
-        return scaleLinear().domain([0, max!]).range([0, boundsWidth])
-    }, [barsData, boundsWidth, cur]);
+        const [min, max] = extent(barsData[0].sorted, (element) => element.value);
+        return scaleLinear().domain([0, max!]).range([0, boundsWidth - MARGIN.left - MARGIN.right])
+    }, [barsData, boundsWidth]);
 
+    const svgElement = select(axesRef.current);
+    svgElement.selectAll("*").remove();
+    const xAxisGenerator = axisTop(xScale).tickSize(-(boundsHeight));
+    svgElement
+        .append("g")
+        .attr("class", "x-axis")
+        .attr("transform", "translate(0," + MARGIN.top + ")")
+        .call(xAxisGenerator);
 
-    useEffect(() => {
-        const svgElement = select(axesRef.current);
-        svgElement.selectAll("*").remove();
-        const xAxisGenerator = axisBottom(xScale).tickSize(-boundsHeight);
-        svgElement
-            .append("g")
-            .attr("transform", "translate(0," + boundsHeight + ")")
-            .call(xAxisGenerator);
-
-        const yAxisGenerator = axisLeft(yScale).ticks(10, "s");
-
-        svgElement.append("g").call(yAxisGenerator);
-    }, [xScale, yScale, boundsHeight]);
-
+    if (barsData.length !== 0) {
+        // @ts-ignore
+        let bars = select(boundsRef.current).selectAll("rect").data(barsData[0].sorted, d => d.property);
+        bars
+            .enter()
+            .append('rect')
+            .attr("x", xScale(0) + 1)
+            .attr("width", d => xScale(d.value)) // - xScale(0) - 1)
+            .attr("y", d => yScale(d.rank))
+            .attr("height", yScale(1) - yScale(0) - barPadding)
+            .style("fill", (d) => d.colour.toString())
+            .style("stroke", "black")
+            .style("stroke-width", "1px")
+    }
 
     return (
-        <div>
-            {barsData.length !== 0 ? barsData[cur].Data.date : "Awaiting Data"}
-            <Button onClick={() => Animate()}>{cur === 0 ? "Start me" : "Stop me"}</Button>
-            <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
+        <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center"
+        }}>
+            {
+                barsData.length !== 0 ?
+                    <Button onClick={() => Animate()}>{ticker === undefined ? "Start me" : "Stop me"}</Button>
+                    : <></>
+            }
+
+            < svg className="plot bar-race" width={Width} height={Height} style={{ display: "inline-block" }}>
                 <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
                 <g
                     width={boundsWidth}
                     height={boundsHeight}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                    ref={boundsRef}
                 >
 
 
 
-                    {barsData.length !== 0 ?
+                    {/* {barsData.length !== 0 ?
                         barsData[cur].sorted.map((element, i) => (
-                            // <animated.g
-                            // style={props}
-                            // >
                             <>
                                 <rect stroke='black' fill={element.colour.toString()} strokeWidth={"1px"} x={xScale(0)} width={xScale(barsData[cur].sorted[i].value)} y={yScale(i)} height={yScale(1) - yScale(0) - barPadding}
-                                    style={{ transitionDuration: `${tickerInterval}ms`, transitionProperty: `width fill` }} />
+                                //style={{ transitionDuration: `${tickerInterval}ms`, transitionProperty: `width fill` }} 
+                                />
                                 <text style={{ transitionDuration: `${tickerInterval}ms` }} x={xScale(element.value) - 5} y={yScale(i) + (yScale(1) - yScale(0)) / 2} textAnchor='end' alignmentBaseline='middle' fontSize={10}> {element.property.slice(14).replace("_", " ")} </text>
                             </>
-                            // </animated.g>
                         ))
                         :
-                        <h2>Loading...</h2>}
+                        <h2>Loading...</h2>} */}
                 </g>
                 {/* Second is for the axes */}
                 <g
                     width={boundsWidth}
                     height={boundsHeight}
                     ref={axesRef}
-                    transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-                    style={{ transitionDuration: `${tickerInterval}ms` }}
+                    transform={`translate(${[MARGIN.left].join(",")})`}
                 />
-            </svg>
-        </div>
+            </svg >
+        </div >
     );
 }
 
