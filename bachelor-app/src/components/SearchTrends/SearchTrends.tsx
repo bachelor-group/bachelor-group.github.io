@@ -23,7 +23,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: 800, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}` },
+            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: 1000, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}` },
             { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: 1200, Title: `Search Trends for AU in 2021-12-31` },
         ]);
 
@@ -35,7 +35,6 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
             setData(d);
 
             setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
-            // console.log(d)
         })
     }, [Countries]);
 

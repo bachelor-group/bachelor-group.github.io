@@ -1,7 +1,11 @@
 * {
   margin: 0;
   padding: 0;
+}
 
+.note {
+  font-size: 0.8rem;
+  color: #6e6e6e;
 }
 
 svg {
