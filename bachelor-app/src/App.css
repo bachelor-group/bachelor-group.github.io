@@ -14,6 +14,13 @@
   color: #6e6e6e;
 }
 
+.svg-header{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
 svg {
   stroke: rgb(172, 148, 69);
   stroke-width: 0.1px;
@@ -31,10 +38,6 @@ svg {
   border: 1px solid grey;
   padding: 5px;
   margin-top: 30px;
-}
-
-.bar-race{
-  border: none
 }
 
 #main {

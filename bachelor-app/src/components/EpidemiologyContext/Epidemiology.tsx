@@ -72,7 +72,7 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         <>
             <SelectCountry selectedCountries={selectedCountries} />
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
                     Data.length === 0 ?
                         <Row md="auto" className="align-items-center">

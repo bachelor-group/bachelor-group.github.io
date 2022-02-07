@@ -24,7 +24,7 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
     }, [Plots])
 
     return (
-        <div className="PlotsContainer">
+        <>
             {Plots.map((Plot, index) => {
                 switch (Plot.PlotType) {
                     case PlotType.Scatter:
@@ -46,7 +46,7 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                         throw `Plottype: ${Plot.PlotType} not supported`
                 }
             })}
-        </div>
+        </>
     );
 }
 

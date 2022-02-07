@@ -12,7 +12,7 @@ interface BarRaceProps {
     Plot: Plot,
 }
 
-const MARGIN = { top: 50, right: 30, bottom: 50, left: 50 };
+const MARGIN = { top: 50, right: 20, bottom: 0, left: 20 };
 let top_n = 12;
 
 type Bar = {
@@ -24,13 +24,15 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     const axesRef = useRef(null);
     const titleRef = useRef(null);
     const boundsRef = useRef(null);
+    const svgRef = useRef(null);
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const [Data, setData] = useState<DataType[]>([]);
     const [barsData, setBarsData] = useState<Bar[]>([]);
     const [countries, setCountries] = useState<string[]>([]);
     const [ticker, setTicker] = useState<Timer>();
-    const tickDuration = 300
+    const [tickDuration, setTickDuration] = useState(500);
+    const [startDate, setStartDate] = useState('2020-01-01');
 
     let barPadding = (Height - (MARGIN.bottom + MARGIN.top)) / (top_n * 5);
 
@@ -95,8 +97,9 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             setTicker(undefined);
         }
         else {
-            let cursor = -1
-            let svg = select(".bar-race")
+            let cursor = FindDateIndex(startDate) - 1
+
+            let svg = select(svgRef.current)
             setTicker(interval(e => {
                 cursor = cursor + 1
                 if (cursor === barsData.length - 1) ticker!.stop();
@@ -145,13 +148,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                     .transition()
                     .duration(tickDuration)
                     .ease(easeLinear)
-                    //@ts-ignore
-                    .attr("width", d => xScale(d.value))
-                    //@ts-ignore    
-                    .attr("y", d => yScale(d.rank) + 5)
                     .remove();
-
-
 
                 // @ts-ignore
                 let labels = select(boundsRef.current).selectAll('.label').data(currentSlice, d => d.property);
@@ -219,6 +216,20 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
         }
     }
 
+    function FindDateIndex(requestedDate: string) {
+        if (barsData.length === 0) {
+            throw (`BarsData was not set, but Date: ${requestedDate} was requested`)
+        }
+        for (let i = 0; i < barsData.length; i++) {
+            const element = barsData[i]["Data"];
+            if (element["date"] === requestedDate) {
+                return i
+            }
+
+        }
+        return -1
+    }
+
     useEffect(() => {
         if (Plot.Data.length !== 0) {
             setData(Plot.Data)
@@ -253,57 +264,111 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     // Draw When Data arrives
     useEffect(() => {
         if (barsData.length !== 0) {
+            let transitionLength = 1000;
+            // Create Bars
             // @ts-ignore
             let bars = select(boundsRef.current).selectAll("rect").data(barsData[0].sorted, d => d.property);
             bars
                 .enter()
                 .append('rect')
                 .attr("x", xScale(0) + 1)
-                .attr("width", d => xScale(d.value)) // - xScale(0) - 1)
+                .attr("width", d => 0) // - xScale(0) - 1)
                 .attr("y", d => yScale(d.rank) + 5)
                 .attr("height", yScale(1) - yScale(0) - barPadding)
                 .style("fill", (d) => d.colour.toString())
                 .style("stroke", "black")
-                .style("stroke-width", "1px");
+                .style("stroke-width", "1px")
+                .transition()
+                .duration(transitionLength)
+                .attr("width", d => xScale(d.value));
+
+            // Create Labels
+            // @ts-ignore
+            let labels = select(boundsRef.current).selectAll('.label').data(barsData[0].sorted, d => d.property);
+            labels
+                .enter()
+                .append('text')
+                .attr("class", 'label')
+                .attr("x", d => xScale(d.value) - 8)
+                .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 5)
+                .attr("opacity", 0)
+                .attr('text-anchor', 'end')
+                .html(d => d.property.slice(14).replace("_", " "))
+                .transition()
+                .duration(transitionLength)
+                .transition()
+                .duration(transitionLength / 2)
+                .ease(easeLinear)
+                .attr("opacity", 1);
 
 
+            // Create Axes
             xScale.domain([0, max(barsData[0].sorted, d => d.value)!]);
-
-            console.log(xScale.range())
             let axesG = select(axesRef.current)
-
-
             axesG.selectAll("*").remove();
-
             axesG
                 .append("g")
                 .attr("class", "x-axis")
                 .attr("transform", "translate(0," + MARGIN.top + ")")
                 .call(axisTop(xScale).tickSize(-(boundsHeight)));
 
-            // // @ts-ignore
-            // let valueLabels = select(boundsRef.current).selectAll('.valueLabel').data(barsData[0].sorted, d => d.property);
-
-            // valueLabels
-            //     .enter()
-            //     .append('text')
-            //     .attr("class", 'label')
-            //     .attr("x", d => xScale(d.value) + 5)
-            //     .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
-            //     .text(d => format(',.0f')(d.lastValue))
-
         }
     }, [barsData])
 
+
+    // Speed Handling
+    function handleSpeedChange(event: React.ChangeEvent<HTMLInputElement>) {
+        if (ticker === undefined) {
+            setTickDuration(parseInt(event.target.value));
+        }
+    }
+
+
+    // Date Handling
+    let maxDate = ""
+    let minDate = ""
+
+    if (barsData.length !== 0) {
+        maxDate = barsData[barsData.length - 1]["Data"]["date"]!;
+        minDate = barsData[0]["Data"]["date"]!;
+    }
+
+    function handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
+        if (ticker === undefined) {
+            if (event.target.value < minDate) {
+                setStartDate(minDate);
+            }
+            else if (event.target.value > maxDate) {
+                setStartDate(maxDate);
+            }
+            else {
+                setStartDate(event.target.value);
+            }
+        }
+    }
+
     return (
         <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center"
-        }}>
+            display: "flex", flexDirection: "column", alignItems: "center", border: "none"
+        }} className="plot">
             {
                 barsData.length !== 0 ?
                     <>
-                        <Button onClick={() => Animate()}>{ticker === undefined ? "Start me" : "Stop me"}</Button>
-                        < svg className="plot bar-race" width={Width} height={Height} style={{ display: "inline-block" }}>
+                        <div className='svg-header'>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <label htmlFor="Speed">Set Tickduration</label>
+                                <input type="range" name="Speed" id="" value={tickDuration} onChange={(v) => handleSpeedChange(v)} max={1000} style={{ width: Width * 0.2 }} /> {tickDuration} ms
+                            </div>
+
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <label htmlFor="startDate">Start Date:</label>
+                                <input type="date" name="startDate" id="" min={minDate} max={maxDate} value={startDate}
+                                    onChange={(e) => handleDateChange(e)} />
+                            </div>
+
+                            <Button onClick={() => Animate()}>{ticker === undefined ? "Start me" : "Stop me"}</Button>
+                        </div>
+                        < svg width={Width} height={Height} style={{ display: "inline-block" }} ref={svgRef}>
                             <text ref={titleRef} x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                             {/* first group is for the violin and box shapes */}
                             <g
@@ -311,22 +376,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                                 height={boundsHeight}
                                 transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                                 ref={boundsRef}
-                            >
-
-
-
-                                {/* {barsData.length !== 0 ?
-                                barsData[cur].sorted.map((element, i) => (
-                                    <>
-                                        <rect stroke='black' fill={element.colour.toString()} strokeWidth={"1px"} x={xScale(0)} width={xScale(barsData[cur].sorted[i].value)} y={yScale(i)} height={yScale(1) - yScale(0) - barPadding}
-                                        //style={{ transitionDuration: `${tickerInterval}ms`, transitionProperty: `width fill` }} 
-                                        />
-                                        <text style={{ transitionDuration: `${tickerInterval}ms` }} x={xScale(element.value) - 5} y={yScale(i) + (yScale(1) - yScale(0)) / 2} textAnchor='end' alignmentBaseline='middle' fontSize={10}> {element.property.slice(14).replace("_", " ")} </text>
-                                    </>
-                                ))
-                                :
-                                <h2>Loading...</h2>} */}
-                            </g>
+                            />
                             {/* Second is for the axes */}
                             <g
                                 width={boundsWidth}
