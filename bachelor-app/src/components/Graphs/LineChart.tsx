@@ -139,17 +139,19 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
 
             // Find Date of hovered pixel
             let Date = tester.invert(event.nativeEvent.offsetX - MARGIN.left - 5).toISOString().split("T")[0]
-            let id = Plot.Data.findIndex((d) => d["date"] == Date);
+            let id = Plot.Data.findIndex((d) => d["date"] === Date);
+            if (id !== -1) {
+                // Create points dots and move line to pointer
+                let newdots: number[][] = []
+                Group.forEach((countryData, country) => {
+                    console.log(countryData[id]["date"])
+                    console.log(yValue(countryData[id]))
+                    newdots.push([(event.nativeEvent.offsetX - MARGIN.left - 5), yScale(yValue(countryData[id])!)])
+                })
+                setdots(newdots);
+                setTooltipx(event.nativeEvent.offsetX - MARGIN.left - 5);
 
-            // Create points dots and move line to pointer
-            let newdots: number[][] = []
-            Group.forEach((countryData, country) => {
-                console.log(countryData[id]["date"])
-                console.log(yValue(countryData[id]))
-                newdots.push([(event.nativeEvent.offsetX - MARGIN.left - 5), yScale(yValue(countryData[id])!)])
-            })
-            setdots(newdots);
-            setTooltipx(event.nativeEvent.offsetX - MARGIN.left - 5);
+            }
         }
     }
 
@@ -173,7 +175,7 @@ export const LineChart = ({ Width, Height, Plot }: LineChartProps) => {
                     <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
 
                     {dots.map((points, index) => (
-                        <circle cx={points[0]} cy={points[1]} r={4} fill={colorscale(countries[index])} opacity={showToolTip ? 1 : 0} />
+                        <circle key={index} cx={points[0]} cy={points[1]} r={4} fill={colorscale(countries[index])} opacity={showToolTip ? 1 : 0} />
                     ))}
                 </g>
 
