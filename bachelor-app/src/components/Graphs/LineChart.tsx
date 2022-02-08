@@ -206,7 +206,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
             {data.length !== 0 ?
                 <>
                     <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (updateTooltip(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
-                        <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
+                        <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                         <g
                             width={boundsWidth}
                             height={boundsHeight}
@@ -241,7 +241,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             {countries.map((country, i) =>
                                 <g key={i}>
                                     <circle key={i + 1} cx={10} cy={11.3 + i * 25} fill={colorscale(country)} r={4}></circle>
-                                    <text key={i + 2} x={10 + 10} y={13 + i * 25} fill={colorscale(country)} textAnchor='left' alignmentBaseline='middle'> {country}</text>
+                                    <text key={i + 2} x={10 + 10} y={13 + i * 25} fill={colorscale(country)} textAnchor='left' dominantBaseline='middle'> {country}</text>
                                 </g>
                             )}
                         </g>

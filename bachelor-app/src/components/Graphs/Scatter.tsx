@@ -87,7 +87,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
             {data.length === 0?  <></>
             :
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
-                <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
+                <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
                 <g
                     width={boundsWidth}

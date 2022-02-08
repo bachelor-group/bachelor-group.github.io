@@ -204,7 +204,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("x", d => xScale(d.value) - 8)
             .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 - 20)
             .attr('text-anchor', 'end')
-            .attr("alignment-baseline", "middle")
+            .attr("dominant-baseline", "middle")
             .html(d => d.property.slice(14).replace("_", " "))
             .attr("opacity", 0)
             .transition()
@@ -222,7 +222,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("class", 'valueLabel')
             .attr("x", d => xScale(d.value) + 5)
             .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 - 20)
-            .attr("alignment-baseline", "middle")
+            .attr("dominant-baseline", "middle")
             .attr("opacity", 0)
             .text(d => format(',.2f')(d.value))
             .transition()
@@ -301,7 +301,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("x", d => xScale(currentSlice[top_n - 1]["value"]))
             .attr("y", d => yScale(top_n) + (yScale(1) - yScale(0)) / 2)
             .attr('text-anchor', 'end')
-            .attr("alignment-baseline", "middle")
+            .attr("dominant-baseline", "middle")
             .html(d => d.property.slice(14).replace("_", " "))
             .transition()
             .duration(tickDuration)
@@ -336,7 +336,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("class", 'valueLabel')
             .attr("x", d => xScale(currentSlice[top_n - 1]["value"]))
             .attr("y", d => yScale(top_n) + (yScale(1) - yScale(0)) / 2)
-            .attr("alignment-baseline", "middle")
+            .attr("dominant-baseline", "middle")
             .text(d => format(',.2f')(d.value))
             .transition()
             .duration(tickDuration)
@@ -433,7 +433,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                             <Button onClick={() => Animate()}>{ticker === undefined ? "Start me" : "Stop me"}</Button>
                         </div>
                         < svg width={Width} height={Height} style={{ display: "inline-block" }} ref={svgRef}>
-                            <text ref={titleRef} x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
+                            <text ref={titleRef} x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                             {/* first group is for the violin and box shapes */}
                             <g
                                 width={boundsWidth}
