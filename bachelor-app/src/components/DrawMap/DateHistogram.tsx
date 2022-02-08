@@ -25,15 +25,10 @@ export interface binData {
 
 }
 
-const margin = { top: 30, right: 50, bottom: 30, left: 125 };
-const xAxisLabelOffset = 54;
-const yAxisLabelOffset = 80;
-
-const xAxisTickFormat = timeFormat('%d/%m/%Y');
-
-
+const margin = { top: 30, right: 50, bottom: 30, left: 50 };
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total New Cases";
+let parseTime = timeParse("%Y-%m-%d")
 
 export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramProps) => {
 
@@ -44,9 +39,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
 
-    let parseTime = timeParse("%Y-%m-%d")
 
-    // console.log(Data)
     // xScale
     const xScale = useMemo(() => {
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
@@ -116,15 +109,11 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
 
     return (
         <>
-
             <rect width={width} height={height} fillOpacity={0} />
-            <g fillOpacity={0.7} fill={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
+            <g fillOpacity={1.0} fill={"white"} strokeOpacity={1} stroke={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
                 <text
-                    className="axis-label"
                     textAnchor="middle"
-                    transform={`translate(${-yAxisLabelOffset},${innerHeight /
-                        2}) rotate(-90)`}
-                    fillOpacity={1}
+                    transform={`translate(${width/2},${-10})`}
                 >
                     {yAxisLabel}
                 </text>
@@ -133,9 +122,8 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                     height={innerHeight}
                     ref={axesRef}
                     stroke={"white"}
+                    strokeOpacity={1}
                     strokeWidth={0.7}
-
-
                 />
                 <Marks
                     binnedData={binnedData}
@@ -145,13 +133,13 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                 />
 
                 {/* Tooltips */}
-                <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
+                <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='white' strokeWidth={1} opacity={showToolTip ? 1 : 0} />
 
                 {dots.map((points, index) => (
                     <circle key={index} cx={points[0]} cy={points[1]} r={4} fill='black' opacity={showToolTip ? 1 : 0} />
                 ))}
 
-                <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} fill={"orange"}
+                <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} strokeOpacity={0} fill={"white"} opacity={0}
                     onClick={(event) => (clickedDate(event))}
                     onMouseMove={(event) => (hoverDate(event))}
                     onMouseEnter={() => (setShowTooltip(true))}

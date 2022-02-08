@@ -13,7 +13,6 @@ import { TagExtended, _LoadCountries } from '../CountrySelector/SelectCountry';
 import LoadData from '../DataContext/LoadData';
 
 const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
-const covidUrlUpdated = "csvData/epidemiology_min.csv"
 const fullEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv"
 
 interface DrawMapProps {
@@ -22,7 +21,7 @@ interface DrawMapProps {
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
-const dateHistogramSize: number = 0.2;
+const dateHistogramSize: number = 0.225;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
@@ -30,12 +29,6 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const [Data, setData] = useState<DataType[]>([]);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
-    // let today = new Date();
-    // let dd = String(today.getDate()).padStart(2, '0');
-    // let mm = String(today.getMonth() + 1).padStart(2, '0');
-    // let yyyy = today.getFullYear();
-
-    // let todayDate = yyyy + '-' + mm + '-' + dd;
     const [chosenDate, setChosenDate] = useState<string>();
 
     const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
