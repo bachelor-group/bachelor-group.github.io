@@ -1,10 +1,8 @@
-import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
-import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject, useState } from 'react';
+import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays, axisLeft, axisBottom, line } from 'd3';
+import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject, useState, MouseEvent } from 'react';
 import { setConstantValue } from 'typescript';
 import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import { DataAccessor, Scale } from '../Graphs/Scaling';
-import AxisBottom from './AxisBottom';
-import AxisLeft from './AxisLeft';
 import Marks from './Marks';
 
 
@@ -17,7 +15,7 @@ interface HistogramProps {
     Data: EpidemiologyMinimum[],
     width: number,
     height: number,
-    selectedDate: (date: string)=>void
+    selectedDate: (date: string) => void
 }
 
 export interface binData {
@@ -42,20 +40,13 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
     const axesRef = useRef(null)
+    const [dots, setdots] = useState<number[][]>([]);
+    const [showToolTip, setShowTooltip] = useState(false);
+    const [Tooltipx, setTooltipx] = useState(50);
 
     let parseTime = timeParse("%Y-%m-%d")
 
-    // useEffect(() => {
-    //     setHistogramlData(Data)
-
-    // }, [Data])
-
-    // const xValue = (d: EpidemiologyMinimum) => parseTime(d.date)!;
-    // Get x value
-    // const xValue = useMemo(() => {
-    //     return DataAccessor("date");
-    // }, []);
-
+    // console.log(Data)
     // xScale
     const xScale = useMemo(() => {
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
@@ -76,36 +67,16 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                     date_end: array.x1!
                 }
             });
-        // console.log(bar)
 
         return bar
-    // }, [Data, HistogramData]);
     }, [Data]);
-
-
-    // const yScale = useMemo(
-    //     () => scaleLinear()
-    //             .domain([0, max(binnedData, d => d.total_confirmed)!])
-    //             .range([innerHeight, 0]).nice(),
-    //     [binnedData, innerHeight]
-    // );
 
     const yScale = useMemo(() => {
         const [min, max] = extent(Data, yValue);
         return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
     }, [Data])
 
-
-    function clickedDate(event: any) {
-        // Find Date of hovered pixel
-        let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
-        console.log(date)
-        selectedDate(date)
-        // let bisectDate = bisector(function (d: EpidemiologyMinimum) { return d["date"]; }).center;
-        // let index = bisectDate(Data, date)
-        // console.log(Data[index])
-    }
-
+    // axis
     useEffect(() => {
         if (yScale == null || xScale == null) {
             return
@@ -123,6 +94,26 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, innerHeight]);
 
+
+    function clickedDate(event: MouseEvent<SVGRectElement, globalThis.MouseEvent>) {
+        // Find Date of hovered pixel
+        let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
+        selectedDate(date)
+
+    }
+
+    function hoverDate(event: MouseEvent<SVGRectElement, globalThis.MouseEvent>) {
+        let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
+        let id = Data.findIndex((d) => d["date"] === date);
+        let newdots: number[][] = []
+        if (id !== -1) {
+            newdots.push([(event.nativeEvent.offsetX - margin.left - 5), yScale(yValue(Data[id])!)])
+            setdots(newdots);
+            setTooltipx(event.nativeEvent.offsetX - margin.left - 5);
+        }
+    }
+
+
     return (
         <>
 
@@ -137,20 +128,14 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                 >
                     {yAxisLabel}
                 </text>
-                {/* <AxisBottom
-                    xScale={xScale}
-                    innerHeight={innerHeight}
-                    tickFormat={xAxisTickFormat}
-                    tickOffset={5}
-                /> */}
-                {/* <AxisLeft yScale={yScale} innerWidth={innerWidth} tickOffset={10} /> */}
-
                 <g
                     width={innerWidth}
                     height={innerHeight}
                     ref={axesRef}
                     stroke={"white"}
-                    strokeWidth={0.5}
+                    strokeWidth={0.7}
+
+
                 />
                 <Marks
                     binnedData={binnedData}
@@ -159,7 +144,18 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                     innerHeight={innerHeight}
                 />
 
-                <rect width={innerWidth} height={innerHeight} fillOpacity={0} fill={"orange"} onClick={(event) => clickedDate(event)} className="rekd">
+                {/* Tooltips */}
+                <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
+
+                {dots.map((points, index) => (
+                    <circle key={index} cx={points[0]} cy={points[1]} r={4} fill='black' opacity={showToolTip ? 1 : 0} />
+                ))}
+
+                <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} fill={"orange"}
+                    onClick={(event) => (clickedDate(event))}
+                    onMouseMove={(event) => (hoverDate(event))}
+                    onMouseEnter={() => (setShowTooltip(true))}
+                    onMouseLeave={() => (setShowTooltip(false))}>
                 </rect>
             </g>
         </>

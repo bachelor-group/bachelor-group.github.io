@@ -19,10 +19,9 @@ export const Marks = ({
                     key={index}
                     className="mark"
                     x={xScale(d.date_start)}
-                    // x={xScale(d.date_start)-(0.5*xScale(d.date_start))}
-                    y={yScale(d.total_confirmed)}
-                    width={(xScale(d.date_end) - xScale(d.date_start))}
-                    height={innerHeight - yScale(d.total_confirmed)}
+                    y={isNaN(yScale(d.total_confirmed)) ? 0 : yScale(d.total_confirmed) }
+                    width={isNaN((xScale(d.date_end) - xScale(d.date_start)))? 0 :(xScale(d.date_end) - xScale(d.date_start))}
+                    height={isNaN(innerHeight - yScale(d.total_confirmed)) ? 0 : innerHeight - yScale(d.total_confirmed)}
                 >
                 </rect>
             ))}
