@@ -401,6 +401,15 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     function handleNumberBarsChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (ticker === undefined) {
+            console.log(event.target)
+            let intValue = parseInt(event.target.value)
+            if (isNaN(intValue)){
+                setTop_n(1);
+                return
+            }
+            console.log(intValue)
+            if (intValue < 1)return;
+            if (intValue > 50)return;
             setTop_n(parseInt(event.target.value));
         }
     }
