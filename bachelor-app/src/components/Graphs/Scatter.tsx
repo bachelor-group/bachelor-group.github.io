@@ -17,7 +17,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     const axesRef = useRef(null)
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-    const [Data, setData] = useState(Plot.Data);
+    const [data, setData] = useState(Plot.Data);
 
     // Set State on loaded data
     useEffect(() => {
@@ -64,7 +64,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     }
 
     // Build the shapes
-    const allShapes = Data.map((d, i) => {
+    const allShapes = data.map((d, i) => {
         return (
             GraphTooltip(Plot, d,
                 <circle
@@ -84,6 +84,8 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
 
     return (
         <div>
+            {data.length === 0?  <></>
+            :
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
                 <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
@@ -102,6 +104,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
             </svg>
+            }
         </div>
     );
 }

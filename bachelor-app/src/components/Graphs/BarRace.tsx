@@ -401,7 +401,6 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     function handleNumberBarsChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (ticker === undefined) {
-            console.log(event.target.value)
             setTop_n(parseInt(event.target.value));
         }
     }

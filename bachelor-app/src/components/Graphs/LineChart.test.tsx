@@ -26,11 +26,11 @@ afterEach(() => {
 });
 
 it("renders with or without a name", () => {
-  let FAKEPLOT: Plot = { PlotType: PlotType.LineChart, Data: [], Axis: [], Height: 100, Width: 100, Title: "A Title" }
+  let FAKEPLOT: Plot = { PlotType: PlotType.LineChart, Data: [{date: "2020-01-01",new_confirmed: "50"}], Axis: ["date", "new_confirmed"], Height: 100, Width: 100, Title: "A Title" }
   act(() => {
-    render(<LineChart Width={100} Height={100} Plot={FAKEPLOT} />, container);
+    render(<LineChart Width={100} Height={100} Plot={FAKEPLOT} Data={FAKEPLOT.Data} />, container);
   });
-  expect(container!.textContent).toBe(FAKEPLOT.Title);
+  expect(container!.textContent?.trimEnd()).toBe(FAKEPLOT.Title);
 
   // act(() => {
   //   render(<Hello name="Jenny" />, container);

@@ -34,7 +34,7 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                         return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                     case PlotType.LineChart:
-                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Data={Plot.Data} />
 
                     case PlotType.Lollipop:
                         return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
