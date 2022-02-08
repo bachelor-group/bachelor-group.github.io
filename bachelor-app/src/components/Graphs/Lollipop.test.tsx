@@ -19,6 +19,6 @@ let FakeLoader = () => {
 
 
 it('renders EpidemiologyPage and checks that correct plots are showing', async () => {
-    render(<Lollipop Width={FAKEPLOT.Width} Height={FAKEPLOT.Height} Plot={FAKEPLOT} />);
+    render(<Lollipop Width={FAKEPLOT.Width} Height={FAKEPLOT.Height} YAxis={["age_bin_1", "age_bin_2"]} Plot={FAKEPLOT} />);
     await screen.findAllByText(FAKEPLOT.Title);
 });

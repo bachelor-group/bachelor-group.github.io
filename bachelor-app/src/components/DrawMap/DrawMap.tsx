@@ -117,8 +117,6 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 export default DrawMap;
 
 function GetCountries(colorData: DSVRowString<string>[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
-
-    // console.log(colorData)
     let countriesData: { [name: string]: number } = {};
     let maxValue: number = 0;
     colorData.forEach(countryRow => {

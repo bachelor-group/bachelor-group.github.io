@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { axisLeft, axisBottom, select } from 'd3';
 import { Plot } from "./PlotType";
 import { DataAccessor, Scale } from "./Scaling";
-
+import { GraphTooltip } from "./Tooltip";
 
 interface ScatterProps {
     Width: number,
@@ -17,7 +17,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     const axesRef = useRef(null)
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-    const [Data, setData] = useState(Plot.Data);
+    const [data, setData] = useState(Plot.Data);
 
     // Set State on loaded data
     useEffect(() => {
@@ -64,25 +64,28 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
     }
 
     // Build the shapes
-    const allShapes = Data.map((d, i) => {
+    const allShapes = data.map((d, i) => {
         return (
-            <circle
-                key={i}
-                r={1}
-                cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
-                cy={yScale(parseInt(d[Plot.Axis[1]]!))}
-                opacity={1}
-                stroke="#9a6fb0"
-                fill="#9a6fb0"
-
-                fillOpacity={0.7}
-                strokeWidth={1}
-            />
+            GraphTooltip(Plot, d,
+                <circle
+                    key={i}
+                    r={2}
+                    cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
+                    cy={yScale(parseInt(d[Plot.Axis[1]]!))}
+                    opacity={1}
+                    stroke="#9a6fb0"
+                    fill="#9a6fb0"
+                    fillOpacity={0.7}
+                    strokeWidth={1}
+                />
+            )
         );
     });
 
     return (
         <div>
+            {data.length === 0?  <></>
+            :
             <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
                 <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" alignmentBaseline='middle'>{Plot.Title}</text>
                 {/* first group is for the violin and box shapes */}
@@ -100,8 +103,8 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     ref={axesRef}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 />
-                <rect><text>hello</text></rect>
             </svg>
+            }
         </div>
     );
 }

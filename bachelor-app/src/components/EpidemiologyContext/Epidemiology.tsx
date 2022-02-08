@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
+import { EpidemiologyEnum, hasKey } from '../DataContext/DataTypes';
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { EpidemiologyData, EpidemiologyEnum } from '../DataContext/DataTypes';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
+import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from './PlotsContainer';
 
@@ -18,19 +19,17 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key },
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: 300, Width: 600, Title: "New Tested In", GroupBy: EpidemiologyEnum.location_key },
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_deceased], Height: 300, Width: 600, Title: "New Deaths In", GroupBy: EpidemiologyEnum.location_key },
-            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_recovered], Height: 300, Width: 600, Title: "New Recovered", GroupBy: EpidemiologyEnum.location_key },
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
             { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
-    // const [RequestedData, setRequestedData] = useState<string[]>(["new_confirmed", "date"]);
-    const [Data, setData] = useState<EpidemiologyData[]>([]);
+    const [Data, setData] = useState<DataType[]>([]);
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [Countries, setCountries] = useState<TagExtended[]>([]);
 
 
     // Update Data if new Data is requested
     useEffect(() => {
-        _LoadData(Countries, LoadedCountries, Data).then((d: EpidemiologyData[]) => {
+        _LoadData(Countries, LoadedCountries, Data).then((d: DataType[]) => {
             setData(d);
 
             // ensure deep copy
@@ -43,16 +42,19 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
-            let xAxis: EpidemiologyEnum = Plot.Axis[0];
-            let yAxis: EpidemiologyEnum = Plot.Axis[1];
+            let xAxis = Plot.Axis[0];
+            let yAxis = Plot.Axis[1];
             let newPlot: Plot;
-            let PlotData: EpidemiologyData[] = []
+            let PlotData: DataType[] = []
 
             for (let j = 0; j < Data.length; j++) {
-                if (Plot.GroupBy !== undefined) {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                } else {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
+                //TODO: Two different ways of doing this, See in !== undefined
+                if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
+                    if (Plot.GroupBy !== undefined) {
+                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
+                    } else {
+                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
+                    }
                 }
             }
 
@@ -70,7 +72,7 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
         <>
             <SelectCountry selectedCountries={selectedCountries} />
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
                     Data.length === 0 ?
                         <Row md="auto" className="align-items-center">
