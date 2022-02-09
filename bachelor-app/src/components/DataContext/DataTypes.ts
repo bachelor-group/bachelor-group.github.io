@@ -11,20 +11,9 @@ export enum EpidemiologyEnum {
     new_tested = "new_tested"
 }
 
-// TODO: Fix interface, maybe remove all "?"
 
 export type EpidemiologyData = { [key in EpidemiologyEnum]?: string }
 
-
-// export interface EpidemiologyData {
-//     EpidemiologyRows.cumulative_confirmed: string,
-//     EpidemiologyRows.cumulative_deceased: string,
-//     EpidemiologyRows.cumulative_recovered: string,
-//     EpidemiologyRows.cumulative_tested: string,
-//     EpidemiologyRows.date: string,
-//     EpidemiologyRows.location_key: string,
-//     EpidemiologyRows.new_confirmed: string,
-//     EpidemiologyRows.new_deceased: string,
-//     EpidemiologyRows.new_recovered: string,
-//     EpidemiologyRows.new_tested: string,
-// }
+export function hasKey<O>(obj: O, key: PropertyKey): key is keyof O {
+    return key in obj
+}
