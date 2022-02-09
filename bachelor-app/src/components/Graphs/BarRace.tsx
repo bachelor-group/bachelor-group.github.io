@@ -74,8 +74,9 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                             return
 
                         }
+                    } else {
+                        unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
                     }
-                    unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
                 }
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
                 for (let j = 0; j < newBar.sorted.length; j++) {
@@ -402,15 +403,13 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     function handleNumberBarsChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (ticker === undefined) {
-            console.log(event.target)
             let intValue = parseInt(event.target.value)
-            if (isNaN(intValue)){
+            if (isNaN(intValue)) {
                 setTop_n(1);
                 return
             }
-            console.log(intValue)
-            if (intValue < 1)return;
-            if (intValue > 50)return;
+            if (intValue < 1) return;
+            if (intValue > 50) return;
             setTop_n(parseInt(event.target.value));
         }
     }
@@ -436,7 +435,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                                 <label htmlFor="numberBars">Number of Bars:</label>
-                                <input type="number" name="numberBars" id="" min={1} max={50} value={top_n}
+                                <input type="number" name="numberBars" aria-label='bars-input' id="" min={1} max={50} value={top_n}
                                     onChange={(e) => handleNumberBarsChange(e)} />
                             </div>
 
