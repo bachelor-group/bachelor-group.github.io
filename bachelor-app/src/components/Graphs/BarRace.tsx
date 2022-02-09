@@ -74,9 +74,9 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                             return
 
                         }
-                    } else {
-                        unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
                     }
+                    unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
+
                 }
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
                 for (let j = 0; j < newBar.sorted.length; j++) {
