@@ -83,6 +83,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                     if (i === 0) {
                         newBar.sorted[j].lastValue = newBar.sorted[j].value;
                     } else {
+                        // TODO Optimize
                         newBar.sorted[j].lastValue = prevBar!.sorted[prevBar!.sorted.findIndex(e => e.property === newBar.sorted[j].property)].value
                     }
                 }

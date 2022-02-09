@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import App from './App';
 
 // Creating Coverage Raport npm test -- --coverage
+// npm test -- --coverage --watchAll=false
 
 // Test the actual app, currently test is not working...
 test('Renders the App and checks for throws', async () => {
