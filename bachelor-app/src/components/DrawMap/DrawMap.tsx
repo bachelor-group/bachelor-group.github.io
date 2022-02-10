@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, MouseEvent } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, sum } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, sum, format } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -24,6 +24,7 @@ const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
 const dateHistogramSize: number = 0.2;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
+    const toolTipdivRef = useRef(null);
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
     const [CovidData, setCovidData] = useState<EpidemiologyData[]>();
@@ -157,6 +158,71 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         }
     }
 
+    function updateTooltip(event: MouseEvent<SVGPathElement, globalThis.MouseEvent>, index: number) {
+        let show = false;
+        if (index === -1 && Highlight !== -1) {
+            setHighlight(-1)
+        } else if (index !== -1) {
+            if (Highlight !== -1) {
+                setHighlight(-1)
+            } else {
+                setHighlight(index)
+                show = true;
+            }
+        }
+        // Create the tooltip if show
+        if (show) {
+            let countryCode = iso31661NumericToAlpha2[GeoJson!.features[index].id!];
+            // Should really only be one
+            let selectedCountries: DataType[] = []
+
+            for (let i = 0; i < Data.length; i++) {
+                const element = Data[i];
+                if (element["location_key"] === countryCode && element["date"] === chosenDate) {
+                    selectedCountries = [element];
+                    break;
+                }
+            }
+
+            let toolTipDiv = select(toolTipdivRef.current)
+                .attr("position", "relative")
+                .attr("class", "fade show popover bs-popover-end")
+                .attr("style", `left: ${event.clientX + 10}px; top: ${event.clientY-45}px; position: absolute`)
+                .attr("display", "block")
+                .selectAll<SVGSVGElement, DataType>("div")
+                .data(selectedCountries, d => d.location_key!)
+            setHighlight(index)
+
+            toolTipDiv.enter().append("div")
+            .attr("class", "popover-arrow")
+            .attr("style", "position: absolute; top: 0px; transform: translate(0px, 37px);")
+
+            toolTipDiv.enter()
+                .append("div")
+                .attr("class", "popover-header")
+                // .attr("style", `left: ${event.nativeEvent.offsetX + 10}px; top: ${event.nativeEvent.offsetY}px; position: absolute`)
+                // .attr("display", "block")
+                .text(`${selectedCountries[0]["country_name"]}`)
+
+            toolTipDiv.enter()
+                .append("div")
+                .attr("class", "popover-body")
+                .html(d => `<strong>new confirmed:</strong> ${d.new_confirmed} </br>
+                            <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(d.new_confirmed!)/parseFloat(d.population!)*100000)}`)
+
+
+            // toolTipDiv.transition().duration(0)
+            //     .attr("style", `left: ${event.nativeEvent.offsetX + 10}px; top: ${event.nativeEvent.offsetY}px; position: absolute`)
+            //     .attr("display", "block")
+            //     .text("HEISANN")
+
+            toolTipDiv.exit().remove()
+        }
+
+
+
+    }
+
     const selectedDate = (date: string) => {
         setChosenDate(date)
     }
@@ -167,7 +233,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                 {GeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
                         transform={InitialMapZoom.toString()}
-                        onClick={() => toggleInfo(index)} />
+                        onClick={(e) => updateTooltip(e, index)} />
                 ))}
 
                 <DateHistogram
@@ -176,8 +242,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
                     height={dateHistogramSize * height}
                     selectedDate={selectedDate}
                 />
-
             </svg>
+            <div ref={toolTipdivRef} style={{ opacity: Highlight !== -1 ? 1 : 0, position: "absolute", display: "none" }} className='tool-tip'></div>
         </>
     );
 }
