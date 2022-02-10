@@ -130,8 +130,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             colors.push(Color);
         });
         setPathColors(colors);
-        //trengs egt CovidData ? funka uten
-    }, [GeoJson,chosenDate, CovidData]);
+
+    }, [GeoJson, chosenDate, CovidData]);
 
 
     // Changes opacity of clicked country
@@ -184,7 +184,7 @@ function GetCountries(colorData: DSVRowString<string>[]): undefined | { countrie
             return
         }
 
-        let value = parseInt(countryRow.new_confirmed)/parseInt(countryRow.population)*10000
+        let value = parseInt(countryRow.new_confirmed) / parseInt(countryRow.population) * 10000
         countriesData[countryRow.location_key] = value;
 
         if (maxValue < value) {
