@@ -1,20 +1,16 @@
 import { useEffect, useMemo, useRef, useState, MouseEvent } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, sum, format } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, format } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
-import { iso31661Alpha2ToNumeric, ISO31661Entry, iso31661NumericToAlpha2 } from 'iso-3166';
-import { Color } from 'react-bootstrap/esm/types';
+import { iso31661NumericToAlpha2 } from 'iso-3166';
 import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
-import { EpidemiologyData } from '../DataContext/DataTypes';
 import { DataType } from '../DataContext/MasterDataType';
 import { TagExtended, _LoadCountries } from '../CountrySelector/SelectCountry';
 import LoadData from '../DataContext/LoadData';
 
-const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
-const covidUrlUpdated = "csvData/epidemiology_min.csv"
-const fullEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv"
+const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/aggregated.csv"
 
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
@@ -22,21 +18,15 @@ interface DrawMapProps {
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
-const dateHistogramSize: number = 0.2;
+const dateHistogramSize: number = 0.225;
 export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const toolTipdivRef = useRef(null);
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
-    const [CovidData, setCovidData] = useState<EpidemiologyData[]>();
+    const [CovidData, setCovidData] = useState<DataType[]>();
     const [Data, setData] = useState<DataType[]>([]);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
-    // let today = new Date();
-    // let dd = String(today.getDate()).padStart(2, '0');
-    // let mm = String(today.getMonth() + 1).padStart(2, '0');
-    // let yyyy = today.getFullYear();
-
-    // let todayDate = yyyy + '-' + mm + '-' + dd;
     const [chosenDate, setChosenDate] = useState<string>();
 
     const InitialMapZoom = zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
@@ -48,7 +38,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         path = geoPath(projection);
     }
 
-    useEffect(() => {
+    useMemo(() => {
+        if (Data.length === 0) {
+            return
+        }
         var HistogramData = new Map<string, number>()
         Data.forEach(d => {
             if (HistogramData.has(d.date!)) {
@@ -66,7 +59,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }, [Data])
 
     useMemo(() => {
-        csv(covidUrl).then(d => {
+        csv(covidUrl).then((d: DataType[]) => {
             setCovidData(d)
         });
 
@@ -141,8 +134,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             colors.push(Color);
         });
         setPathColors(colors);
-        //trengs egt CovidData ? funka uten
-    }, [GeoJson, Data, chosenDate, CovidData]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [GeoJson, chosenDate, CovidData]);
 
 
     // Changes opacity of clicked country
@@ -256,10 +250,11 @@ function GetCountries(colorData: DSVRowString<string>[]): undefined | { countrie
     let countriesData: { [name: string]: number } = {};
     let maxValue: number = 0;
     colorData.forEach(countryRow => {
-        if (!countryRow.location_key || !countryRow.new_confirmed) {
+        if (!countryRow.location_key || !countryRow.new_confirmed || !countryRow.population) {
             return
         }
-        let value = parseInt(countryRow.new_confirmed)
+
+        let value = parseInt(countryRow.new_confirmed) / parseInt(countryRow.population) * 10000
         countriesData[countryRow.location_key] = value;
 
         if (maxValue < value) {
