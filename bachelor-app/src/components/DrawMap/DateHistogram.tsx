@@ -39,15 +39,27 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
 
-
     // xScale
     const xScale = useMemo(() => {
         const [min, max] = extent(Data, (d) => parseTime(d.date!));
         return scaleTime().domain([min!, max!]).range([0, innerWidth]);
     }, [Data, innerWidth]);
 
+    // yScale
+    const yScale = useMemo(() => {
+        const [min, max] = extent(Data, yValue);
+        return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
+    }, [Data])
 
-    const binnedData: binData[] = useMemo(() => {
+
+    const binnedData = useMemo(() => {
+        if (Data.length === 0) {
+            return [{
+                total_confirmed: undefined,
+                date_start: undefined,
+                date_end: undefined
+            }]
+        }
         const [start, stop] = xScale.domain();
         const bar = bin<EpidemiologyMinimum, Date>()
             .value((d) => parseTime(d.date)!)
@@ -60,18 +72,13 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                     date_end: array.x1!
                 }
             });
-
         return bar
     }, [Data]);
 
-    const yScale = useMemo(() => {
-        const [min, max] = extent(Data, yValue);
-        return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
-    }, [Data])
 
-    // axis
+    // Axis
     useEffect(() => {
-        if (yScale == null || xScale == null) {
+        if (yScale == null || xScale == null || innerHeight == null) {
             return
         }
         const svgElement = select(axesRef.current);
@@ -106,14 +113,13 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
         }
     }
 
-
     return (
         <>
             <rect width={width} height={height} fillOpacity={0} />
             <g fillOpacity={1.0} fill={"white"} strokeOpacity={1} stroke={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
                 <text
                     textAnchor="middle"
-                    transform={`translate(${width/2},${-10})`}
+                    transform={`translate(${width / 2},${-10})`}
                 >
                     {yAxisLabel}
                 </text>

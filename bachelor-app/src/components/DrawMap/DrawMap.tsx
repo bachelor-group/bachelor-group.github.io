@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, sum } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -37,7 +37,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         path = geoPath(projection);
     }
 
-    useEffect(() => {
+    useMemo(() => {
+        if (Data.length === 0) {
+            return
+        }
         var HistogramData = new Map<string, number>()
         Data.forEach(d => {
             if (HistogramData.has(d.date!)) {
@@ -131,6 +134,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         });
         setPathColors(colors);
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [GeoJson, chosenDate, CovidData]);
 
 
