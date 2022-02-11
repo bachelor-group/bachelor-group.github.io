@@ -23,7 +23,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const toolTipdivRef = useRef(null);
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
-    const [CovidData, setCovidData] = useState<DataType[]>();
+    const [CovidData, setCovidData] = useState<DataType[]>([]);
     const [Data, setData] = useState<DataType[]>([]);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
@@ -96,13 +96,9 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
 
     useEffect(() => {
-        if (Data === undefined || GeoJson === undefined || CovidData === undefined) {
+        if (Data.length === 0 || GeoJson === undefined || CovidData.length === 0) {
             return
         }
-        let filteredData = Data.filter(d => d.date === chosenDate);
-        let filteredRecentData = CovidData.filter(d => d.location_key!.length === 2);
-
-        // Get data from filteredData
 
         let countriesData: {
             countriesData: {
@@ -112,8 +108,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         } | undefined
 
         if (chosenDate !== undefined) {
+            let filteredData = Data.filter(d => d.date === chosenDate);
             countriesData = GetCountries(filteredData);
         } else {
+            let filteredRecentData = CovidData.filter(d => d.location_key!.length === 2);
             countriesData = GetCountries(filteredRecentData);
         }
 
