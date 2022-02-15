@@ -91,7 +91,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                                     <div style={{ display: 'flex', flexDirection: "row", flexWrap: "wrap", justifyContent: "space-evenly" }}>
                                         < PlotsContainer Plots={Plots.slice(1)} />
                                     </div>
-                                    <a href="#/searchTrendsMap">Search Trends Map</a>
+                                    <a href={`#/Admin1/${Data[0].location_key}`}>Search Trends Map</a>
                                 </>
                                 :
                                 <></>

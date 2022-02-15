@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<LoadMapData />} />
         <Route path="/Searchtrends" element={<SearchTrends/>} />
         <Route path="/EpidemiologyPlots" element={<Epidemiology/>} />
-        <Route path="/Admin1" element={<LoadAdmin1MapData/>} />
+        <Route path="/Admin1/:country" element={<LoadAdmin1MapData/>} />
         <Route path="/Vaccinations" element={<h1>Vaccinations</h1>} />
         <Route path="/Mobility" element={<h1>Mobility</h1>} />
         <Route path="/About" element={<h1>About</h1>} />

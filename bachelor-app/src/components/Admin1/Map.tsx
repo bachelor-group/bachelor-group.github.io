@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react'
 import { feature } from 'topojson';
 import { Topology } from 'topojson-specification'
 import { GeoJsonProperties } from "geojson";
-import DrawMap from './DrawMap';
+import DrawAdmin1Map from './DrawMap';
+import { useParams } from 'react-router-dom';
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 
 export const LoadAdmin1MapData = () => {
+    const country = useParams<string>()
     const JsonUrl = "https://d3js.org/world-50m.v1.json"
 
     // backup url with 10m
@@ -27,14 +29,13 @@ export const LoadAdmin1MapData = () => {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
-        }).then(d => { 
+        }).then(d => {
             let temp = d.json()
             temp.then(w => {
-                console.log(w.objects.ne_10m_admin_1_states_provinces)
                 let countries: GeoJsonProperties = feature(w, w.objects.ne_10m_admin_1_states_provinces)
                 setWorldData(countries)
             })
-            console.log(temp) })
+        })
         // @ts-ignore
         // let countries: GeoJsonProperties = feature(MapData, MapData.objects.countries);
         // setWorldData(countries)
@@ -44,7 +45,7 @@ export const LoadAdmin1MapData = () => {
 
     return (
         <>
-            <DrawMap data={worldData}></DrawMap>
+            <DrawAdmin1Map data={worldData} country={country.country ? country.country : ""}></DrawAdmin1Map>
 
         </>
     );
