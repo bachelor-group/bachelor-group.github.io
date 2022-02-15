@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useState, SyntheticEvent, ChangeEvent, FormEvent } from 'react'
+import { useEffect, useMemo, useState, SyntheticEvent, ChangeEvent, FormEvent, MouseEvent, useRef } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max, geoAlbersUsa } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
-import { geoIdentity, geoPath } from 'd3-geo'
+import { geoAlbers, geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
 
 import { SearchTrendsList } from '../SearchTrends/Old_script';
-import { LoadData as _LoadData } from '../DataContext/LoadData';
+// import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
+import ReactTags, { Tag } from 'react-tag-autocomplete';
+import { isKeyObject } from 'util/types';
+import { hasKey } from '../DataContext/DataTypes';
+import { Form, ProgressBar } from 'react-bootstrap';
 
 // const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/epidemiology.csv"
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
@@ -35,6 +39,12 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
     const [suggestions, setSuggestions] = useState<string[]>(SEARCHTRENDS);
     const [data, setData] = useState<DataType[]>([]);
 
+    // Search box
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
+    const searchInputRef = useRef(null);
+
+
     useEffect(() => {
         if (GeoJson) {
             let temp = JSON.parse(JSON.stringify(GeoJson));
@@ -47,48 +57,33 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
                 }
             }
             temp.features = tempFeatures;
+            // console.log(tempFeatures)
             setCurGeoJson(temp);
         }
     }, [GeoJson, country])
 
     let path: GeoPath<any, GeoPermissibleObjects>;
     if (curGeoJson) {
-        const projection = geoIdentity().reflectY(true).fitExtent([[MARGIN.left, MARGIN.top], [width - MARGIN.right, height - MARGIN.bottom]], { type: "FeatureCollection", features: curGeoJson.features })
-        path = geoPath(projection);
+        let projection = geoIdentity().reflectY(true).fitExtent([[MARGIN.left, MARGIN.top], [width - MARGIN.right, height - MARGIN.bottom]], { type: "FeatureCollection", features: curGeoJson.features });
+
+        if (country === "US") {
+            path = geoPath(geoAlbersUsa().fitExtent([[MARGIN.left, MARGIN.top], [width - MARGIN.right, height - MARGIN.bottom]], { type: "FeatureCollection", features: curGeoJson.features }))
+        } else {
+            path = geoPath(projection);
+        }
     }
 
     useEffect(() => {
-        let newdata = data;
         if (curGeoJson) {
             let locations: string[] = []
             for (let i = 0; i < curGeoJson.features.length; i++) {
                 const element = curGeoJson.features[i];
                 locations.push(element.properties.iso_3166_2)
             }
-            // _LoadData(locations)
-            let loaded_location = 0
-            locations.forEach((location) => {
-                csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
-                    d.forEach(element => {
-                        data.push(element)
-                    });
-                    loaded_location++
-                    if (locations.length === loaded_location) {
-                        setData(newdata);
-                        console.log(newdata);
-                    }
-                }).catch((error) => {
-                    console.log(location)
-                    loaded_location++
-                    if (locations.length === loaded_location) {
-                        setData(newdata);
-                        console.log(newdata);
-                    }
-                }
-                );
-            });
+            LoadData(locations).then(d => setData(d))
+        } else {
+            setData([]);
         }
-        setData([]);
     }, [curGeoJson])
 
 
@@ -123,6 +118,8 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         if (data.length === 0 || !curGeoJson) {
             return
         }
+
+        console.log("hei Igjen")
         // let filteredData = data.filter(e => e.location_key?.length === 2);
         // Get data from filteredData
         // let countriesData = GetCountries(filteredData);
@@ -139,18 +136,21 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
             const element = curGeoJson.features[i];
             // let countryCode = iso31661NumericToAlpha2[feature.id!];
             let currentLocation = data.findIndex((d) => { return d.location_key === element.properties.iso_3166_2.replaceAll("-", "_") })
-            console.log(currentLocation)
-            console.log(element.properties.iso_3166_2.replaceAll("-", "_"))
+            // console.log(currentLocation)
+            // console.log(element.properties.iso_3166_2.replaceAll("-", "_"))
             if (currentLocation !== -1) {
-                let Color: string = colorScale(parseFloat(data[currentLocation]["search_trends_infection"]!));
+                let Color: string = colorScale(parseFloat(data[currentLocation][curSearchTrend]!));
                 if (!Color) {
                     Color = "gray"
                 }
                 colors.push(Color);
+            } else {
+                colors.push("gray");
             }
         }
+        console.log(colors)
         setPathColors(colors);
-    }, [data, curGeoJson]);
+    }, [data, curGeoJson, curSearchTrend]);
 
 
     // Changes opacity of clicked country
@@ -166,26 +166,29 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         }
     }
 
-    function filterSearchTrends(e: FormEvent<HTMLInputElement>) {
-        var reg = new RegExp(e.currentTarget.value)
-        setSuggestions(SEARCHTRENDS.filter(function (term) {
-            if (term.match(reg)) {
-                return term;
-            }
-        })
-        );
+    function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
+        //@ts-ignore
+        let newValue = e.target.value;
+        let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
 
+        if (hasKey(data[0], newKey)) {
+            console.log(`New key: ${newKey}`)
+            setCurSearchTrend(newKey)
+        }
     }
 
     return (
         <>
             <div className='trends-search'>
-                <input type='search' className='form-control' onChange={(e) => filterSearchTrends(e)} />
-                {suggestions.map((suggestion) =>
-                    <option>{suggestion}</option>
-                )}
-
+                <Form.Select onChange={(e) => setSearchTrend(e)}>
+                    {suggestions.map((suggestion) =>
+                        <option value={suggestion} className='suggestion'>{suggestion}</option>
+                    )}
+                </Form.Select>
+                {data.length === 0 ? <ProgressBar animated now={100} /> : <></>}
             </div>
+
+
             <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
                 {curGeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
@@ -199,21 +202,33 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
 }
 
 
+const _LoadData = (locations: string[]) => {
+    return new Promise<DataType[]>((resolve) => {
+        let newData: DataType[] = []
+        let loaded_location = 0
+        locations.forEach((location) => {
+            console.log("Loading")
+            csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
+                d.forEach(element => {
+                    newData.push(element)
+                });
+                loaded_location++
+                if (locations.length === loaded_location) {
+                    resolve(newData);
+                }
+            }).catch((error) => {
+                loaded_location++
+                if (locations.length === loaded_location) {
+                    resolve(newData);
+                    console.log("Hei2")
+                }
+            }
+            );
+        });
+    });
+}
+
+
 export default DrawAdmin1Map;
 
-// function GetCountries(colorData: DSVRowString<string>[]): undefined | { countriesData: { [name: string]: number }, maxValue: number } {
-//     let countriesData: { [name: string]: number } = {};
-//     let maxValue: number = 0;
-//     colorData.forEach(countryRow => {
-//         if (!countryRow.search_trends_infection {
-//             return
-//         }
-//         let value = parseFloat(countryRow.search_trends_infection)
-//         countriesData[countryRow.location_key] = value;
 
-//         if (maxValue < value) {
-//             maxValue = value;
-//         }
-//     });
-//     return { countriesData, maxValue }
-// }

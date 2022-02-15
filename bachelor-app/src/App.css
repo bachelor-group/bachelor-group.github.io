@@ -3,6 +3,20 @@
   padding: 0;
 }
 
+.suggestion:hover{
+  background-color: #efefef
+}
+
+.suggestion{
+  margin: 0px;
+}
+
+.suggestions{
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 10em;
+}
+
 .trends-search{
   position: absolute; 
   left: calc(90% - 200px);
