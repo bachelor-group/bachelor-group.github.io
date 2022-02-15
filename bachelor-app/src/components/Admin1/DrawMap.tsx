@@ -77,7 +77,15 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
                         setData(newdata);
                         console.log(newdata);
                     }
-                });
+                }).catch((error) => {
+                    console.log(location)
+                    loaded_location++
+                    if (locations.length === loaded_location) {
+                        setData(newdata);
+                        console.log(newdata);
+                    }
+                }
+                );
             });
         }
         setData([]);
@@ -132,11 +140,14 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
             // let countryCode = iso31661NumericToAlpha2[feature.id!];
             let currentLocation = data.findIndex((d) => { return d.location_key === element.properties.iso_3166_2.replaceAll("-", "_") })
             console.log(currentLocation)
-            let Color: string = colorScale(parseFloat(data[currentLocation]["search_trends_infection"]!));
-            if (!Color) {
-                Color = "gray"
+            console.log(element.properties.iso_3166_2.replaceAll("-", "_"))
+            if (currentLocation !== -1) {
+                let Color: string = colorScale(parseFloat(data[currentLocation]["search_trends_infection"]!));
+                if (!Color) {
+                    Color = "gray"
+                }
+                colors.push(Color);
             }
-            colors.push(Color);
         }
         setPathColors(colors);
     }, [data, curGeoJson]);
