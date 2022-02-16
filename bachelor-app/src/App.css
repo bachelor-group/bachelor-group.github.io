@@ -13,14 +13,6 @@
   margin: 10px;
 }
 
-
-.trends-search{
-  position: absolute; 
-  right: 5px;
-  top: 10px;
-  width: 200px;
-}
-
 .tool-tip{
   border: black solid 1px;
   padding: 5px;
@@ -73,7 +65,6 @@ svg {
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: center; /* OPS */
 }
 
 /* from: https://github.com/i-like-robots/react-tags  */
