@@ -115,7 +115,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
 
     return (
         <>
-            <rect width={width} height={height} fillOpacity={0} />
+            {/* <rect width={width} height={height} fillOpacity={0} /> */}
             <g fillOpacity={1.0} fill={"white"} strokeOpacity={1} stroke={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
                 <text
                     textAnchor="middle"
