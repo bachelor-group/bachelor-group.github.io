@@ -3,24 +3,21 @@
   padding: 0;
 }
 
-.suggestion:hover{
-  background-color: #efefef
+.trends-map-link{
+  color: black;
+  border: 1px dashed black;
+  border-radius: 0.5em;
+  text-decoration: none;
+  font-weight: bolder;
+  padding: 5px;
+  margin: 10px;
 }
 
-.suggestion{
-  margin: 0px;
-}
-
-.suggestions{
-  overflow-x: hidden;
-  overflow-y: auto;
-  max-height: 10em;
-}
 
 .trends-search{
   position: absolute; 
-  left: calc(90% - 200px);
-  top: 10%;
+  right: 5px;
+  top: 10px;
   width: 200px;
 }
 
@@ -59,6 +56,13 @@ svg {
   border: 1px solid grey;
   padding: 5px;
   margin-top: 30px;
+}
+
+/* Might move this into .plot */
+.plot-container{
+  width: 800px;
+  height: 500px;
+  margin: 20px;
 }
 
 #main {

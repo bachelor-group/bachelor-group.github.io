@@ -5,6 +5,7 @@ import { Topology } from 'topojson-specification'
 import { GeoJsonProperties } from "geojson";
 import DrawAdmin1Map from './DrawMap';
 import { useParams } from 'react-router-dom';
+import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 
@@ -36,18 +37,13 @@ export const LoadAdmin1MapData = () => {
                 setWorldData(countries)
             })
         })
-        // @ts-ignore
-        // let countries: GeoJsonProperties = feature(MapData, MapData.objects.countries);
-        // setWorldData(countries)
-
-
     }, [])
 
     return (
-        <>
-            <DrawAdmin1Map data={worldData} country={country.country ? country.country : ""}></DrawAdmin1Map>
-
-        </>
+        <div id='main'>
+            <DrawAdmin1Map data={worldData} country={country.country ? country.country : ""}/>
+            <PlotsContainer Plots={[]}/>
+        </div>
     );
 }
 

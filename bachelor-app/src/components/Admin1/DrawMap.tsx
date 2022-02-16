@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, SyntheticEvent, ChangeEvent, FormEvent, MouseEvent, useRef } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max, geoAlbersUsa } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max, geoAlbersUsa, interpolateHsl } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoAlbers, geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -8,8 +8,6 @@ import { interpolateYlOrRd } from "d3-scale-chromatic"
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 // import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
-import ReactTags, { Tag } from 'react-tag-autocomplete';
-import { isKeyObject } from 'util/types';
 import { hasKey } from '../DataContext/DataTypes';
 import { Form, ProgressBar } from 'react-bootstrap';
 
@@ -22,10 +20,10 @@ interface DrawMapProps {
     LoadData?: typeof _LoadData
 }
 
-const width: number = window.innerWidth;
-const height: number = window.innerHeight - 56;
+const width: number = 800;
+const height: number = 500;
 
-const MARGIN = { left: 50, right: 50, top: 50, bottom: 50 }
+const MARGIN = { left: 5, right: 5, top: 5, bottom: 5 }
 
 const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
 
@@ -57,7 +55,6 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
                 }
             }
             temp.features = tempFeatures;
-            // console.log(tempFeatures)
             setCurGeoJson(temp);
         }
     }, [GeoJson, country])
@@ -118,17 +115,9 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         if (data.length === 0 || !curGeoJson) {
             return
         }
-
-        console.log("hei Igjen")
-        // let filteredData = data.filter(e => e.location_key?.length === 2);
-        // Get data from filteredData
-        // let countriesData = GetCountries(filteredData);
-        // if (!countriesData) {
-        //     return
-        // }
+        
+        
         // Create and get colors
-
-
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, 100])
         let colors = new Array<string>(0);
 
@@ -136,8 +125,6 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
             const element = curGeoJson.features[i];
             // let countryCode = iso31661NumericToAlpha2[feature.id!];
             let currentLocation = data.findIndex((d) => { return d.location_key === element.properties.iso_3166_2.replaceAll("-", "_") })
-            // console.log(currentLocation)
-            // console.log(element.properties.iso_3166_2.replaceAll("-", "_"))
             if (currentLocation !== -1) {
                 let Color: string = colorScale(parseFloat(data[currentLocation][curSearchTrend]!));
                 if (!Color) {
@@ -148,7 +135,6 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
                 colors.push("gray");
             }
         }
-        console.log(colors)
         setPathColors(colors);
     }, [data, curGeoJson, curSearchTrend]);
 
@@ -178,9 +164,9 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
     }
 
     return (
-        <>
+        <div style={{position: "relative"}} className='plot-container'>
             <div className='trends-search'>
-                <Form.Select onChange={(e) => setSearchTrend(e)}>
+                <Form.Select onChange={(e) => setSearchTrend(e)} disabled={data.length === 0 ? true : false}>
                     {suggestions.map((suggestion) =>
                         <option value={suggestion} className='suggestion'>{suggestion}</option>
                     )}
@@ -197,7 +183,7 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
                 ))}
 
             </svg>
-        </>
+        </div>
     );
 }
 
@@ -207,7 +193,6 @@ const _LoadData = (locations: string[]) => {
         let newData: DataType[] = []
         let loaded_location = 0
         locations.forEach((location) => {
-            console.log("Loading")
             csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
                 d.forEach(element => {
                     newData.push(element)
@@ -220,7 +205,6 @@ const _LoadData = (locations: string[]) => {
                 loaded_location++
                 if (locations.length === loaded_location) {
                     resolve(newData);
-                    console.log("Hei2")
                 }
             }
             );
@@ -230,5 +214,3 @@ const _LoadData = (locations: string[]) => {
 
 
 export default DrawAdmin1Map;
-
-
