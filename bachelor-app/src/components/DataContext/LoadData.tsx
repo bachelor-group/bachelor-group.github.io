@@ -6,7 +6,7 @@ const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 // const URL2 = "https://storage.googleapis.com/covid19-open-data/v3/location/DK.csv"
 
-export const LoadData = (requestedCountries: TagExtended[], loadedCountries: TagExtended[], data: DataType[]) => {
+export const LoadData = (requestedCountries: TagExtended[], loadedCountries: TagExtended[], data?: DataType[]) => {
     return new Promise<DataType[]>((resolve) => {
         let loaded_csv: number = loadedCountries.length;
         if (requestedCountries.length + 1 === loadedCountries.length && requestedCountries.length != 0) {
