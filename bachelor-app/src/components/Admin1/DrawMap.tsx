@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, SyntheticEvent, ChangeEvent, FormEvent, MouseEvent, useRef } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max, geoAlbersUsa, interpolateHsl } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, csv, DSVRowString, DSVRowArray, GeoIdentityTransform, text, max, geoAlbersUsa, interpolateHsl, format } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoAlbers, geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -28,6 +28,8 @@ const MARGIN = { left: 5, right: 5, top: 5, bottom: 5 }
 const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
 
 export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: DrawMapProps) => {
+    const toolTipdivRef = useRef(null);
+
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
     // const [data, setCovidData] = useState<DSVRowArray<string>>();
@@ -36,6 +38,7 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [suggestions, setSuggestions] = useState<string[]>(SEARCHTRENDS);
     const [data, setData] = useState<DataType[]>([]);
+    const [chosenDate, setChosenDate] = useState<string>();
 
     // Search box
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -115,8 +118,8 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         if (data.length === 0 || !curGeoJson) {
             return
         }
-        
-        
+
+
         // Create and get colors
         let colorScale = scaleSequential(interpolateYlOrRd).domain([0, 100])
         let colors = new Array<string>(0);
@@ -138,20 +141,6 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         setPathColors(colors);
     }, [data, curGeoJson, curSearchTrend]);
 
-
-    // Changes opacity of clicked country
-    function toggleInfo(index: number) {
-        if (index === -1 && Highlight !== -1) {
-            setHighlight(-1)
-        } else if (index !== -1) {
-            if (Highlight !== -1) {
-                setHighlight(-1)
-            } else {
-                setHighlight(index)
-            }
-        }
-    }
-
     function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
         //@ts-ignore
         let newValue = e.target.value;
@@ -163,8 +152,96 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
         }
     }
 
+    function updateTooltip(event: MouseEvent<SVGPathElement | SVGSVGElement, globalThis.MouseEvent>, index: number = -1) {
+        let show = false;
+        // If svg click and country highlighted
+        if (index === -1 && Highlight !== -1) {
+            setHighlight(-1)
+        }
+        // If pathclick
+        else if (index !== -1) {
+            // Return if country already selected. Svg takes care of this
+            if (Highlight !== -1) {
+                return
+            } else {
+                setHighlight(index)
+                show = true;
+            }
+        }
+        // If svg and not highlighted the path will take care of it...
+        else {
+            return
+        }
+        // Should really only be one
+        let selectedCountries: DataType[] = [];
+
+        // Default to have popover go on right side of click
+        let popoverLocation: "end" | "start" = "end";
+
+        // Create the tooltip if show
+        if (show) {
+            let curdata: DataType[] = [];
+            if (chosenDate) {
+                curdata = data;
+            } else {
+                curdata = data;//latestData;
+            }
+
+            let countryCode = curGeoJson!.features[index].properties.iso_3166_2.replaceAll("-", "_");
+
+            for (let i = 0; i < curdata.length; i++) {
+                const element = curdata[i];
+                if (element["location_key"] === countryCode) {
+                    console.log(element)
+                    if (!chosenDate || element["date"] === chosenDate) {
+                        console.log("hei")
+                        selectedCountries = [element];
+                        break;
+                    }
+                }
+            }
+            if (event.clientX > width / 2) popoverLocation = "start";
+        }
+
+        console.log(selectedCountries)
+        // Select elements and data
+        let toolTipDiv = select(toolTipdivRef.current)
+            // .attr("style", `left: ${event.clientX + (popoverLocation === "end" ? 1 : -1) * 10}px; top: ${event.clientY - 45}px; position: absolute; display: block; transform: translate(${popoverLocation === "end" ? 0 : -100}%, 0px)`)
+            .selectAll<SVGSVGElement, DataType>("div")
+            .data(selectedCountries, d => d.location_key!)
+
+        // Append main div
+        let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
+            .attr("class", `fade show popover bs-popover-${popoverLocation}`)
+
+        // Append all child divs
+        toolTipDivEnterSelection
+            .append("div")
+            .attr("class", "popover-arrow")
+            .attr("style", d => "position: absolute; top: 0px; transform: translate(0px, 37px);")
+
+        toolTipDivEnterSelection
+            .append("div")
+            .attr("class", "popover-header")
+            .text(`${selectedCountries[0] === undefined ? "" : selectedCountries[0]["country_name"]}`)
+
+        toolTipDivEnterSelection
+            .append("div")
+            .attr("class", "popover-body")
+            .html(d => `<strong>new confirmed:</strong> ${d.new_confirmed!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br>
+                        <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(d.new_confirmed!) / parseFloat(d.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`)
+
+        // Translate the div to correct location. We wait so the div get its width from text. this ensures there is no wrapping
+        toolTipDivEnterSelection
+            .transition()
+            .attr("style", `left: 0px; top: ${event.nativeEvent.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.nativeEvent.offsetX + (popoverLocation === "end" ? 1 : -1) * 8}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`)
+
+
+        toolTipDiv.exit().attr("style", "display: none;").remove()
+    }
+
     return (
-        <div style={{position: "relative"}} className='plot-container'>
+        <div style={{ position: "relative" }} className='plot-container'>
             <div className='trends-search'>
                 <Form.Select onChange={(e) => setSearchTrend(e)} disabled={data.length === 0 ? true : false}>
                     {suggestions.map((suggestion) =>
@@ -175,14 +252,14 @@ export const DrawAdmin1Map = ({ data: GeoJson, country, LoadData = _LoadData }: 
             </div>
 
 
-            <svg width={width} height={height} id={"map"} onClick={() => toggleInfo(-1)}>
+            <svg width={width} height={height} id={"map"} onClick={(e) => updateTooltip(e)}>
                 {curGeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
                         transform={InitialMapZoom.toString()}
-                        onClick={() => toggleInfo(index)} />
+                        onClick={(e) => updateTooltip(e, index)} />
                 ))}
-
             </svg>
+            <div ref={toolTipdivRef} className='tool-tip'></div>
         </div>
     );
 }
