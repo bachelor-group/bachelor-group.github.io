@@ -10,7 +10,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { TagExtended, _LoadCountries } from '../CountrySelector/SelectCountry';
 import LoadData from '../DataContext/LoadData';
 
-const covidUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/aggregated.csv"
+const latestUrl = "https://storage.googleapis.com/covid19-open-data/v3/latest/aggregated.csv"
 
 interface DrawMapProps {
     data: GeoJsonProperties | undefined
@@ -23,8 +23,8 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     const toolTipdivRef = useRef(null);
     const [PathColors, setPathColors] = useState<Array<string>>([]);
     const [Highlight, setHighlight] = useState(-1);
-    const [CovidData, setCovidData] = useState<DataType[]>([]);
-    const [Data, setData] = useState<DataType[]>([]);
+    const [latestData, setLatestData] = useState<DataType[]>([]);
+    const [data, setData] = useState<DataType[]>([]);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
     const [chosenDate, setChosenDate] = useState<string>();
@@ -39,11 +39,11 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
     }
 
     useMemo(() => {
-        if (Data.length === 0) {
+        if (data.length === 0) {
             return
         }
         var HistogramData = new Map<string, number>()
-        Data.forEach(d => {
+        data.forEach(d => {
             if (HistogramData.has(d.date!)) {
                 if (!isNaN(parseInt(d.new_confirmed!))) {
                     HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
@@ -56,11 +56,11 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
             }
         })
         setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
-    }, [Data])
+    }, [data])
 
     useMemo(() => {
-        csv(covidUrl).then((d: DataType[]) => {
-            setCovidData(d)
+        csv(latestUrl).then((d: DataType[]) => {
+            setLatestData(d)
         });
 
         _LoadCountries().then((d: TagExtended[]) => {
@@ -96,7 +96,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
 
     useEffect(() => {
-        if (Data.length === 0 || GeoJson === undefined || CovidData.length === 0) {
+        if (data.length === 0 || GeoJson === undefined || latestData.length === 0) {
             return
         }
 
@@ -108,10 +108,10 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         } | undefined
 
         if (chosenDate !== undefined) {
-            let filteredData = Data.filter(d => d.date === chosenDate);
+            let filteredData = data.filter(d => d.date === chosenDate);
             countriesData = GetCountries(filteredData);
         } else {
-            let filteredRecentData = CovidData.filter(d => d.location_key!.length === 2);
+            let filteredRecentData = latestData.filter(d => d.location_key!.length === 2);
             countriesData = GetCountries(filteredRecentData);
         }
 
@@ -134,7 +134,7 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
         setPathColors(colors);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [GeoJson, chosenDate, CovidData]);
+    }, [GeoJson, chosenDate, latestData]);
 
     function updateTooltip(event: MouseEvent<SVGPathElement | SVGSVGElement, globalThis.MouseEvent>, index: number) {
         let show = false;
@@ -164,13 +164,22 @@ export const DrawMap = ({ data: GeoJson }: DrawMapProps) => {
 
         // Create the tooltip if show
         if (show) {
+            let curdata: DataType[] = [];
+            if(chosenDate){
+                curdata = data;
+            } else{
+                curdata = latestData;
+            }
+
             let countryCode = iso31661NumericToAlpha2[GeoJson!.features[index].id!];
 
-            for (let i = 0; i < Data.length; i++) {
-                const element = Data[i];
-                if (element["location_key"] === countryCode && element["date"] === chosenDate) {
-                    selectedCountries = [element];
-                    break;
+            for (let i = 0; i < curdata.length; i++) {
+                const element = curdata[i];
+                if (element["location_key"] === countryCode) {
+                    if (!chosenDate || element["date"] === chosenDate){
+                        selectedCountries = [element];
+                        break;
+                    }
                 }
             }
             if (event.clientX > width / 2) popoverLocation = "start";
