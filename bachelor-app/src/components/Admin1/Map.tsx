@@ -123,7 +123,7 @@ export const LoadAdmin1MapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) =
             </div>
 
             <div style={{ position: "relative" }} className='plot-container'>
-                <DrawAdmin1Map GeoJson={curGeoJson} country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} Data={data} />
+                <DrawAdmin1Map GeoJson={curGeoJson} country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} Data={data} Date={startDate}/>
             </div>
             <div>
                 <PlotsContainer Plots={[]} />
