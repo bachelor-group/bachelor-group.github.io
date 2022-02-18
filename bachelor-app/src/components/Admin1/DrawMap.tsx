@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, MouseEvent, useRef, memo } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format, color } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -14,17 +14,25 @@ interface DrawMapProps {
     DataTypeProperty: keyof DataType
     Data: DataType[]
     Date: string
+    adminLvl: number
+    height: number
+    width: number
 }
 
-const width: number = 800;
-const height: number = 500;
+function helperObject(adminLvl: number) {
+    return { adminLvl: adminLvl, name: adminLvl === 0 ? "NAME" : "name", countryCode: adminLvl === 0 ? "ISO_A2" : "iso_3166_2" }
+}
 
 const MARGIN = { left: 5, right: 5, top: 5, bottom: 5 }
 
-export const DrawAdmin1Map = ({ GeoJson, country, DataTypeProperty, Data, Date }: DrawMapProps) => {
+type FeatureData = { data: DataType, feature: Feature }
+
+export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, Date, adminLvl, height, width }: DrawMapProps) => {
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
+
+    let helper = helperObject(adminLvl);
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -46,17 +54,6 @@ export const DrawAdmin1Map = ({ GeoJson, country, DataTypeProperty, Data, Date }
         setCurGeoJson(GeoJson);
     }, [GeoJson])
 
-    // let path: GeoPath<any, GeoPermissibleObjects>;
-    // if (curGeoJson) {
-    //     let projection = geoIdentity().reflectY(true).fitExtent([[MARGIN.left, MARGIN.top], [width - MARGIN.right, height - MARGIN.bottom]], { type: "FeatureCollection", features: curGeoJson.features });
-
-    //     if (country === "US") {
-    //         path = geoPath(geoAlbersUsa().fitExtent([[MARGIN.left, MARGIN.top], [width - MARGIN.right, height - MARGIN.bottom]], { type: "FeatureCollection", features: curGeoJson.features }))
-    //     } else {
-    //         path = geoPath(projection);
-    //     }
-    // }
-
     // IMPORTANT!
     let path = useMemo(() => {
         if (curGeoJson) {
@@ -74,7 +71,6 @@ export const DrawAdmin1Map = ({ GeoJson, country, DataTypeProperty, Data, Date }
 
     useEffect(() => {
         const svg = select<SVGSVGElement, unknown>("svg#map");
-
 
         //Zoom function for the map
         let features = svg.selectAll("path")
@@ -98,153 +94,96 @@ export const DrawAdmin1Map = ({ GeoJson, country, DataTypeProperty, Data, Date }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    let colorScale = useMemo(() => {
+        return scaleSequential(interpolateYlOrRd).domain([0, 100])
+    }, []);
 
     useEffect(() => {
-        if (data.length === 0 || !curGeoJson) {
-            return
-        }
-
-        // Create and get colors
-        let colorScale = scaleSequential(interpolateYlOrRd).domain([0, 100])
-        let colors = new Array<string>(0);
-
-        for (let i = 0; i < curGeoJson.features.length; i++) {
-            const element = curGeoJson.features[i];
-            // let countryCode = iso31661NumericToAlpha2[feature.id!];
-            let currentLocation = data.findIndex((d) => { return d.location_key === element.properties.iso_3166_2.replaceAll("-", "_") })
-            if (currentLocation !== -1) {
-                let Color: string = colorScale(parseFloat(data[currentLocation][DataTypeProperty]!));
-                if (!Color) {
-                    Color = "gray"
-                }
-                colors.push(Color);
-            } else {
-                colors.push("gray");
-            }
-        }
-        setPathColors(colors);
-
-
+        setDataTypeProp(DataTypeProperty);
         drawMap();
-        // style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
-
-    }, [data, curGeoJson, DataTypeProperty]);
-
-    useEffect(() => {
-        setDataTypeProp(DataTypeProperty)
-        drawMap();
-    }, [curGeoJson, data, PathColors, DataTypeProperty])
+    }, [curGeoJson, data, PathColors, DataTypeProperty, Date])
 
     function drawMap() {
         if (curGeoJson && data.length !== 0) {
-            let currentData: { data: DataType, feature: Feature }[] = [];
-            for (let i = 0; i < data.length; i++) {
-                const dataElement = data[i];
-                if (dataElement.date === Date) {
-                    for (let j = 0; j < curGeoJson!.features.length; j++) {
-                        const feature: Feature = curGeoJson!.features[j];
-                        if (dataElement["location_key"] === feature.properties!.iso_3166_2.replaceAll("-", "_")) {
-                            currentData.push({ data: dataElement, feature: feature });
-                            break;
-                        }
+            let currentData: FeatureData[] = [];
+
+            for (let j = 0; j < curGeoJson!.features.length; j++) {
+                const feature: Feature = curGeoJson!.features[j];
+                let dataElement: DataType = {}
+                for (let i = 0; i < data.length; i++) {
+                    dataElement = data[i];
+                    if (dataElement.date === Date && dataElement["location_key"] === feature.properties![helper.countryCode].replaceAll("-", "_")) {
+                        break;
                     }
+                    dataElement = {}
                 }
+                currentData.push({ data: dataElement, feature: feature });
             }
 
-            let features = select(svgRef.current).selectAll<SVGSVGElement, { data: DataType, feature: Feature }>("path").data(currentData, d => d.data.location_key! );
-            features.select("*").remove();
-            features.enter().append("path").attr("d", d => path(d.feature)).attr("style", (d, i) => `fill: ${PathColors[i]}`).on("click", (e, data) => {updateTooltipdiv(e, data, true, dataTypeProp!)});
 
-            features.transition().duration(0).attr("style", (d, i) => `fill: ${PathColors[i]}`);
+            let features = select(svgRef.current).selectAll<SVGSVGElement, { data: DataType, feature: Feature }>("path").data(currentData, d => d.feature.properties![helper.countryCode]);
+            features.select("*").remove();
+
+            features
+                .enter()
+                .append("path")
+                .attr("d", d => path(d.feature))
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
+                .on("click", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) });
+
+            features
+                .on("click", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+                .transition()
+                .duration(200)
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `);
 
             features.exit().remove()
         }
     }
 
-    // function updateTooltip(event: PointerEvent, index: number = -1) {
-    //     let show = false;
-    //     console.log(Highlight)
-    //     // If svg click and country highlighted
-    //     if (index === -1 && Highlight !== -1) {
-    //         setHighlight(-1)
-    //     }
-    //     // If pathclick
-    //     else if (index !== -1) {
-    //         // Return if country already selected. Svg takes care of this
-    //         if (Highlight !== -1) {
-    //             return
-    //         } else {
-    //             setHighlight(index)
-    //             show = true;
-    //         }
-    //     }
-    //     // If svg and not highlighted the path will take care of it...
-    //     else {
-    //         return
-    //     }
-    //     updateTooltipdiv(event, index, show);
-    // }
 
-
-    function updateTooltipdiv(event: PointerEvent, data: { data: DataType, feature: Feature }, show: boolean, dataType: keyof DataType) {
+    function updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, dataType: keyof DataType) {
         // Should really only be one
         let selectedCountries: DataType[] = [];
 
         // Default to have popover go on right side of click
         let popoverLocation: "end" | "start" = "end";
-
-        // Create the tooltip if show
-        // if (show) {
-        //     let curdata: DataType[] = [];
-        //     if (chosenDate) {
-        //         curdata = data;
-        //     } else {
-        //         curdata = data;//latestData;
-        //     }
-
-        //     let countryCode = curGeoJson!.features[index].properties.iso_3166_2.replaceAll("-", "_");
-
-        //     for (let i = 0; i < curdata.length; i++) {
-        //         const element = curdata[i];
-        //         if (element["location_key"] === countryCode) {
-        //             console.log(element)
-        //             if (!chosenDate || element["date"] === chosenDate) {
-        //                 selectedCountries = [element];
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
-        
         if (event.offsetX > width / 2) popoverLocation = "start";
 
-        console.log(DataTypeProperty)
         // Select elements and data
         let toolTipDiv = select(toolTipdivRef.current)
-            // .attr("style", `left: ${event.clientX + (popoverLocation === "end" ? 1 : -1) * 10}px; top: ${event.clientY - 45}px; position: absolute; display: block; transform: translate(${popoverLocation === "end" ? 0 : -100}%, 0px)`)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => d.data.location_key!)
+            .data([data], d => d.feature.properties![helper.name])
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
-            .attr("class", `fade show popover bs-popover-${popoverLocation}`)
+            .attr("class", `fade show popover bs-popover-${popoverLocation} `)
 
         // Append all child divs
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-arrow")
-            .attr("style", d => "position: absolute; top: 0px; transform: translate(0px, 37px);")
+            .attr("style", d => "top: 0px; transform: translate(0px, 37px);")
 
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${d.data["subregion1_name"]}`)
+            .text(d => `${d.feature.properties![helper.name]} `)
 
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-body")
-            .html(d => `<strong>${dataType}:</strong> ${d.data[DataTypeProperty]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br>
-                        <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(d.data[DataTypeProperty]!) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`)
+            .html(d => {
+                let html = "";
+                let selectedData = d.data[DataTypeProperty]
+                if (selectedData !== undefined) {
+                    html = `<strong> ${dataType}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
+                    <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
+                } else {
+                    html = "<strong>Insufficient Data</strong>"
+                }
+                return html;
+            })
 
         // Translate the div to correct location. We wait so the div get its width from text. this ensures there is no wrapping
         toolTipDivEnterSelection
