@@ -1,6 +1,7 @@
 import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays, axisLeft, axisBottom, line } from 'd3';
 import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject, useState, MouseEvent } from 'react';
 import { setConstantValue } from 'typescript';
+import { DataType } from '../DataContext/MasterDataType';
 import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import { DataAccessor, Scale } from '../Graphs/Scaling';
 import Marks from './Marks';
@@ -25,7 +26,7 @@ export interface binData {
 
 }
 
-const margin = { top: 30, right: 50, bottom: 30, left: 50 };
+const margin = { top: 40, right: 50, bottom: 40, left: 50 };
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total New Cases";
 let parseTime = timeParse("%Y-%m-%d")
@@ -116,41 +117,45 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     return (
         <>
             {/* <rect width={width} height={height} fillOpacity={0} /> */}
-            <g fillOpacity={1.0} fill={"white"} strokeOpacity={1} stroke={"white"} transform={`translate(${margin.left},${window.innerHeight - height - 20})`}>
+            <g fillOpacity={1.0} fill={"white"} strokeOpacity={1} stroke={"white"} >
                 <text
+                    dominantBaseline='middle'
                     textAnchor="middle"
-                    transform={`translate(${width / 2},${-10})`}
+                    x={"50%"}
+                    y={margin.top / 4}
                 >
                     {yAxisLabel}
                 </text>
-                <g
-                    width={innerWidth}
-                    height={innerHeight}
-                    ref={axesRef}
-                    stroke={"white"}
-                    strokeOpacity={1}
-                    strokeWidth={0.7}
-                />
-                <Marks
-                    binnedData={binnedData}
-                    xScale={xScale}
-                    yScale={yScale}
-                    innerHeight={innerHeight}
-                />
+                <g transform={`translate(${margin.left},${margin.top / 2})`}>
+                    <g
+                        width={innerWidth}
+                        height={innerHeight}
+                        ref={axesRef}
+                        stroke={"white"}
+                        strokeOpacity={1}
+                        strokeWidth={0.7}
+                    />
+                    <Marks
+                        binnedData={binnedData}
+                        xScale={xScale}
+                        yScale={yScale}
+                        innerHeight={innerHeight}
+                    />
 
-                {/* Tooltips */}
-                <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='white' strokeWidth={1} opacity={showToolTip ? 1 : 0} />
+                    {/* Tooltips */}
+                    <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='white' strokeWidth={1} opacity={showToolTip ? 1 : 0} />
 
-                {dots.map((points, index) => (
-                    <circle key={index} cx={points[0]} cy={points[1]} r={4} fill='black' opacity={showToolTip ? 1 : 0} />
-                ))}
+                    {dots.map((points, index) => (
+                        <circle key={index} cx={points[0]} cy={points[1]} r={4} fill='black' opacity={showToolTip ? 1 : 0} />
+                    ))}
 
-                <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} strokeOpacity={0} fill={"white"} opacity={0}
-                    onClick={(event) => (clickedDate(event))}
-                    onMouseMove={(event) => (hoverDate(event))}
-                    onMouseEnter={() => (setShowTooltip(true))}
-                    onMouseLeave={() => (setShowTooltip(false))}>
-                </rect>
+                    <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} strokeOpacity={0} fill={"white"} opacity={0}
+                        onClick={(event) => (clickedDate(event))}
+                        onMouseMove={(event) => (hoverDate(event))}
+                        onMouseEnter={() => (setShowTooltip(true))}
+                        onMouseLeave={() => (setShowTooltip(false))}>
+                    </rect>
+                </g>
             </g>
         </>
     );

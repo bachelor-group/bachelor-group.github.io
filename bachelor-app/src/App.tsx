@@ -1,6 +1,6 @@
 import './App.css';
 import NavbarC from './components/Navbar';
-import LoadMapData from './components/DrawMap/Map';
+import LoadMapData from './components/DrawMap/MapPage';
 import { HashRouter  as Router, Routes, Route} from 'react-router-dom';
 import Epidemiology from './components/EpidemiologyContext/Epidemiology';
 import SearchTrends from './components/SearchTrends/SearchTrends';

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, MouseEvent, useRef, memo } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format, color } from 'd3';
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format, color, max } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -19,11 +19,14 @@ interface DrawMapProps {
     width: number
 }
 
+//TODO MIGHT ADD LATER TO COLORSCALES
+// parseFloat(d.data[DataTypeProperty]!)/ parseFloat(d.data["population"]!)*100_000)
+
 function helperObject(adminLvl: number) {
-    return { adminLvl: adminLvl, name: adminLvl === 0 ? "NAME" : "name", countryCode: adminLvl === 0 ? "ISO_A2" : "iso_3166_2" }
+    return { adminLvl: adminLvl, name: adminLvl === 0 ? "NAME" : "name", countryCode: adminLvl === 0 ? "ISO_A2_EH" : "iso_3166_2" }
 }
 
-const MARGIN = { left: 5, right: 5, top: 5, bottom: 5 }
+const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 type FeatureData = { data: DataType, feature: Feature }
 
@@ -95,13 +98,15 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
     }, []);
 
     let colorScale = useMemo(() => {
-        return scaleSequential(interpolateYlOrRd).domain([0, 100])
-    }, []);
+        //TODO per 100K,
+        let maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
+        return scaleSequential(interpolateYlOrRd).domain([0, maxa])
+    }, [data, DataTypeProperty]);
 
     useEffect(() => {
         setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, PathColors, DataTypeProperty, Date])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, Date])
 
     function drawMap() {
         if (curGeoJson && data.length !== 0) {
@@ -177,7 +182,7 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
                 let html = "";
                 let selectedData = d.data[DataTypeProperty]
                 if (selectedData !== undefined) {
-                    html = `<strong> ${dataType}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
+                    html = `<strong> ${dataType.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
                     <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
                 } else {
                     html = "<strong>Insufficient Data</strong>"

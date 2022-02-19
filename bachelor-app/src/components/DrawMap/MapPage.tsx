@@ -13,9 +13,6 @@ import { DataType } from '../DataContext/MasterDataType';
 import { hasKey } from '../DataContext/DataTypes';
 import { Form, ProgressBar } from 'react-bootstrap';
 
-
-const xValue = (d: EpidemiologyMinimum) => d.date;
-
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
 const dateHistogramSize: number = 0.2;
@@ -38,6 +35,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     const [startDate, setStartDate] = useState('2022-01-01');
+    const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
     useEffect(() => {
         fetch('./admin_0_countries.json', {
@@ -48,7 +46,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
         }).then(d => {
             let temp = d.json()
             temp.then((w: Topology) => {
-                console.log(w)
                 // create and set GeoJson
                 let countries: GeoJsonProperties = feature(w, w.objects.admin_0_countries)
                 setWorldData(countries)
@@ -59,7 +56,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     // Filter WorldData
     useMemo(() => {
         if (worldData) {
-            console.log(worldData)
             setCurGeoJson(worldData);
         }
     }, [worldData])
@@ -67,11 +63,10 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     useMemo(() => {
         if (curGeoJson) {
             let locations: string[] = []
-            console.log(curGeoJson.features)
             for (let i = 0; i < curGeoJson.features.length; i++) {
                 const element = curGeoJson.features[i];
                 // SEND THIS PROP IN :(
-                locations.push(element.properties.ISO_A2)
+                if (element.properties.ISO_A2_EH !== "-99") locations.push(element.properties.ISO_A2_EH);
             }
             LoadData(locations).then(d => setData(d))
         } else {
@@ -86,26 +81,61 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
         let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
 
         if (hasKey(data[0], newKey)) {
-            console.log(`New key: ${newKey}`)
             setCurSearchTrend(newKey)
         }
     }
 
-    function handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
-        if (event.target.value < MINDATE) {
-            setStartDate(MINDATE);
-        }
-        else if (event.target.value > MAXDATE) {
-            setStartDate(MAXDATE);
-        }
-        else {
-            setStartDate(event.target.value);
-        }
+    // function handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
+    //     if (event.target.value < MINDATE) {
+    //         setStartDate(MINDATE);
+    //     }
+    //     else if (event.target.value > MAXDATE) {
+    //         setStartDate(MAXDATE);
+    //     }
+    //     else {
+    //         setStartDate(event.target.value);
+    //     }
 
+    // }
+
+    useMemo(() => {
+        if (data.length === 0) {
+            return
+        }
+        var HistogramData = new Map<string, number>()
+        data.forEach(d => {
+
+            if (HistogramData.has(d.date!)) {
+                if (!isNaN(parseInt(d.new_confirmed!))) {
+                    HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
+                }
+
+            } else {
+                if (!isNaN(parseInt(d.new_confirmed!))) {
+                    HistogramData.set(d.date!, parseInt(d.new_confirmed!))
+                }
+            }
+        })
+        let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
+        setHistogramData(temp);
+    }, [data])
+
+    function selectedDate(date: string) {
+        setStartDate(date)
     }
 
     return (
-        <DrawAdmin1Map GeoJson={curGeoJson} country={""} DataTypeProperty={"new_confirmed"} Data={data} Date={startDate} adminLvl={0} width={1200} height={800} />
+        <div style={{ position: "relative" }}>
+            <DrawAdmin1Map GeoJson={curGeoJson} country={""} DataTypeProperty={"new_confirmed"} Data={data} Date={startDate} adminLvl={0} width={width} height={height} />
+            <svg style={{ position: "absolute", top: window.innerHeight - dateHistogramSize * window.innerHeight - 20, right: 0 }} width={width} >
+                <DateHistogram
+                    Data={HistogramData}
+                    width={width}
+                    height={dateHistogramSize * window.innerHeight}
+                    selectedDate={selectedDate}
+                />
+            </svg>
+        </div>
     );
 }
 

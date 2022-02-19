@@ -87,7 +87,6 @@ export const LoadAdmin1MapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) =
         let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
 
         if (hasKey(data[0], newKey)) {
-            console.log(`New key: ${newKey}`)
             setCurSearchTrend(newKey)
         }
     }
