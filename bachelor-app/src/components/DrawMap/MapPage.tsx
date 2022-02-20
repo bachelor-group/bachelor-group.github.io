@@ -3,15 +3,12 @@ import { useEffect, useMemo, useState, MouseEvent, ChangeEvent } from 'react'
 import { feature } from 'topojson';
 import { Topology } from 'topojson-specification'
 import { GeoJsonProperties, Feature } from "geojson";
-// import DrawMap from './DrawMap';
-import { iso31662, iso31661Alpha2ToNumeric, ISO31662Entry } from 'iso-3166'
 import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
-import DrawMap, { DrawAdmin1Map } from '../Admin1/DrawMap';
-import { useParams } from 'react-router-dom';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DataType } from '../DataContext/MasterDataType';
 import { hasKey } from '../DataContext/DataTypes';
 import { Form, ProgressBar } from 'react-bootstrap';
+import { MapComponent } from '../Map/Map';
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
@@ -27,13 +24,15 @@ const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "
 const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
+const ADMINLVL = 0;
+
 export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
-    const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
+    const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("new_confirmed");
     const [startDate, setStartDate] = useState('2022-01-01');
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
@@ -75,29 +74,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     }, [curGeoJson])
 
 
-    function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
-        //@ts-ignore
-        let newValue = e.target.value;
-        let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
-
-        if (hasKey(data[0], newKey)) {
-            setCurSearchTrend(newKey)
-        }
-    }
-
-    // function handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
-    //     if (event.target.value < MINDATE) {
-    //         setStartDate(MINDATE);
-    //     }
-    //     else if (event.target.value > MAXDATE) {
-    //         setStartDate(MAXDATE);
-    //     }
-    //     else {
-    //         setStartDate(event.target.value);
-    //     }
-
-    // }
-
     useMemo(() => {
         if (data.length === 0) {
             return
@@ -126,8 +102,8 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     return (
         <div style={{ position: "relative" }}>
-            <DrawAdmin1Map GeoJson={curGeoJson} country={""} DataTypeProperty={"new_confirmed"} Data={data} Date={startDate} adminLvl={0} width={width} height={height} />
-            <svg style={{ position: "absolute", top: window.innerHeight - dateHistogramSize * window.innerHeight - 20, right: 0 }} width={width} >
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} />
+            <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}
                     width={width}
@@ -135,6 +111,11 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
                     selectedDate={selectedDate}
                 />
             </svg>
+
+
+            {/* <DrawMap GeoJson={curGeoJson} country={""} DataTypeProperty={"new_confirmed"} Data={data} Date={startDate} adminLvl={0} width={width} height={height} />
+            <svg style={{ position: "absolute", top: window.innerHeight - dateHistogramSize * window.innerHeight - 20, right: 0 }} width={width} >
+            </svg> */}
         </div>
     );
 }
