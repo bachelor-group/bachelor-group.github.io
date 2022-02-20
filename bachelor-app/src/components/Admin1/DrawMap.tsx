@@ -34,6 +34,7 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
+    const pathRef = useRef(null);
 
     let helper = helperObject(adminLvl);
 
@@ -126,7 +127,7 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
             }
 
 
-            let features = select(svgRef.current).selectAll<SVGSVGElement, { data: DataType, feature: Feature }>("path").data(currentData, d => d.feature.properties![helper.countryCode]);
+            let features = select(pathRef.current).selectAll<SVGSVGElement, { data: DataType, feature: Feature }>("path").data(currentData, d => d.feature.properties![helper.countryCode]);
             features.select("*").remove();
 
             features
@@ -134,10 +135,13 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
                 .append("path")
                 .attr("d", d => path(d.feature))
                 .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
-                .on("click", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) });
+                .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+                .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
 
             features
-                .on("click", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+                .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+                .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) })
+                .on("click", clicked)
                 .transition()
                 .duration(200)
                 .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `);
@@ -151,6 +155,14 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
         // Should really only be one
         let selectedCountries: DataType[] = [];
 
+        if (!show) {
+            let test = select(toolTipdivRef.current)
+                .selectAll<SVGSVGElement, typeof data>("div")
+            console.log("REMOVE")
+            test.remove()
+            return
+        }
+
         // Default to have popover go on right side of click
         let popoverLocation: "end" | "start" = "end";
         if (event.offsetX > width / 2) popoverLocation = "start";
@@ -158,22 +170,22 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
         // Select elements and data
         let toolTipDiv = select(toolTipdivRef.current)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => d.feature.properties![helper.name])
+            .data([data], d => d.feature.properties![helper.name]);
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
-            .attr("class", `fade show popover bs-popover-${popoverLocation} `)
+            .attr("class", `fade show popover bs-popover-${popoverLocation} `);
 
         // Append all child divs
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-arrow")
-            .attr("style", d => "top: 0px; transform: translate(0px, 37px);")
+            .attr("style", d => "top: 0px; transform: translate(0px, 37px);");
 
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${d.feature.properties![helper.name]} `)
+            .text(d => `${d.feature.properties![helper.name]} `);
 
         toolTipDivEnterSelection
             .append("div")
@@ -188,20 +200,90 @@ export const DrawAdmin1Map = ({ GeoJson, country = "", DataTypeProperty, Data, D
                     html = "<strong>Insufficient Data</strong>"
                 }
                 return html;
-            })
+            });
 
         // Translate the div to correct location. We wait so the div get its width from text. this ensures there is no wrapping
         toolTipDivEnterSelection
             .transition()
-            .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`)
+            .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
+
+        // toolTipDiv
+        //     .attr("style", `left: 0px; top: 0; position: absolute; display: block;`);
+
+        // Append main div
+        let toolTipDivTransitionSelection = toolTipDiv
+            .attr("class", `fade show popover bs-popover-${popoverLocation} `);
 
 
-        toolTipDiv.exit().attr("style", "display: none;").remove()
+        // Append all child divs
+        toolTipDivTransitionSelection
+            .append("div")
+            .attr("class", "popover-arrow")
+            .attr("style", d => "top: 0px; transform: translate(0px, 37px);");
+
+        toolTipDivTransitionSelection
+            .append("div")
+            .attr("class", "popover-header")
+            .text(d => `${d.feature.properties![helper.name]} `);
+
+        toolTipDivTransitionSelection
+            .append("div")
+            .attr("class", "popover-body")
+            .html(d => {
+                let html = "";
+                let selectedData = d.data[DataTypeProperty]
+                if (selectedData !== undefined) {
+                    html = `<strong> ${dataType.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
+                    <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
+                } else {
+                    html = "<strong>Insufficient Data</strong>"
+                }
+                return html;
+            });
+
+
+        toolTipDivTransitionSelection
+            // .transition()
+            .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
+
+        toolTipDiv.exit().remove()
+    }
+
+    function clicked(event: PointerEvent, d: FeatureData) {
+        console.log(event)
+        console.log(d)
+
+        let g = select(pathRef.current)
+
+        console.log(g.attr("transform"))
+        if (!g.attr("transform")) {
+            var bounds = path.bounds(d.feature),
+                dx = bounds[1][0] - bounds[0][0],
+                dy = bounds[1][1] - bounds[0][1],
+                x = (bounds[0][0] + bounds[1][0]) / 2,
+                y = (bounds[0][1] + bounds[1][1]) / 2,
+                scale = .9 / Math.max(dx / width, dy / height),
+                translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+            g.transition()
+                .duration(750)
+                // .style("stroke-width", 1.5 / scale + "px")
+                .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+        } else {
+            g.transition()
+                .duration(750)
+                // .attr("transform", "translate(" + 0 + ")scale(" + 0 + ")")
+                .attr("transform", null);
+        }
+
     }
 
     return (
         <>
             <svg style={{ width: width, height: height }} id={"map"} ref={svgRef}>
+                {/* Paths */}
+                <g ref={pathRef} />
+
                 {/* onClick={(e) => updateTooltip(e)} > */}
                 {/* {curGeoJson?.features.map((feature: Feature, index: number) => (
                     <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}

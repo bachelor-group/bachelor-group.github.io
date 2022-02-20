@@ -22,6 +22,8 @@ const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "
 const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
+const ADMINLVL = 1;
+
 export const LoadAdmin1MapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     const country = useParams<string>()
 
@@ -122,7 +124,7 @@ export const LoadAdmin1MapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) =
             </div>
 
             <div style={{ position: "relative" }} className='plot-container'>
-                <DrawAdmin1Map GeoJson={curGeoJson} country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} Data={data} Date={startDate} adminLvl={1} height={500} width={800}/>
+                <DrawAdmin1Map GeoJson={curGeoJson} country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} Data={data} Date={startDate} adminLvl={ADMINLVL} height={500} width={800} />
             </div>
             <div>
                 <PlotsContainer Plots={[]} />
