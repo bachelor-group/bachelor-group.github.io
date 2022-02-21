@@ -30,34 +30,12 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
-    const [worldData, setWorldData] = useState<GeoJsonProperties>();
+    
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("new_confirmed");
     const [startDate, setStartDate] = useState('2022-01-01');
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
-    useEffect(() => {
-        fetch('./admin_0_countries.json', {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        }).then(d => {
-            let temp = d.json()
-            temp.then((w: Topology) => {
-                // create and set GeoJson
-                let countries: GeoJsonProperties = feature(w, w.objects.admin_0_countries)
-                setWorldData(countries)
-            })
-        })
-    }, [])
-
-    // Filter WorldData
-    useMemo(() => {
-        if (worldData) {
-            setCurGeoJson(worldData);
-        }
-    }, [worldData])
 
     useMemo(() => {
         if (curGeoJson) {
@@ -67,6 +45,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
                 // SEND THIS PROP IN :(
                 if (element.properties.ISO_A2_EH !== "-99") locations.push(element.properties.ISO_A2_EH);
             }
+            console.log("HELLO")
             LoadData(locations).then(d => setData(d))
         } else {
             setData([]);
@@ -100,9 +79,13 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
         setStartDate(date)
     }
 
+    function loadedData(Data: DataType[]){
+        setData(Data);
+    }
+
     return (
         <div style={{ position: "relative" }}>
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} />
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={true} loadedData={loadedData} />
             <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}

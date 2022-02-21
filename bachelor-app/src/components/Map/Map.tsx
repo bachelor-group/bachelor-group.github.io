@@ -10,18 +10,21 @@ import { Form, ProgressBar } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { hasKey } from '../DataContext/DataTypes';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
-import { newHelperObject, DrawMap } from './DrawMap';
+import { DrawMap } from './DrawMap';
+import Translater from './helpers';
 
 
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 type MapProps = {
-    adminLvl: number,
+    adminLvl: 0 | 1 | 2,
+    innerData?: boolean,
     country?: string,
     Date: string,
     DataTypeProperty: keyof DataType,
     height: number,
     width: number,
+    loadedData?: (Data: DataType[]) => void
     LoadData?: typeof _LoadData,
 }
 
@@ -32,17 +35,22 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, country, Date, DataTypeProperty, height, width, LoadData = _LoadData }: MapProps) => {
-    let helperObject = newHelperObject(adminLvl);
+export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, loadedData, LoadData = _LoadData }: MapProps) => {
+    // let helperObject = newHelperObject(adminLvl);
+    const translater = new Translater(adminLvl);
+
     //Data
     const [data, setData] = useState<DataType[]>([]);
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
+    const [innerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     // const [startDate, setStartDate] = useState('2020-01-01');
 
+
+    //Load GeoJson
     useEffect(() => {
-        fetch(getGeoJsonUrl(), {
+        fetch(`./admin_${adminLvl}_topojson.json`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -50,13 +58,27 @@ export const MapComponent = ({ adminLvl, country, Date, DataTypeProperty, height
         }).then(d => {
             let temp = d.json()
             temp.then((w: Topology) => {
-
-
                 // create and set GeoJson
                 let countries: GeoJsonProperties = feature(w, w.objects.features)
                 setWorldData(countries)
             })
         })
+
+        if (innerData && adminLvl < 2) {
+            fetch(`./admin_${adminLvl + 1}_topojson.json`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }).then(d => {
+                let temp = d.json()
+                temp.then((w: Topology) => {
+                    // create and set GeoJson
+                    let countries: GeoJsonProperties = feature(w, w.objects.features)
+                    setInnerGeoJson(countries)
+                })
+            })
+        }
     }, [])
 
     // Filter WorldData
@@ -69,7 +91,7 @@ export const MapComponent = ({ adminLvl, country, Date, DataTypeProperty, height
 
                 for (let i = 0; i < worldData.features.length; i++) {
                     let Feature = worldData.features[i];
-                    if (Feature.properties![helperObject.countryCode].toLowerCase() === country.toLowerCase()) {
+                    if (translater.countryCode(Feature).toLowerCase() === country.toLowerCase()) {
                         filteredFeatures.push(Feature)
                     }
                 }
@@ -88,26 +110,25 @@ export const MapComponent = ({ adminLvl, country, Date, DataTypeProperty, height
             let locations: string[] = []
             for (let i = 0; i < curGeoJson.features.length; i++) {
                 const element = curGeoJson.features[i];
-                locations.push(element.properties[helperObject.locationCode])
+                locations.push(translater.locationCode(element))
             }
-            LoadData(locations).then(d => setData(d))
+            LoadData(locations).then(d => {
+                setData(d)
+                if (loadedData) {
+                    loadedData(d)
+                }
+            })
         } else {
             setData([]);
         }
     }, [curGeoJson])
-
-    function getGeoJsonUrl() {
-        return `./admin_${adminLvl}_topojson.json`
-    }
-
 
     return (
         <>
             {
                 data.length === 0 ? <></>
                     :
-
-                    <DrawMap GeoJson={curGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} Date={Date} adminLvl={adminLvl} height={height} width={width} />
+                    <DrawMap GeoJson={curGeoJson} innerGeoJson={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} Date={Date} adminLvl={adminLvl} height={height} width={width} />
             }
         </>
     );

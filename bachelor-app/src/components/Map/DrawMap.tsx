@@ -7,6 +7,7 @@ import { interpolateYlOrRd } from "d3-scale-chromatic"
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DataType } from '../DataContext/MasterDataType';
 import { feature } from 'topojson';
+import Translater from './helpers';
 
 interface DrawMapProps {
     GeoJson: GeoJsonProperties | undefined
@@ -15,7 +16,7 @@ interface DrawMapProps {
     DataTypeProperty: keyof DataType
     Data: DataType[]
     Date: string
-    adminLvl: number
+    adminLvl: 0 | 1 | 2
     height: number
     width: number
 }
@@ -23,21 +24,20 @@ interface DrawMapProps {
 //TODO MIGHT ADD LATER TO COLORSCALES
 // parseFloat(d.data[DataTypeProperty]!)/ parseFloat(d.data["population"]!)*100_000)
 
-export function newHelperObject(adminLvl: number) {
-    return { adminLvl: adminLvl, name: adminLvl === 0 ? "NAME" : "name", locationCode: adminLvl === 0 ? "ISO_A2_EH" : "iso_3166_2", countryCode: adminLvl === 0 ? "ISO_A2_EH" : "iso_a2" }
-}
-
 const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 type FeatureData = { data: DataType, feature: Feature }
 
 export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty, Data, Date, adminLvl, height, width }: DrawMapProps) => {
+    const translater = new Translater(adminLvl);
+
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
     const pathRef = useRef(null);
+    const innerPathRef = useRef(null);
 
-    let helper = newHelperObject(adminLvl);
+    // let helper = newHelperObject(adminLvl);
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -45,10 +45,6 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
     const InitialMapZoom = zoomIdentity.scale(1)//zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
 
 
-    // const [Highlight, setHighlight] = useState(false);
-    // const [chosenDate, setChosenDate] = useState<string>();
-    // const [dataTypeProp, setDataTypeProp] = useState<keyof DataType>();
-    // const [PathColors, setPathColors] = useState<Array<string>>([]);
 
     // Set state on new data
     useEffect(() => {
@@ -112,16 +108,17 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
     }, [curGeoJson, data, colorScale, DataTypeProperty, Date])
 
     function drawMap() {
-        if (curGeoJson && data.length !== 0) {
+        if (curGeoJson)// && data.length !== 0) 
+        {
             let currentData: FeatureData[] = [];
 
             for (let j = 0; j < curGeoJson!.features.length; j++) {
                 const feature: Feature = curGeoJson!.features[j];
                 let dataElement: DataType = {}
-                
+
                 for (let i = 0; i < data.length; i++) {
                     dataElement = data[i];
-                    if (dataElement.date === Date && dataElement["location_key"] === feature.properties![helper.locationCode].replaceAll("-", "_")) {
+                    if (dataElement.date === Date && dataElement["location_key"] === translater.locationCode(feature)) {
                         break;
                     }
                     dataElement = {}
@@ -133,7 +130,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
             console.log(DataTypeProperty)
             console.log(colorScale.domain())
 
-            let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => d.feature.properties![helper.locationCode]);
+            let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
             features.select("*").remove();
 
             features
@@ -176,7 +173,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         // Select elements and data
         let toolTipDiv = select(toolTipdivRef.current)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => d.feature.properties![helper.name]);
+            .data([data], d => translater.name(d.feature));
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
@@ -191,7 +188,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${d.feature.properties![helper.name]} `);
+            .text(d => `${translater.name(d.feature)} `);
 
         toolTipDivEnterSelection
             .append("div")
@@ -230,7 +227,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         toolTipDivTransitionSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${d.feature.properties![helper.name]} `);
+            .text(d => `${translater.name(d.feature)} `);
 
         toolTipDivTransitionSelection
             .append("div")
@@ -273,6 +270,8 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
                 .attr("transform", "translate(" + translate + ")scale(" + scale + ")")
                 .delay(750);
 
+            // innerPaths(d)
+
             g.selectAll<SVGSVGElement, FeatureData>("path").on("click", (e, data) => clicked(e, data, true))
         } else {
             // WORKING CODE
@@ -291,11 +290,48 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         // setTimeout(() => setHighlight(!highlighted), 750);
     }
 
+
+    // function innerPaths(d: FeatureData) {
+    //     let g = select(pathRef.current);
+    //     let currentData: FeatureData[] = []
+    //     console.log(innerGeoJson)
+
+    //     // FIND INNERDATA
+    //     for (let j = 0; j < innerGeoJson!.features.length; j++) {
+    //         const feature: Feature = innerGeoJson!.features[j];
+    //         let dataElement: DataType = {}
+    //         // TODO Hardcoded
+    //         if (translater.countryCode(feature, 1) === dataElement.country_code){
+    //             for (let i = 0; i < data.length; i++) {
+    //                 dataElement = data[i];
+    //                 if (dataElement.date === Date) {
+    //                     break;
+    //                 }
+    //                 dataElement = {}
+    //             }
+    //             currentData.push({ data: dataElement, feature: feature });
+    //         }
+
+    //     }
+
+    //     console.log(currentData)
+
+    //     let features = g.selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
+    //     features
+    //             .enter()
+    //             .append("path")
+    //             .attr("d", d => path(d.feature))
+    //             .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
+    //             // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+    //             // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+    // }
+
     return (
         <>
             <svg style={{ width: width, height: height }} id={"map"} ref={svgRef}>
                 {/* Paths */}
                 <g ref={pathRef} />
+                <g ref={innerPathRef} />
 
                 {/* onClick={(e) => updateTooltip(e)} > */}
                 {/* {curGeoJson?.features.map((feature: Feature, index: number) => (
@@ -304,7 +340,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
                         onClick={(e) => updateTooltip(e, index)} />
                 ))} */}
             </svg>
-            <div ref={toolTipdivRef}/>
+            <div ref={toolTipdivRef} />
         </>
     );
 }
