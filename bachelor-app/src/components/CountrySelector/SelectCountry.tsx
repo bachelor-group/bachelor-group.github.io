@@ -10,7 +10,7 @@ export interface TagExtended extends Tag {
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
 
-const _LoadData = () => {
+export const _LoadCountries = () => {
     return new Promise<TagExtended[]>((resolve) => {
         let Data: TagExtended[] = []
         csv(url).then(d => {
@@ -24,11 +24,11 @@ const _LoadData = () => {
     })
 }
 interface SelectCountryProps {
-    LoadData?: typeof _LoadData
+    LoadCountries?: typeof _LoadCountries
     selectedCountries: (countries: TagExtended[]) => void
 }
 
-export const SelectCountry = ({ selectedCountries, LoadData = _LoadData }: SelectCountryProps) => {
+export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountries }: SelectCountryProps) => {
 
     const [tags, setTags] = useState<TagExtended[]>([])
     const [suggestions, setSuggestions] = useState<Tag[]>([])
@@ -36,7 +36,7 @@ export const SelectCountry = ({ selectedCountries, LoadData = _LoadData }: Selec
     const reactTags = useRef<Tag>()
 
     useEffect(() => {
-        LoadData().then((d: TagExtended[]) => {
+        LoadCountries().then((d: TagExtended[]) => {
             setData(d)
             setSuggestions(d)
         })

@@ -3,6 +3,16 @@
   padding: 0;
 }
 
+.trends-map-link{
+  color: black;
+  border: 1px dashed black;
+  border-radius: 0.5em;
+  text-decoration: none;
+  font-weight: bolder;
+  padding: 5px;
+  margin: 10px;
+}
+
 .tool-tip{
   border: black solid 1px;
   padding: 5px;
@@ -40,6 +50,13 @@ svg {
   margin-top: 30px;
 }
 
+/* Might move this into .plot */
+.plot-container{
+  width: 800px;
+  height: 500px;
+  margin: 20px;
+}
+
 #main {
   width: 80%;
   margin: auto;
@@ -48,7 +65,6 @@ svg {
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: center; /* OPS */
 }
 
 /* from: https://github.com/i-like-robots/react-tags  */
@@ -190,4 +206,12 @@ svg {
 .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
+}
+
+.rekd {
+ cursor:pointer; 
+}
+#map .tick line {
+  color: white;
+  stroke-width: 0.2;
 }

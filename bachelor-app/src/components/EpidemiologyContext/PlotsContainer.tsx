@@ -25,27 +25,35 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
 
     return (
         <>
-            {Plots.map((Plot, index) => {
-                switch (Plot.PlotType) {
-                    case PlotType.Scatter:
-                        return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+            {Plots.length !== 0 ?
+                Plots.map((Plot, index) => {
+                    switch (Plot.PlotType) {
+                        case PlotType.Scatter:
+                            return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
-                    case PlotType.WorldCloud:
-                        return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
+                        case PlotType.WorldCloud:
+                            return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
-                    case PlotType.LineChart:
-                        return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Data={Plot.Data} />
+                        case PlotType.LineChart:
+                            return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Data={Plot.Data} />
 
-                    case PlotType.Lollipop:
-                        return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
+                        case PlotType.Lollipop:
+                            return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
-                    case PlotType.BarRace:
-                        return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                        case PlotType.BarRace:
+                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
 
-                    default:
-                        throw `Plottype: ${Plot.PlotType} not supported`
-                }
-            })}
+                        default:
+                            throw `Plottype: ${Plot.PlotType} not supported`
+                    }
+                })
+                :
+                <>
+                    <h3>We want to have plots here, but have yet to define plots.</h3>
+                    <p>While we wait for plots to become a thing, have a cat!</p>
+                    <img src="https://blues-dance.com/wp-content/uploads/2021/07/33326dcddbf15c56d631e374b62338dc.jpg" width={200} />
+                </>
+            }
         </>
     );
 }
