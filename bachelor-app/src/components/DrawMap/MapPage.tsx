@@ -37,20 +37,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
 
-    useMemo(() => {
-        if (curGeoJson) {
-            let locations: string[] = []
-            for (let i = 0; i < curGeoJson.features.length; i++) {
-                const element = curGeoJson.features[i];
-                // SEND THIS PROP IN :(
-                if (element.properties.ISO_A2_EH !== "-99") locations.push(element.properties.ISO_A2_EH);
-            }
-            console.log("HELLO")
-            LoadData(locations).then(d => setData(d))
-        } else {
-            setData([]);
-        }
-    }, [curGeoJson])
 
 
     useMemo(() => {
@@ -85,7 +71,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     return (
         <div style={{ position: "relative" }}>
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={true} loadedData={loadedData} />
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={false} loadedData={loadedData} />
             <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}

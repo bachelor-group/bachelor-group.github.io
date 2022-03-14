@@ -126,10 +126,6 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
                 currentData.push({ data: dataElement, feature: feature });
             }
 
-            console.log(currentData)
-            console.log(DataTypeProperty)
-            console.log(colorScale.domain())
-
             let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
             features.select("*").remove();
 
