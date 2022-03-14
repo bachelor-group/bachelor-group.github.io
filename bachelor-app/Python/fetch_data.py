@@ -1,25 +1,55 @@
 import pandas as pd
+import csv
+import math
+import os
 
 
-def fetch_data_columns(filename: str, dt: str, *args: str):
-    columns = []
-    for arg in args:
-        columns.append(arg)
-    dt.to_csv("public/csvData/"+filename, index=False, columns=columns)
+epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv")
+index_url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
+
+
+def fetch_data_columns(filename: str, dt: str, cols):
+    path = "public/csvData/"+filename
+
+    # Create the file if it does not exist
+    if not os.path.isfile(path):
+        open(path, 'w+').close()
+    dt.to_csv(path, index=False, columns=cols)
 
 
 def date_total_confirmed():
-    pass
+        HistogramData = dict()
+        with open("public/csvData/epidemiology_min.csv", 'r') as csvfile:
+            datareader = csv.reader(csvfile)
 
+            # skip header
+            next(datareader)
 
+            try:
+                for row in datareader:
+                    if row[0] in HistogramData:
+                        if not math.isnan(float(row[2])):
+                            HistogramData[row[0]] = HistogramData[row[0]] + float(row[2])
+                    else:
+                        if not math.isnan(float(row[2])):
+                            HistogramData[row[0]] = float(row[2])
+
+            except ValueError as e:
+                print("error: ", e)
+        
+        with open("public/csvData/total_confirmed.csv", 'w') as csvfile:
+            csvfile.write("%s,%s\n" % ("date", "total_confirmed"))
+            for key in HistogramData.keys():
+                csvfile.write("%s,%s\n" % (key, HistogramData[key]))
+
+# STÅ I /bachelor-app
 if __name__=="__main__":
-    epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv")
-    demographics = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/demographics.csv")
+    # demographics = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/demographics.csv")
     # search_trends = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/google-search-trends.csv")
     # vaccinations = pd.cread_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv")
 
-    fetch_data_columns("epidemiology_min.csv", epidemiology, "date", "location_key", "new_confirmed")
-    fetch_data_columns("demographics_min.csv", demographics, "location_key", "population")
-    fetch_data_columns("deaths_min.csv", epidemiology, "date", "location_key", "new_deceased", "cumulative_deceased")
+    fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
+    fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
+    date_total_confirmed()
     
     

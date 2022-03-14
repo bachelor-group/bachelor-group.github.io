@@ -19,6 +19,9 @@ type LoadAdmin1MapData = {
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
+
+const histogramUrl = "../../../public/csvData/total_confirmed.csv"
+
 const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
 
 const MINDATE = "2020-01-01"
@@ -30,7 +33,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
-    
+
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("new_confirmed");
     const [startDate, setStartDate] = useState('2022-01-01');
@@ -45,7 +48,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
                 // SEND THIS PROP IN :(
                 if (element.properties.ISO_A2_EH !== "-99") locations.push(element.properties.ISO_A2_EH);
             }
-            console.log("HELLO")
             LoadData(locations).then(d => setData(d))
         } else {
             setData([]);
@@ -54,39 +56,27 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
 
     useMemo(() => {
-        if (data.length === 0) {
-            return
-        }
         var HistogramData = new Map<string, number>()
-        data.forEach(d => {
-
-            if (HistogramData.has(d.date!)) {
-                if (!isNaN(parseInt(d.new_confirmed!))) {
-                    HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d.new_confirmed!))
-                }
-
-            } else {
-                if (!isNaN(parseInt(d.new_confirmed!))) {
-                    HistogramData.set(d.date!, parseInt(d.new_confirmed!))
-                }
-            }
+        csv("csvData/total_confirmed.csv").then(d => {
+            d.forEach((row => {
+                HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
+            }))
+            setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
         })
-        let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
-        setHistogramData(temp);
-    }, [data])
+    }, [])
 
     function selectedDate(date: string) {
         setStartDate(date)
     }
 
-    function loadedData(Data: DataType[]){
+    function loadedData(Data: DataType[]) {
         setData(Data);
     }
 
     return (
         <div style={{ position: "relative" }}>
             <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={true} loadedData={loadedData} />
-            <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
+            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}
                     width={width}
