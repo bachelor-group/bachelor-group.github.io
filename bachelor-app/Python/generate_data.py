@@ -3,6 +3,7 @@ import math
 import pandas as pd
 import os
 from fetch_data import fetch_data_columns
+import concurrent.futures
 
 
 def epidemiology_locations(location, path):
@@ -12,27 +13,27 @@ def epidemiology_locations(location, path):
     fetch_data_columns(path, epidemiology, columns)
     
 
-def write_to_file(region_code, filename):
+def write_to_file(region_code, filename="cases"):
     print("=================== "+region_code+" ====================")
     path="public/csvData/aggregated"
-    print("fetching")
+    # print("fetching")
 
     dt = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+region_code+".csv")
-    print("done fetching")
+    # print("done fetching")
 
     region_code = region_code.split("_")
     for region in region_code:
         path += "/"+region
     if not os.path.exists(path):
         os.makedirs(path)
-    print("Writing")
     dt.to_csv(path+"/"+filename+".csv", index=False, columns=COLS)
-    print("Done writing")
     print()
     
     
+    # TODO: benchmark current version (first 100 locations) - vs single thread
     
 def generate_data():
+    urls = []
     with open("public/csvData/index_min.csv", 'r') as csvfile:
         datareader = csv.reader(csvfile)
         
@@ -40,8 +41,6 @@ def generate_data():
         next(datareader)
 
         for row in datareader:
-            # print(row[0].split("_"))
-
             region_codes = row[0].split("_")
             
             url=""
@@ -49,15 +48,14 @@ def generate_data():
                 url += region
                 if i != len(region_codes)-1:
                     url += "_"
-            # print(url)
-            try:
-                write_to_file(url, "cases")
+            urls.append(url)
 
-                # write_to_file(region_codes[0], "cases")
-                # write_to_file(region_codes[0]+"_"+region_codes[1], "cases")
-                # write_to_file(region_codes[0]+"_"+region_codes[1]+"_"+region_codes[2], "cases")
-            except:
-                print("error")
+        try:
+             with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+                executor.map(write_to_file, urls)
+        except:
+            print()
+
 
 
 
