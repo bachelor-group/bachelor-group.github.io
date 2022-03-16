@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from fetch_data import fetch_data_columns
 import concurrent.futures
+import memory_profiler
 
 
 def epidemiology_locations(location, path):
@@ -14,12 +15,9 @@ def epidemiology_locations(location, path):
     
 
 def write_to_file(region_code, filename="cases"):
-    print("=================== "+region_code+" ====================")
+    print("=================== "+region_code+" ===================")  
     path="public/csvData/aggregated"
-    # print("fetching")
-
     dt = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+region_code+".csv")
-    # print("done fetching")
 
     region_code = region_code.split("_")
     for region in region_code:
@@ -30,11 +28,10 @@ def write_to_file(region_code, filename="cases"):
     print()
     
     
-    # TODO: benchmark current version (first 100 locations) - vs single thread
-    
-def generate_data():
+# @profile
+def generate_data_concurrent(file, threads):
     urls = []
-    with open("public/csvData/index_min.csv", 'r') as csvfile:
+    with open(file, 'r') as csvfile:
         datareader = csv.reader(csvfile)
         
         # skip header
@@ -51,15 +48,43 @@ def generate_data():
             urls.append(url)
 
         try:
-             with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+             with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
                 executor.map(write_to_file, urls)
         except:
             print()
 
 
+# @profile
+def generate_data(file):
+    with open(file, 'r') as csvfile:
+        datareader = csv.reader(csvfile)
+        
+        # skip header
+        next(datareader)
+
+        for row in datareader:
+            region_codes = row[0].split("_")
+            
+            url=""
+            for i,region in enumerate(region_codes):
+                url += region
+                if i != len(region_codes)-1:
+                    url += "_"
+            try:
+                write_to_file(url)
+            except:
+                print()
+
 
 
 if __name__=="__main__":
     COLS = ["date", "new_confirmed"]
-    generate_data()
+
+    generate_data_concurrent("public/csvData/index_min.csv", 16)
+
+    ######### benchmarking #########
+
+    # generate_data_concurrent("public/csvData/index_benchmark_first_200.csv", 16)
+
+    # generate_data("public/csvData/index_benchmark_first_200.csv")
     
