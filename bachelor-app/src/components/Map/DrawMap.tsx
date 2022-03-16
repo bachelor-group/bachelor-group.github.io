@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, MouseEvent, useRef, memo } from 'react'
-import { GeoJsonProperties, Feature } from "geojson";
-import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format, color, max, svg } from 'd3';
+import { GeoJsonProperties, Feature, Geometry } from "geojson";
+import { geoMercator, GeoPath, GeoPermissibleObjects, select, scaleSequential, geoAlbersUsa, interpolateHsl, format, color, max, svg, csv } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
@@ -11,11 +11,11 @@ import Translater from './helpers';
 
 interface DrawMapProps {
     GeoJson: GeoJsonProperties | undefined
-    innerGeoJson?: GeoJsonProperties | undefined
+    InnerGeoJsonProp?: GeoJsonProperties | undefined
     country?: string
     DataTypeProperty: keyof DataType
     Data: DataType[]
-    Date: string
+    CurDate: string
     adminLvl: 0 | 1 | 2
     height: number
     width: number
@@ -28,7 +28,7 @@ const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 type FeatureData = { data: DataType, feature: Feature }
 
-export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty, Data, Date, adminLvl, height, width }: DrawMapProps) => {
+export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width }: DrawMapProps) => {
     const translater = new Translater(adminLvl);
 
     //Refs
@@ -43,7 +43,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
     const [data, setData] = useState<DataType[]>([]);
     const InitialMapZoom = zoomIdentity.scale(1)//zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
-
+    const [InnerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>(InnerGeoJsonProp);
 
 
     // Set state on new data
@@ -54,6 +54,11 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
     useEffect(() => {
         setCurGeoJson(GeoJson);
     }, [GeoJson])
+
+
+    useEffect(() => {
+        setInnerGeoJson(InnerGeoJsonProp);
+    }, [InnerGeoJsonProp])
 
     // IMPORTANT!
     let path = useMemo(() => {
@@ -105,7 +110,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, Date])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate])
 
     function drawMap() {
         if (curGeoJson)// && data.length !== 0) 
@@ -118,7 +123,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
 
                 for (let i = 0; i < data.length; i++) {
                     dataElement = data[i];
-                    if (dataElement.date === Date && dataElement["location_key"] === translater.locationCode(feature)) {
+                    if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature)) {
                         break;
                     }
                     dataElement = {}
@@ -140,7 +145,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
             features
                 .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
                 .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) })
-                .on("click", (e, data) => clicked(e, data, false))
+                .on("click", (e, data) => clicked(e, data))
                 .transition()
                 .duration(200)
                 .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `);
@@ -157,7 +162,7 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         if (!show) {
             let test = select(toolTipdivRef.current)
                 .selectAll<SVGSVGElement, typeof data>("div")
-            console.log("REMOVE")
+            // console.log("REMOVE")
             test.remove()
             return
         }
@@ -248,79 +253,105 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
         toolTipDiv.exit().remove()
     }
 
-    function clicked(event: PointerEvent, d: FeatureData, highlighted: boolean) {
+    function clicked(event: PointerEvent, d: FeatureData) {
+        console.log(InnerGeoJson)
+        if (InnerGeoJson) {
+            let countryPaths = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path")
 
-        let g = select(pathRef.current)
-        if (!highlighted) {
-            var bounds = path.bounds(d.feature),
-                dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                x = (bounds[0][0] + bounds[1][0]) / 2,
-                y = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = .9 / Math.max(dx / width, dy / height),
-                translate = [width / 2 - scale * x, height / 2 - scale * y];
-
-            g.transition()
-                .duration(750)
-                // .style("stroke-width", 1.5 / scale + "px")
-                .attr("transform", "translate(" + translate + ")scale(" + scale + ")")
-                .delay(750);
-
-            // innerPaths(d)
-
-            g.selectAll<SVGSVGElement, FeatureData>("path").on("click", (e, data) => clicked(e, data, true))
-        } else {
-            // WORKING CODE
-            g.transition()
-                .duration(750)
-                .attr("transform", InitialMapZoom.toString());
-
-
-            // select<SVGSVGElement, unknown>("svg#map").transition().duration(750).call(zoom, InitialMapZoom)
-            g.selectAll<SVGSVGElement, FeatureData>("path").on("click", (e, data) => clicked(e, data, false))
-
-            // drawMap(!highlighted);
+            countryPaths
+                .attr("style", data => {
+                    if (d === data) {
+                        return 'display: none'
+                    }
+                    return `fill: ${data.data[DataTypeProperty] ? colorScale(parseFloat(data.data[DataTypeProperty]!)) : "gray"} `
+                })
+            innerPaths(d)
         }
 
-
-        // setTimeout(() => setHighlight(!highlighted), 750);
     }
 
+    // Draw innerPaths after a click event
+    function innerPaths(d: FeatureData) {
+        if (InnerGeoJson) {
+            let g = select(pathRef.current);
+            let currentData: FeatureData[] = []
+            // console.log(innerGeoJson)
+            let innerFeatures: Feature[] = []
 
-    // function innerPaths(d: FeatureData) {
-    //     let g = select(pathRef.current);
-    //     let currentData: FeatureData[] = []
-    //     console.log(innerGeoJson)
+            let DUMMYDATA: FeatureData[] = [];
+            let locations: string[] = [];
+            // FIND INNERDATA
+            for (let j = 0; j < InnerGeoJson.features.length; j++) {
+                const feature: Feature = InnerGeoJson.features[j];
+                // TODO "1" is Hardcoded
+                if (translater.countryCode(feature, 1) === d.data.country_code) {
+                    // console.log(translater.countryCode(feature, 1))
+                    locations.push(translater.locationCode(feature, 1))
+                    innerFeatures.push(feature);
 
-    //     // FIND INNERDATA
-    //     for (let j = 0; j < innerGeoJson!.features.length; j++) {
-    //         const feature: Feature = innerGeoJson!.features[j];
-    //         let dataElement: DataType = {}
-    //         // TODO Hardcoded
-    //         if (translater.countryCode(feature, 1) === dataElement.country_code){
-    //             for (let i = 0; i < data.length; i++) {
-    //                 dataElement = data[i];
-    //                 if (dataElement.date === Date) {
-    //                     break;
-    //                 }
-    //                 dataElement = {}
-    //             }
-    //             currentData.push({ data: dataElement, feature: feature });
-    //         }
+                    // fetch(`https://storage.googleapis.com/covid19-open-data/v3/location/${translater.locationCode(feature, 1)}.csv`).then(d => {
+                    //     let curData: DataType = {};
+                    //     for (let i = 0; i < data.length; i++) {
+                    //         const element = data[i];
+                    //         if (element.date === CurDate) {
+                    //             curData = element;
+                    //             break;
+                    //         }
+                    //     }
 
-    //     }
+                    //     if (curData === {}){
+                    //         console.log(`curData = {} for ${translater.locationCode(feature, 1)}, Yikes...`)
+                    //     }
 
-    //     console.log(currentData)
+                    //     DUMMYDATA.push({ feature: feature, data: curData})
+                    // });
 
-    //     let features = g.selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
-    //     features
-    //             .enter()
-    //             .append("path")
-    //             .attr("d", d => path(d.feature))
-    //             .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
-    //             // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-    //             // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
-    // }
+                    // ORIGINAL
+                    // DUMMYDATA.push({ feature: feature, data: {} })
+                }
+            }
+            loadInnerData(locations).then(data => {
+                for (let j = 0; j < innerFeatures.length; j++) {
+                    const feature = innerFeatures[j];
+                    let dataElement: DataType = {}
+
+                    for (let i = 0; i < data.length; i++) {
+                        dataElement = data[i];
+                        if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
+                            break;
+                        }
+                        dataElement = {}
+                    }
+                    DUMMYDATA.push({data: dataElement, feature: feature });
+                }
+
+
+                // Drawing innerFeatures
+                let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(DUMMYDATA, d => translater.locationCode(d.feature, 1));
+
+                innerFeaturesSelect
+                    .enter()
+                    .append("path")
+                    .attr("d", d => path(d.feature))
+                    .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
+                    .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+                    .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+
+                // console.log(currentData)
+
+
+                innerFeaturesSelect.exit().remove()
+            })
+
+            // console.log(DUMMYDATA)   
+            // DUMMYDATA.forEach(d => {console.log(d.feature.properties!.iso_3166_2)})
+
+
+        }
+        else {
+            throw 'innerPaths was called, but InnerGeoJsonProps was undefined'
+        }
+    }
 
     return (
         <>
@@ -328,17 +359,34 @@ export const DrawMap = ({ GeoJson, innerGeoJson, country = "", DataTypeProperty,
                 {/* Paths */}
                 <g ref={pathRef} />
                 <g ref={innerPathRef} />
-
-                {/* onClick={(e) => updateTooltip(e)} > */}
-                {/* {curGeoJson?.features.map((feature: Feature, index: number) => (
-                    <path key={index} d={path(feature)!} id={"path"} style={{ fill: PathColors[index], opacity: Highlight === index || Highlight === -1 ? 1 : 0.5 }}
-                        transform={InitialMapZoom.toString()}
-                        onClick={(e) => updateTooltip(e, index)} />
-                ))} */}
             </svg>
             <div ref={toolTipdivRef} />
         </>
     );
+}
+
+const loadInnerData = (locations: string[]) => {
+    return new Promise<DataType[]>((resolve) => {
+        let newData: DataType[] = []
+        let loaded_location = 0
+        locations.forEach((location) => {
+            csv("https://storage.googleapis.com/covid19-open-data/v3/location/" + location.replaceAll("-", "_") + ".csv").then(d => {
+                d.forEach(element => {
+                    newData.push(element)
+                });
+                loaded_location++
+                if (locations.length === loaded_location) {
+                    resolve(newData);
+                }
+            }).catch((error) => {
+                loaded_location++
+                if (locations.length === loaded_location) {
+                    resolve(newData);
+                }
+            }
+            );
+        });
+    });
 }
 
 export default memo(DrawMap);

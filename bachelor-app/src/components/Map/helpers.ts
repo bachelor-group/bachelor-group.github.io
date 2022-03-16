@@ -18,8 +18,8 @@ export class Translater {
         }
     }
 
-    locationCode(feature: Feature): string {
-        switch (this.adminLvl) {
+    locationCode(feature: Feature, adminLvl=this.adminLvl): string {
+        switch (adminLvl) {
             case 0:
                 return feature.properties!["ISO_A2_EH"].replaceAll("-", "_")
             case 1:

@@ -76,6 +76,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                     // create and set GeoJson
                     let countries: GeoJsonProperties = feature(w, w.objects.features)
                     setInnerGeoJson(countries)
+                    console.log(countries)
                 })
             })
         }
@@ -126,9 +127,9 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
     return (
         <>
             {
-                data.length === 0 ? <></>
+                data.length === 0 ? <ProgressBar animated now={100}></ProgressBar>
                     :
-                    <DrawMap GeoJson={curGeoJson} innerGeoJson={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} Date={Date} adminLvl={adminLvl} height={height} width={width} />
+                    <DrawMap GeoJson={curGeoJson} InnerGeoJsonProp={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} CurDate={Date} adminLvl={adminLvl} height={height} width={width} />
             }
         </>
     );
