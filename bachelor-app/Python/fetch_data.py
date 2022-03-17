@@ -25,13 +25,15 @@ def date_total_confirmed():
             # skip header
             next(datareader)
             try:
-                for row in datareader:
-                    if row[0] in HistogramData:
-                        if not math.isnan(float(row[2])):
-                            HistogramData[row[0]] = HistogramData[row[0]] + float(row[2])
+                for col in datareader:
+                    date = col[0]
+                    new_confirmed = col[2] 
+                    if date in HistogramData:
+                        if not math.isnan(float(new_confirmed)):
+                            HistogramData[date] = HistogramData[date] + float(new_confirmed)
                     else:
-                        if not math.isnan(float(row[2])):
-                            HistogramData[row[0]] = float(row[2])
+                        if not math.isnan(float(new_confirmed)):
+                            HistogramData[date] = float(new_confirmed)
             except ValueError as e:
                 print("error: ", e)
         with open("public/csvData/total_confirmed.csv", 'w') as csvfile:
@@ -46,10 +48,11 @@ if __name__=="__main__":
     # search_trends = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/google-search-trends.csv")
     # vaccinations = pd.cread_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv")
 
-    fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
+    # fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
 
     # update cases.csv before date total_confirmed to get newest version
-    fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
-    date_total_confirmed()
+    # fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
+    fetch_data_columns("cases_min.csv", epidemiology, ["date", "new_confirmed"])
+    # date_total_confirmed()
     
     
