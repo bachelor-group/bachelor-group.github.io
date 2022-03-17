@@ -55,6 +55,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
         })
         let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
         setHistogramData(temp);
+        console.log(HistogramData)
     }, [data])
 
     function selectedDate(date: string) {
