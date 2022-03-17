@@ -24,18 +24,20 @@ def date_total_confirmed():
             datareader = csv.reader(csvfile)
             # skip header
             next(datareader)
-            try:
-                for col in datareader:
-                    date = col[0]
-                    new_confirmed = col[2] 
-                    if date in HistogramData:
-                        if not math.isnan(float(new_confirmed)):
-                            HistogramData[date] = HistogramData[date] + float(new_confirmed)
-                    else:
-                        if not math.isnan(float(new_confirmed)):
-                            HistogramData[date] = float(new_confirmed)
-            except ValueError as e:
-                print("error: ", e)
+            for row in datareader:
+                date = row[0]
+                new_confirmed = row[2] 
+                try:
+                    if len(row[1])==2:
+                        if date in HistogramData:
+                            if not math.isnan(float(new_confirmed)):
+                                HistogramData[date] = HistogramData[date] + float(new_confirmed)
+                        else:
+                            if not math.isnan(float(new_confirmed)):
+                                HistogramData[date] = float(new_confirmed)
+
+                except ValueError as e:
+                    print("error: ", e)
         with open("public/csvData/total_confirmed.csv", 'w') as csvfile:
             csvfile.write("%s,%s\n" % ("date", "total_confirmed"))
             for key in HistogramData.keys():
@@ -51,8 +53,7 @@ if __name__=="__main__":
     # fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
 
     # update cases.csv before date total_confirmed to get newest version
-    # fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
-    fetch_data_columns("cases_min.csv", epidemiology, ["date", "new_confirmed"])
-    # date_total_confirmed()
+    fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
+    date_total_confirmed()
     
     
