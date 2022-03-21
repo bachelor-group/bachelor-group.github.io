@@ -45,6 +45,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     const InitialMapZoom = zoomIdentity.scale(1)//zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
     const [InnerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>(InnerGeoJsonProp);
 
+    // Inner
+    const [innerData, setInnerData] = useState<Map<string, DataType[]>>(new Map());
+    const [selectedInnerFeatures, setSelectedInnerFeatures] = useState<Feature[]>([])
 
     // Set state on new data
     useEffect(() => {
@@ -111,6 +114,11 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         // setDataTypeProp(DataTypeProperty);
         drawMap();
     }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate])
+
+    useEffect(() => {
+        // setDataTypeProp(DataTypeProperty)
+        DrawInnerFeatures();
+    }, [selectedInnerFeatures, CurDate])
 
     function drawMap() {
         if (curGeoJson)// && data.length !== 0) 
@@ -274,73 +282,69 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     function innerPaths(d: FeatureData) {
         if (InnerGeoJson) {
             let g = select(pathRef.current);
-            let currentData: FeatureData[] = []
             // console.log(innerGeoJson)
-            let innerFeatures: Feature[] = []
+            let innerFeatures: Feature[] = [];
 
             let DUMMYDATA: FeatureData[] = [];
+
+            let CurrentData: Map<string, DataType[]> = new Map();
+
             let locations: string[] = [];
+
             // FIND INNERDATA
             for (let j = 0; j < InnerGeoJson.features.length; j++) {
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
                 if (translater.countryCode(feature, 1) === d.data.country_code) {
                     // console.log(translater.countryCode(feature, 1))
+                    // console.log(feature)
                     locations.push(translater.locationCode(feature, 1))
                     innerFeatures.push(feature);
-
-                    // fetch(`https://storage.googleapis.com/covid19-open-data/v3/location/${translater.locationCode(feature, 1)}.csv`).then(d => {
-                    //     let curData: DataType = {};
-                    //     for (let i = 0; i < data.length; i++) {
-                    //         const element = data[i];
-                    //         if (element.date === CurDate) {
-                    //             curData = element;
-                    //             break;
-                    //         }
-                    //     }
-
-                    //     if (curData === {}){
-                    //         console.log(`curData = {} for ${translater.locationCode(feature, 1)}, Yikes...`)
-                    //     }
-
-                    //     DUMMYDATA.push({ feature: feature, data: curData})
-                    // });
-
-                    // ORIGINAL
-                    // DUMMYDATA.push({ feature: feature, data: {} })
                 }
             }
-            loadInnerData(locations).then(data => {
-                for (let j = 0; j < innerFeatures.length; j++) {
-                    const feature = innerFeatures[j];
-                    let dataElement: DataType = {}
 
-                    for (let i = 0; i < data.length; i++) {
-                        dataElement = data[i];
-                        if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
-                            break;
-                        }
-                        dataElement = {}
-                    }
-                    DUMMYDATA.push({data: dataElement, feature: feature });
+            console.log(locations)
+            // TODO FINISH
+            // Check if data is loaded
+            for (let i = 0; i < locations.length; i++) {
+                const element = locations[i];
+                if (CurrentData.has(element)) {
+                    console.log("DATA ALREADY LOADED")
                 }
+            }
 
 
-                // Drawing innerFeatures
-                let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(DUMMYDATA, d => translater.locationCode(d.feature, 1));
+            // Add data to loaded data
+            loadInnerData(locations).then(data => {
+                // for (let j = 0; j < innerFeatures.length; j++) {
+                //     const feature = innerFeatures[j];
+                //     let dataElement: DataType = {};
 
-                innerFeaturesSelect
-                    .enter()
-                    .append("path")
-                    .attr("d", d => path(d.feature))
-                    .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
-                    .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-                    .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+                //     for (let value in CurrentData.values()) {
+                //         if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
+                //             break;
+                //         }
+                //     }
 
-                // console.log(currentData)
+                //     // for (let i = 0; i < data.length; i++) {
+                //     //     dataElement = data[i];
+                //     //     if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
+                //     //         break;
+                //     //     }
+                //     //     dataElement = {}
+                //     // }
+                //     // DUMMYDATA.push({data: dataElement, feature: feature });
+                // }
 
+                let oldData = innerData;
+                let mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())])
+                setInnerData(mergedData);
+                setSelectedInnerFeatures(innerFeatures);
 
-                innerFeaturesSelect.exit().remove()
+                // Select Data
+                // console.log(mergedData)
+                // console.log(translater.locationCode(innerFeatures[0], 1))
+                // console.log(mergedData.get("NO_03"))
             })
 
             // console.log(DUMMYDATA)   
@@ -351,6 +355,61 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         else {
             throw 'innerPaths was called, but InnerGeoJsonProps was undefined'
         }
+    }
+
+    function DrawInnerFeatures(){
+         // Drawing innerFeatures
+         let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
+
+         innerFeaturesSelect
+             .enter()
+             .append("path")
+             .attr("d", d => path(d))
+             .attr("style", (d, i) => {
+                 let data = innerData.get(translater.locationCode(d, 1));
+                 if (data) {
+                     let date = findIndexToDate(data);
+                     return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
+                 }
+                 else {
+                     // TODO Colour for missing datapoint...
+                     return `fill: magenta`
+                 }
+             })
+             // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+             // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+
+
+        // Update
+        innerFeaturesSelect
+             .attr("style", (d, i) => {
+                let data = innerData.get(translater.locationCode(d, 1));
+                if (data) {
+                    let date = findIndexToDate(data);
+                    return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
+                }
+                else {
+                    // TODO Colour for missing datapoint...
+                    return `fill: magenta`
+                }
+            })
+
+         // console.log(currentData)
+
+
+         innerFeaturesSelect.exit().remove()
+         console.log("REDRAWN INNER FEATURES")
+    }
+
+    function findIndexToDate(list: DataType[]): number {
+        let index = -1;
+        for (let i = 0; i < list.length; i++) {
+            const element = list[i];
+            if (element.date === CurDate) {
+                return i;
+            }
+        }
+        return index
     }
 
     return (
@@ -366,22 +425,26 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 }
 
 const loadInnerData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let newData: DataType[] = []
-        let loaded_location = 0
+    return new Promise<Map<string, DataType[]>>((resolve) => {
+        let newData: DataType[] = [];
+        let temp: Map<string, DataType[]> = new Map();
+        let loaded_location = 0;
         locations.forEach((location) => {
             csv("https://storage.googleapis.com/covid19-open-data/v3/location/" + location.replaceAll("-", "_") + ".csv").then(d => {
-                d.forEach(element => {
-                    newData.push(element)
-                });
+
+                temp.set(location, d)
+
+                // d.forEach(element => {
+                //     newData.push(element)
+                // });
                 loaded_location++
                 if (locations.length === loaded_location) {
-                    resolve(newData);
+                    resolve(temp);
                 }
             }).catch((error) => {
                 loaded_location++
                 if (locations.length === loaded_location) {
-                    resolve(newData);
+                    resolve(temp);
                 }
             }
             );
