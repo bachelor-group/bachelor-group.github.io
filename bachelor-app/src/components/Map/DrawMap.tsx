@@ -113,7 +113,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures])
 
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty)
@@ -121,22 +121,33 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     }, [selectedInnerFeatures, CurDate])
 
     function drawMap() {
-        if (curGeoJson)// && data.length !== 0) 
-        {
+        if (curGeoJson) {
             let currentData: FeatureData[] = [];
 
             for (let j = 0; j < curGeoJson!.features.length; j++) {
                 const feature: Feature = curGeoJson!.features[j];
                 let dataElement: DataType = {}
 
-                for (let i = 0; i < data.length; i++) {
-                    dataElement = data[i];
-                    if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature)) {
-                        break;
+                let innerDataLoaded = false;
+                // console.log(innerData)
+                // for (let index in selectedInnerFeatures) {
+                //     let key = translater.countryCode(selectedInnerFeatures[index], 1)
+                //     if (key === translater.countryCode(feature, 0)) {
+                //         innerDataLoaded = true;
+                //         break;
+                //     }
+                // }
+
+                if (!innerDataLoaded) {
+                    for (let i = 0; i < data.length; i++) {
+                        dataElement = data[i];
+                        if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature)) {
+                            break;
+                        }
+                        dataElement = {}
                     }
-                    dataElement = {}
+                    currentData.push({ data: dataElement, feature: feature });
                 }
-                currentData.push({ data: dataElement, feature: feature });
             }
 
             let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
@@ -147,6 +158,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .append("path")
                 .attr("d", d => path(d.feature))
                 .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
+                .on("click", (e, data) => clicked(e, data))
                 .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
                 .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
 
@@ -170,7 +182,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         if (!show) {
             let test = select(toolTipdivRef.current)
                 .selectAll<SVGSVGElement, typeof data>("div")
-            // console.log("REMOVE")
             test.remove()
             return
         }
@@ -219,9 +230,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             .transition()
             .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
 
-        // toolTipDiv
-        //     .attr("style", `left: 0px; top: 0; position: absolute; display: block;`);
-
         // Append main div
         let toolTipDivTransitionSelection = toolTipDiv
             .attr("class", `fade show popover bs-popover-${popoverLocation} `);
@@ -253,42 +261,33 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 return html;
             });
 
-
         toolTipDivTransitionSelection
-            // .transition()
             .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
 
         toolTipDiv.exit().remove()
     }
 
     function clicked(event: PointerEvent, d: FeatureData) {
-        console.log(InnerGeoJson)
         if (InnerGeoJson) {
-            let countryPaths = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path")
+            // let countryPaths = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path")
 
-            countryPaths
-                .attr("style", data => {
-                    if (d === data) {
-                        return 'display: none'
-                    }
-                    return `fill: ${data.data[DataTypeProperty] ? colorScale(parseFloat(data.data[DataTypeProperty]!)) : "gray"} `
-                })
+            // countryPaths
+            //     .attr("style", data => {
+            //         if (d === data) {
+            //             return 'display: none'
+            //         }
+            //         return `fill: ${data.data[DataTypeProperty] ? colorScale(parseFloat(data.data[DataTypeProperty]!)) : "gray"} `
+            //     })
             innerPaths(d)
         }
 
     }
 
-    // Draw innerPaths after a click event
+    // setInnerData after a click event
     function innerPaths(d: FeatureData) {
         if (InnerGeoJson) {
-            let g = select(pathRef.current);
-            // console.log(innerGeoJson)
             let innerFeatures: Feature[] = [];
-
-            let DUMMYDATA: FeatureData[] = [];
-
-            let CurrentData: Map<string, DataType[]> = new Map();
-
+            let CurrentData: Map<string, DataType[]> = innerData;
             let locations: string[] = [];
 
             // FIND INNERDATA
@@ -296,93 +295,71 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
                 if (translater.countryCode(feature, 1) === d.data.country_code) {
-                    // console.log(translater.countryCode(feature, 1))
-                    // console.log(feature)
                     locations.push(translater.locationCode(feature, 1))
                     innerFeatures.push(feature);
                 }
             }
 
-            console.log(locations)
-            // TODO FINISH
             // Check if data is loaded
-            for (let i = 0; i < locations.length; i++) {
-                const element = locations[i];
-                if (CurrentData.has(element)) {
-                    console.log("DATA ALREADY LOADED")
+            let needToLoad = true;
+            for (let entry of Array.from(CurrentData.entries())) {
+                let countryCode = entry[0].split("_")[0]
+                if (countryCode === d.data.country_code) {
+                    needToLoad = false;
+                    console.log("FOUND IT BBY")
+                    break;
                 }
             }
 
-
             // Add data to loaded data
-            loadInnerData(locations).then(data => {
-                // for (let j = 0; j < innerFeatures.length; j++) {
-                //     const feature = innerFeatures[j];
-                //     let dataElement: DataType = {};
-
-                //     for (let value in CurrentData.values()) {
-                //         if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
-                //             break;
-                //         }
-                //     }
-
-                //     // for (let i = 0; i < data.length; i++) {
-                //     //     dataElement = data[i];
-                //     //     if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
-                //     //         break;
-                //     //     }
-                //     //     dataElement = {}
-                //     // }
-                //     // DUMMYDATA.push({data: dataElement, feature: feature });
-                // }
-
-                let oldData = innerData;
-                let mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())])
-                setInnerData(mergedData);
-                setSelectedInnerFeatures(innerFeatures);
-
-                // Select Data
-                // console.log(mergedData)
-                // console.log(translater.locationCode(innerFeatures[0], 1))
-                // console.log(mergedData.get("NO_03"))
-            })
-
-            // console.log(DUMMYDATA)   
-            // DUMMYDATA.forEach(d => {console.log(d.feature.properties!.iso_3166_2)})
-
-
+            let mergedData = innerData;
+            if (needToLoad) {
+                loadInnerData(locations).then(data => {
+                    let oldData = innerData;
+                    mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())]);
+                    setAllInnerData(mergedData, innerFeatures);
+                })
+            }
+            else {
+                setAllInnerData(mergedData, innerFeatures);
+            }
         }
         else {
             throw 'innerPaths was called, but InnerGeoJsonProps was undefined'
         }
     }
 
-    function DrawInnerFeatures(){
-         // Drawing innerFeatures
-         let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
+    function setAllInnerData(Data: Map<string, DataType[]>, innerFeatures: Feature[]) {
+        setInnerData(Data);
+        setSelectedInnerFeatures(innerFeatures);
+    }
 
-         innerFeaturesSelect
-             .enter()
-             .append("path")
-             .attr("d", d => path(d))
-             .attr("style", (d, i) => {
-                 let data = innerData.get(translater.locationCode(d, 1));
-                 if (data) {
-                     let date = findIndexToDate(data);
-                     return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
-                 }
-                 else {
-                     // TODO Colour for missing datapoint...
-                     return `fill: magenta`
-                 }
-             })
-             // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-             // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+    function DrawInnerFeatures() {
+        // Drawing innerFeatures
+        let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
+
+        innerFeaturesSelect
+            .enter()
+            .append("path")
+            .attr("d", d => path(d))
+            .attr("style", (d, i) => {
+                let data = innerData.get(translater.locationCode(d, 1));
+                if (data) {
+                    let date = findIndexToDate(data);
+                    return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
+                }
+                else {
+                    // TODO Colour for missing datapoint...
+                    return `fill: magenta`
+                }
+            })
+        // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
+        // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
 
 
         // Update
         innerFeaturesSelect
-             .attr("style", (d, i) => {
+            .attr("style", (d, i) => {
                 let data = innerData.get(translater.locationCode(d, 1));
                 if (data) {
                     let date = findIndexToDate(data);
@@ -394,11 +371,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 }
             })
 
-         // console.log(currentData)
-
-
-         innerFeaturesSelect.exit().remove()
-         console.log("REDRAWN INNER FEATURES")
+        innerFeaturesSelect.exit().remove()
     }
 
     function findIndexToDate(list: DataType[]): number {
