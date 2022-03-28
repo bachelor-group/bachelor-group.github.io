@@ -7,14 +7,16 @@ export class Translater {
         this.adminLvl = adminLvl;
     }
 
-    name(feature: Feature): string {
-        switch (this.adminLvl) {
+    name(feature: Feature, adminLvl: number=this.adminLvl): string {
+        switch (adminLvl) {
             case 0:
                 return feature.properties!["NAME"]
             case 1:
                 return feature.properties!["name"]
             case 2:
                 return feature.properties!["NAME"]
+            default:
+                return "";
         }
     }
 
