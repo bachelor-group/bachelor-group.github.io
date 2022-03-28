@@ -6,6 +6,7 @@ import { geoIdentity, geoPath } from 'd3-geo'
 import { interpolateYlOrRd } from "d3-scale-chromatic"
 import { DataType } from '../DataContext/MasterDataType';
 import Translater from './helpers';
+import { MapToolTip } from './ToolTip';
 
 interface DrawMapProps {
     GeoJson: GeoJsonProperties | undefined
@@ -24,16 +25,17 @@ const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 export type FeatureData = { data: DataType, feature: Feature }
 
-export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false }: DrawMapProps) => {
+export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false}: DrawMapProps) => {
     const translater = new Translater(adminLvl);
-
+    
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
     const pathRef = useRef(null);
     const innerPathRef = useRef(null);
-
-    // let helper = newHelperObject(adminLvl);
+    
+    // ToolTip
+    const Tooltip = new MapToolTip({width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K});
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -174,12 +176,12 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
                     return `fill: ${d.data[DataTypeProperty] ? color : "gray"} `
                 })
-                .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-                .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+                .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
+                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) });
 
             features
-                .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-                .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) })
+                .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
+                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) })
                 .on("click", (e, data) => clicked(e, data))
                 .transition()
                 .duration(200)
@@ -196,102 +198,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
             features.exit().remove()
         }
-    }
-
-
-    function updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, dataType: keyof DataType) {
-        // Should really only be one
-        let selectedCountries: DataType[] = [];
-
-        //Get Admin lvl
-        let adminLvl = data.data.location_key?.split("_").length! - 1
-
-        if (!show) {
-            let test = select(toolTipdivRef.current)
-                .selectAll<SVGSVGElement, typeof data>("div")
-            test.remove()
-            return
-        }
-
-        // Default to have popover go on right side of click
-        let popoverLocation: "end" | "start" = "end";
-        if (event.offsetX > width / 2) popoverLocation = "start";
-
-        // Select elements and data
-        let toolTipDiv = select(toolTipdivRef.current)
-            .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => translater.name(d.feature, adminLvl));
-
-        // Append main div
-        let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
-            .attr("class", `fade show popover bs-popover-${popoverLocation} `);
-
-        // Append all child divs
-        toolTipDivEnterSelection
-            .append("div")
-            .attr("class", "popover-arrow")
-            .attr("style", d => "top: 0px; transform: translate(0px, 37px);");
-
-        toolTipDivEnterSelection
-            .append("div")
-            .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature, adminLvl)} `);
-
-        toolTipDivEnterSelection
-            .append("div")
-            .attr("class", "popover-body")
-            .html(d => {
-                let html = "";
-                let selectedData = d.data[DataTypeProperty]
-                if (selectedData !== undefined) {
-                    html = `<strong> ${dataType.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
-                    <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
-                } else {
-                    html = "<strong>Insufficient Data</strong>"
-                }
-                return html;
-            });
-
-        // Translate the div to correct location. We wait so the div get its width from text. this ensures there is no wrapping
-        toolTipDivEnterSelection
-            .transition()
-            .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
-
-        // Append main div
-        let toolTipDivTransitionSelection = toolTipDiv
-            .attr("class", `fade show popover bs-popover-${popoverLocation} `);
-
-
-        // Append all child divs
-        toolTipDivTransitionSelection
-            .append("div")
-            .attr("class", "popover-arrow")
-            .attr("style", d => "top: 0px; transform: translate(0px, 37px);");
-
-        toolTipDivTransitionSelection
-            .append("div")
-            .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature, adminLvl)} `);
-
-        toolTipDivTransitionSelection
-            .append("div")
-            .attr("class", "popover-body")
-            .html(d => {
-                let html = "";
-                let selectedData = d.data[DataTypeProperty]
-                if (selectedData !== undefined) {
-                    html = `<strong> ${dataType.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} </br >
-                    <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
-                } else {
-                    html = "<strong>Insufficient Data</strong>"
-                }
-                return html;
-            });
-
-        toolTipDivTransitionSelection
-            .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
-
-        toolTipDiv.exit().remove()
     }
 
     function clicked(event: PointerEvent, d: FeatureData) {
@@ -387,8 +293,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true, DataTypeProperty) })
-            .on("mouseleave", (e, featureData) => { updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true, DataTypeProperty) });
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) });
 
         // Update
         innerFeaturesSelect
