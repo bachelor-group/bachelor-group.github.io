@@ -106,7 +106,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
     let colorScale = useMemo(() => {
         //TODO per 100K,
-        let maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
+        let maxa = max(data, d => parseFloat(d[DataTypeProperty]!)/parseFloat(d["population"]!) * 100_000)!
         return scaleSequential(interpolateYlOrRd).domain([0, maxa])
     }, [data, DataTypeProperty]);
 
@@ -157,8 +157,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .enter()
                 .append("path")
                 .attr("d", d => path(d.feature))
-                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
-                .on("click", (e, data) => clicked(e, data))
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)/parseInt(d.data["population"]!) * 100_000) : "gray"} `)
                 .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
                 .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
 
@@ -168,7 +167,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .on("click", (e, data) => clicked(e, data))
                 .transition()
                 .duration(200)
-                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `);
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)/parseInt(d.data["population"]!) * 100_000) : "gray"} `);
 
             features.exit().remove()
         }
@@ -178,6 +177,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     function updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, dataType: keyof DataType) {
         // Should really only be one
         let selectedCountries: DataType[] = [];
+
+        //Get Admin lvl
+        let adminLvl = data.data.location_key?.split("_").length! - 1
 
         if (!show) {
             let test = select(toolTipdivRef.current)
@@ -193,7 +195,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         // Select elements and data
         let toolTipDiv = select(toolTipdivRef.current)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => translater.name(d.feature));
+            .data([data], d => translater.name(d.feature, adminLvl));
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
@@ -208,7 +210,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature)} `);
+            .text(d => `${translater.name(d.feature, adminLvl)} `);
 
         toolTipDivEnterSelection
             .append("div")
@@ -244,7 +246,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         toolTipDivTransitionSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature)} `);
+            .text(d => `${translater.name(d.feature, adminLvl)} `);
 
         toolTipDivTransitionSelection
             .append("div")
@@ -333,29 +335,27 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         setInnerData(Data);
         setSelectedInnerFeatures(innerFeatures);
     }
+    function DrawInnerFeatures(){
+         // Drawing innerFeatures
+         let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
 
-    function DrawInnerFeatures() {
-        // Drawing innerFeatures
-        let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
-
-        innerFeaturesSelect
-            .enter()
-            .append("path")
-            .attr("d", d => path(d))
-            .attr("style", (d, i) => {
-                let data = innerData.get(translater.locationCode(d, 1));
-                if (data) {
-                    let date = findIndexToDate(data);
-                    return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
-                }
-                else {
-                    // TODO Colour for missing datapoint...
-                    return `fill: magenta`
-                }
-            })
-        // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-        // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
-
+         innerFeaturesSelect
+             .enter()
+             .append("path")
+             .attr("d", d => path(d))
+             .attr("style", (d, i) => {
+                 let data = innerData.get(translater.locationCode(d, 1));
+                 if (data) {
+                     let date = findIndexToDate(data);
+                     return `fill: ${data[date][DataTypeProperty] ? colorScale(parseFloat(data[date][DataTypeProperty]!)) : "gray"} `;
+                 }
+                 else {
+                     // TODO Colour for missing datapoint...
+                     return `fill: magenta`
+                 }
+             })
+             .on("mousemove", (e, featureData) => { updateTooltipdiv(e, {data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData}, true, DataTypeProperty) })
+             .on("mouseleave", (e, featureData) => { updateTooltipdiv(e, {data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData}, true, DataTypeProperty) });
 
         // Update
         innerFeaturesSelect
