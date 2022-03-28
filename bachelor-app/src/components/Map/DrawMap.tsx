@@ -106,7 +106,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
     let colorScale = useMemo(() => {
         //TODO per 100K,
-        let maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
+        let maxa = max(data, d => parseFloat(d[DataTypeProperty]!)/parseFloat(d["population"]!) * 100_000)!
         return scaleSequential(interpolateYlOrRd).domain([0, maxa])
     }, [data, DataTypeProperty]);
 
@@ -146,7 +146,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .enter()
                 .append("path")
                 .attr("d", d => path(d.feature))
-                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `)
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)/parseInt(d.data["population"]!) * 100_000) : "gray"} `)
                 .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
                 .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
 
@@ -156,7 +156,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .on("click", (e, data) => clicked(e, data))
                 .transition()
                 .duration(200)
-                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)) : "gray"} `);
+                .attr("style", (d, i) => `fill: ${d.data[DataTypeProperty] ? colorScale(parseFloat(d.data[DataTypeProperty]!)/parseInt(d.data["population"]!) * 100_000) : "gray"} `);
 
             features.exit().remove()
         }
@@ -166,6 +166,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     function updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, dataType: keyof DataType) {
         // Should really only be one
         let selectedCountries: DataType[] = [];
+
+        //Get Admin lvl
+        let adminLvl = data.data.location_key?.split("_").length! - 1
 
         if (!show) {
             let test = select(toolTipdivRef.current)
@@ -182,7 +185,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         // Select elements and data
         let toolTipDiv = select(toolTipdivRef.current)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => translater.name(d.feature));
+            .data([data], d => translater.name(d.feature, adminLvl));
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
@@ -197,7 +200,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature)} `);
+            .text(d => `${translater.name(d.feature, adminLvl)} `);
 
         toolTipDivEnterSelection
             .append("div")
@@ -236,7 +239,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         toolTipDivTransitionSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${translater.name(d.feature)} `);
+            .text(d => `${translater.name(d.feature, adminLvl)} `);
 
         toolTipDivTransitionSelection
             .append("div")
@@ -255,7 +258,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
 
         toolTipDivTransitionSelection
-            // .transition()
             .attr("style", `left: 0px; top: ${event.offsetY - 45}px; position: absolute; display: block; transform: translate(calc(${event.offsetX + (popoverLocation === "end" ? 1 : -1) * 8 * 2}px + ${popoverLocation === "end" ? 0 : -100}%), 0px)`);
 
         toolTipDiv.exit().remove()
@@ -316,26 +318,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
             // Add data to loaded data
             loadInnerData(locations).then(data => {
-                // for (let j = 0; j < innerFeatures.length; j++) {
-                //     const feature = innerFeatures[j];
-                //     let dataElement: DataType = {};
-
-                //     for (let value in CurrentData.values()) {
-                //         if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
-                //             break;
-                //         }
-                //     }
-
-                //     // for (let i = 0; i < data.length; i++) {
-                //     //     dataElement = data[i];
-                //     //     if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature, 1)) {
-                //     //         break;
-                //     //     }
-                //     //     dataElement = {}
-                //     // }
-                //     // DUMMYDATA.push({data: dataElement, feature: feature });
-                // }
-
                 let oldData = innerData;
                 let mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())])
                 setInnerData(mergedData);
@@ -376,8 +358,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                      return `fill: magenta`
                  }
              })
-             // .on("mousemove", (e, data) => { updateTooltipdiv(e, data, true, DataTypeProperty) })
-             // .on("mouseleave", (e, data) => { updateTooltipdiv(e, data, false, DataTypeProperty) });
+             .on("mousemove", (e, featureData) => { updateTooltipdiv(e, {data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData}, true, DataTypeProperty) })
+             .on("mouseleave", (e, featureData) => { updateTooltipdiv(e, {data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData}, true, DataTypeProperty) });
 
 
         // Update
