@@ -76,7 +76,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                     // create and set GeoJson
                     let countries: GeoJsonProperties = feature(w, w.objects.features)
                     setInnerGeoJson(countries)
-                    console.log(countries)
+                    // console.log(countries)
                 })
             })
         }
