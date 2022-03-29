@@ -4,7 +4,6 @@ import { FaBars } from 'react-icons/fa';
 import { Link } from "react-router-dom";
 import { IconContext } from 'react-icons';
 import * as AiIcons from 'react-icons/ai';
-import { SidebarData } from './SidebarData';
 
 interface SidebarData {
  title: string,
