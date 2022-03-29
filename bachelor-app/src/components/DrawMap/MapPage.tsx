@@ -9,6 +9,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { hasKey } from '../DataContext/DataTypes';
 import { Form, ProgressBar } from 'react-bootstrap';
 import { MapComponent } from '../Map/Map';
+import SidebarC from '../Sidebar';
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
@@ -72,9 +73,27 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     function loadedData(Data: DataType[]) {
         setData(Data);
     }
+    let DummyData = [
+        {
+            title: 'Home',
+            path: '/',
+            cName: 'nav-text'
+        },
+        {
+            title: 'Reports',
+            path: '/reports',
+            cName: 'nav-text'
+        },
+        {
+            title: 'Products',
+            path: '/products',
+            cName: 'nav-text'
+        }
+    ]
 
     return (
         <div style={{ position: "relative" }}>
+            <SidebarC Data={DummyData} iconColor={"white"}/>
             <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={true} loadedData={loadedData} />
             <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
