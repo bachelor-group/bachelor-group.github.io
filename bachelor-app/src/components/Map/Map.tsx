@@ -24,6 +24,7 @@ type MapProps = {
     DataTypeProperty: keyof DataType,
     height: number,
     width: number,
+    scalePer100k?: boolean,
     loadedData?: (Data: DataType[]) => void
     LoadData?: typeof _LoadData,
 }
@@ -35,7 +36,7 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, loadedData, LoadData = _LoadData }: MapProps) => {
+export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadData }: MapProps) => {
     // let helperObject = newHelperObject(adminLvl);
     const translater = new Translater(adminLvl);
 
@@ -76,6 +77,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                     // create and set GeoJson
                     let countries: GeoJsonProperties = feature(w, w.objects.features)
                     setInnerGeoJson(countries)
+                    // console.log(countries)
                 })
             })
         }
@@ -126,9 +128,9 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
     return (
         <>
             {
-                data.length === 0 ? <></>
+                data.length === 0 ? <ProgressBar animated now={100}></ProgressBar>
                     :
-                    <DrawMap GeoJson={curGeoJson} innerGeoJson={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} Date={Date} adminLvl={adminLvl} height={height} width={width} />
+                    <DrawMap GeoJson={curGeoJson} InnerGeoJsonProp={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} CurDate={Date} adminLvl={adminLvl} height={height} width={width} scalePer100K={scalePer100k} />
             }
         </>
     );

@@ -10,6 +10,7 @@ import { hasKey } from '../DataContext/DataTypes';
 import { Form, ProgressBar } from 'react-bootstrap';
 import { MapComponent } from '../Map/Map';
 import SidebarC from '../Sidebar';
+import { getDefaultSettings } from 'http2';
 
 const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
@@ -21,13 +22,6 @@ type LoadAdmin1MapData = {
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
-const histogramUrl = "../../../public/csvData/total_confirmed.csv"
-
-const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
-
-const MINDATE = "2020-01-01"
-const MAXDATE = "2025-01-01"
-
 const ADMINLVL = 0;
 
 export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
@@ -35,28 +29,17 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     //Data
     const [data, setData] = useState<DataType[]>([]);
 
-    const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
-    const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("new_confirmed");
-    const [startDate, setStartDate] = useState('2022-01-01');
+    const [curDataTypeProp, setDataTypeProp] = useState<keyof DataType>("new_confirmed");
+    var curDate = new Date()
+    var lastWeek = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate()-7 );
+    const [startDate, setStartDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth()+1 < 10 ? "0" + (lastWeek.getMonth()+1) : lastWeek.getMonth()+1}-${lastWeek.getDate() < 10? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
 
     useMemo(() => {
-        if (curGeoJson) {
-            let locations: string[] = []
-            for (let i = 0; i < curGeoJson.features.length; i++) {
-                const element = curGeoJson.features[i];
-                // SEND THIS PROP IN :(
-                if (element.properties.ISO_A2_EH !== "-99") locations.push(element.properties.ISO_A2_EH);
-            }
-            LoadData(locations).then(d => setData(d))
-        } else {
-            setData([]);
+        if (data.length === 0) {
+            return
         }
-    }, [curGeoJson])
-
-
-    useMemo(() => {
         var HistogramData = new Map<string, number>()
         csv("csvData/total_confirmed.csv").then(d => {
             d.forEach((row => {
@@ -64,7 +47,10 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
             }))
             setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
         })
-    }, [])
+        let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
+        setHistogramData(temp);
+        console.log(HistogramData)
+    }, [data])
 
     function selectedDate(date: string) {
         setStartDate(date)
@@ -94,8 +80,8 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     return (
         <div style={{ position: "relative" }}>
             <SidebarC Data={DummyData} iconColor={"white"}/>
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curSearchTrend} width={width} height={height} innerData={true} loadedData={loadedData} />
-            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight}>
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={true} loadedData={loadedData} />
+            <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}
                     width={width}
@@ -103,11 +89,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
                     selectedDate={selectedDate}
                 />
             </svg>
-
-
-            {/* <DrawMap GeoJson={curGeoJson} country={""} DataTypeProperty={"new_confirmed"} Data={data} Date={startDate} adminLvl={0} width={width} height={height} />
-            <svg style={{ position: "absolute", top: window.innerHeight - dateHistogramSize * window.innerHeight - 20, right: 0 }} width={width} >
-            </svg> */}
         </div>
     );
 }
