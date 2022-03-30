@@ -7,7 +7,6 @@ import * as AiIcons from 'react-icons/ai';
 
 interface SidebarData {
  title: string,
- path: string,
  cName: string
 }
 
@@ -36,9 +35,7 @@ function SidebarC({Data, iconColor}: {Data: SidebarData[], iconColor: string}) {
             {Data.map((item, index) => {
               return (
                 <li key={index} className={item.cName}>
-                  <Link to={item.path}>
                     <span>{item.title}</span>
-                  </Link>
                 </li>
               );
             })}

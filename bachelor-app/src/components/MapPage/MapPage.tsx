@@ -59,27 +59,20 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     function loadedData(Data: DataType[]) {
         setData(Data);
     }
-    let DummyData = [
+    let dataFilter = [
         {
-            title: 'Home',
-            path: '/',
+            title: 'New Cases',
             cName: 'nav-text'
         },
         {
-            title: 'Reports',
-            path: '/reports',
+            title: 'New Deceased',
             cName: 'nav-text'
         },
-        {
-            title: 'Products',
-            path: '/products',
-            cName: 'nav-text'
-        }
     ]
 
     return (
         <div style={{ position: "relative" }}>
-            <SidebarC Data={DummyData} iconColor={"white"}/>
+            <SidebarC Data={dataFilter} iconColor={"white"}/>
             <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={true} loadedData={loadedData} />
             <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
