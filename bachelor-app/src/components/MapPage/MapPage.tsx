@@ -19,12 +19,17 @@ const dateHistogramSize: number = 0.2;
 type LoadAdmin1MapData = {
     LoadData?: typeof _LoadData
 }
+interface DataFilter {
+    title: string,
+    dataType: keyof DataType,
+    cName: string
+}
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
 const ADMINLVL = 0;
 
-export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
+export const LoadMapData = ({ LoadData = _LoadSmallData }: LoadAdmin1MapData) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
@@ -59,20 +64,26 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     function loadedData(Data: DataType[]) {
         setData(Data);
     }
-    let dataFilter = [
+    let dataFilter: DataFilter[] = [
         {
             title: 'New Cases',
+            dataType: 'new_confirmed',
             cName: 'nav-text'
         },
         {
             title: 'New Deceased',
+            dataType: 'new_deceased',
             cName: 'nav-text'
         },
     ]
+    const SelectedFilter = (dataType: keyof DataType) => {
+        setDataTypeProp(dataType)
+        console.log("changed dataType to: ", dataType)
+    }
 
     return (
         <div style={{ position: "relative" }}>
-            <SidebarC Data={dataFilter} iconColor={"white"}/>
+            <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"white"}/>
             <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={true} loadedData={loadedData} />
             <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
@@ -110,5 +121,12 @@ const _LoadData = (locations: string[]) => {
     });
 }
 
+const _LoadSmallData = (locations: string[]) => {
+    return new Promise<DataType[]>((resolve) => {
+            csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
+                resolve(d);
+        });
+    });
+}
 
 export default LoadMapData;

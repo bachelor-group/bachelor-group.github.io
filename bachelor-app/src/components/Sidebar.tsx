@@ -4,13 +4,19 @@ import { FaBars } from 'react-icons/fa';
 import { Link } from "react-router-dom";
 import { IconContext } from 'react-icons';
 import * as AiIcons from 'react-icons/ai';
+import { DataType } from "./DataContext/MasterDataType";
 
 interface SidebarData {
- title: string,
- cName: string
+  Data: {
+    title: string,
+    dataType: keyof DataType,
+    cName: string,
+  }[]
+  SelectedFilter: (dataType: keyof DataType) => void
+  iconColor: string,
 }
 
-function SidebarC({Data, iconColor}: {Data: SidebarData[], iconColor: string}) {
+function SidebarC({ Data, SelectedFilter, iconColor }: SidebarData) {
   const [sidebar, setSidebar] = useState(false);
 
   const showSidebar = () => {
@@ -19,11 +25,13 @@ function SidebarC({Data, iconColor}: {Data: SidebarData[], iconColor: string}) {
 
   return (
     <>
-      <IconContext.Provider value={{ }}>
+      <IconContext.Provider value={{}}>
         <div>
-          <Link to='#' className='menu-bars hamburger-icon'>
-            <FaBars onClick={showSidebar} color={iconColor}/>
-          </Link>
+          {sidebar ?<></> :
+            <Link to='#' className='menu-bars hamburger-icon'>
+              <FaBars onClick={showSidebar} color={iconColor} />
+            </Link>
+          }
         </div>
         <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
           <ul className='nav-menu-items' onClick={showSidebar}>
@@ -34,8 +42,10 @@ function SidebarC({Data, iconColor}: {Data: SidebarData[], iconColor: string}) {
             </li>
             {Data.map((item, index) => {
               return (
-                <li key={index} className={item.cName}>
-                    <span>{item.title}</span>
+                <li key={index} className={item.cName} >
+                  <Link to="#" >
+                    <span onClick={()=>SelectedFilter(item.dataType)}>{item.title}</span>
+                  </Link>
                 </li>
               );
             })}
