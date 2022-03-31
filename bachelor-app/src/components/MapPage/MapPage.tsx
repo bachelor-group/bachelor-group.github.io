@@ -29,7 +29,7 @@ const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
 const ADMINLVL = 0;
 
-export const LoadMapData = ({ LoadData = _LoadSmallData }: LoadAdmin1MapData) => {
+export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
@@ -58,6 +58,7 @@ export const LoadMapData = ({ LoadData = _LoadSmallData }: LoadAdmin1MapData) =>
     }, [data])
 
     function selectedDate(date: string) {
+        console.log(date)
         setStartDate(date)
     }
 
@@ -121,12 +122,5 @@ const _LoadData = (locations: string[]) => {
     });
 }
 
-const _LoadSmallData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-            csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-                resolve(d);
-        });
-    });
-}
 
 export default LoadMapData;

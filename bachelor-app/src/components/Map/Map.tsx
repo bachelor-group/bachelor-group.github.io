@@ -36,7 +36,7 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadData }: MapProps) => {
+export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
     // let helperObject = newHelperObject(adminLvl);
     const translater = new Translater(adminLvl);
 
@@ -77,7 +77,6 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                     // create and set GeoJson
                     let countries: GeoJsonProperties = feature(w, w.objects.features)
                     setInnerGeoJson(countries)
-                    // console.log(countries)
                 })
             })
         }
@@ -160,5 +159,14 @@ const _LoadData = (locations: string[]) => {
     });
 }
 
+const _LoadSmallData = (locations: string[]) => {
+    return new Promise<DataType[]>((resolve) => {
+        // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
+        csv("public/cases.csv").then(d => {
+            resolve(d)
+        })
+
+    });
+}
 
 export default MapComponent;
