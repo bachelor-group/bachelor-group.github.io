@@ -227,7 +227,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             for (let j = 0; j < InnerGeoJson.features.length; j++) {
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
-                if (translater.countryCode(feature, 1) === d.data.country_code) {
+                if (translater.countryCode(feature, 1) === d.data.location_key) {
                     locations.push(translater.locationCode(feature, 1))
                     innerFeatures.push(feature);
                 }

@@ -10,7 +10,6 @@ interface SidebarData {
   Data: {
     title: string,
     dataType: keyof DataType,
-    cName: string,
   }[]
   SelectedFilter: (dataType: keyof DataType) => void
   iconColor: string,
@@ -42,7 +41,7 @@ function SidebarC({ Data, SelectedFilter, iconColor }: SidebarData) {
             </li>
             {Data.map((item, index) => {
               return (
-                <li key={index} className={item.cName} >
+                <li key={index} className="nav-text">
                   <Link to="#" >
                     <span onClick={()=>SelectedFilter(item.dataType)}>{item.title}</span>
                   </Link>

@@ -26,7 +26,7 @@ type MapProps = {
     width: number,
     scalePer100k?: boolean,
     loadedData?: (Data: DataType[]) => void
-    LoadData?: typeof _LoadData,
+    LoadData?: typeof _LoadSmallData,
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
@@ -113,7 +113,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                 const element = curGeoJson.features[i];
                 locations.push(translater.locationCode(element))
             }
-            LoadData(locations).then(d => {
+            LoadData(DataTypeProperty).then(d => {
                 setData(d)
                 if (loadedData) {
                     loadedData(d)
@@ -122,7 +122,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
         } else {
             setData([]);
         }
-    }, [curGeoJson])
+    }, [curGeoJson, DataTypeProperty])
 
     return (
         <>
@@ -159,10 +159,10 @@ const _LoadData = (locations: string[]) => {
     });
 }
 
-const _LoadSmallData = (locations: string[]) => {
+const _LoadSmallData = (datatype: keyof DataType="new_confirmed") => {
     return new Promise<DataType[]>((resolve) => {
         // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-        csv("cases.csv").then(d => {
+        csv(datatype+".csv").then(d => {
             resolve(d)
         })
 

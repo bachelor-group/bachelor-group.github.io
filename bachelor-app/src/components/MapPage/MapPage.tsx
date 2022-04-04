@@ -21,8 +21,7 @@ type LoadAdmin1MapData = {
 }
 interface DataFilter {
     title: string,
-    dataType: keyof DataType,
-    cName: string
+    dataType: keyof DataType
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
@@ -36,8 +35,8 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     const [curDataTypeProp, setDataTypeProp] = useState<keyof DataType>("new_confirmed");
     var curDate = new Date()
-    var lastWeek = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate()-7 );
-    const [startDate, setStartDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth()+1 < 10 ? "0" + (lastWeek.getMonth()+1) : lastWeek.getMonth()+1}-${lastWeek.getDate() < 10? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
+    var lastWeek = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate() - 7);
+    const [startDate, setStartDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1 < 10 ? "0" + (lastWeek.getMonth() + 1) : lastWeek.getMonth() + 1}-${lastWeek.getDate() < 10 ? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
 
@@ -46,12 +45,22 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
             return
         }
         var HistogramData = new Map<string, number>()
-        csv("csvData/total_confirmed.csv").then(d => {
-            d.forEach((row => {
-                HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
-            }))
-            setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
-        })
+        if (curDataTypeProp === "new_confirmed") {
+            csv("csvData/total_confirmed.csv").then(d => {
+                d.forEach((row => {
+                    HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
+                }))
+                setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
+            })
+        }
+        if (curDataTypeProp === "new_deceased") {
+            csv("csvData/total_deceased.csv").then(d => {
+                d.forEach((row => {
+                    HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
+                }))
+                setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
+            })
+        }
         let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
         setHistogramData(temp);
         console.log(HistogramData)
@@ -68,13 +77,11 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     let dataFilter: DataFilter[] = [
         {
             title: 'New Cases',
-            dataType: 'new_confirmed',
-            cName: 'nav-text'
+            dataType: 'new_confirmed'
         },
         {
             title: 'New Deceased',
-            dataType: 'new_deceased',
-            cName: 'nav-text'
+            dataType: 'new_deceased'
         },
     ]
     const SelectedFilter = (dataType: keyof DataType) => {
@@ -84,14 +91,15 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
 
     return (
         <div style={{ position: "relative" }}>
-            <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"white"}/>
+            <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
             <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={false} loadedData={loadedData} />
-            <svg style={{position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)`}}  width={width} height={dateHistogramSize * window.innerHeight}>
+            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight}>
                 <DateHistogram
                     Data={HistogramData}
                     width={width}
                     height={dateHistogramSize * window.innerHeight}
                     selectedDate={selectedDate}
+                    DataTypeProperty={curDataTypeProp}
                 />
             </svg>
         </div>

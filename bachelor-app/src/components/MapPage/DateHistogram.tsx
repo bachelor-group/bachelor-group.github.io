@@ -17,21 +17,20 @@ interface HistogramProps {
     width: number,
     height: number,
     selectedDate: (date: string) => void
+    DataTypeProperty: keyof DataType,
 }
 
 export interface binData {
     total_confirmed: number,
     date_start: Date,
     date_end: Date
-
 }
 
 const margin = { top: 40, right: 50, bottom: 40, left: 50 };
 const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
-const yAxisLabel = "Total New Cases";
 let parseTime = timeParse("%Y-%m-%d")
 
-export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramProps) => {
+export const DateHistogram = ({ Data, width, height, selectedDate, DataTypeProperty }: HistogramProps) => {
 
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
@@ -39,6 +38,9 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     const [dots, setdots] = useState<number[][]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
+
+    const yAxisLabel = "Global " + DataTypeProperty.replace("_", " ");
+    
 
     // xScale
     const xScale = useMemo(() => {
