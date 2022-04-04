@@ -20,7 +20,7 @@ def fetch_data_columns(filename: str, dt: str, cols):
 # Generates a file with date: total_confirmed
 def date_total_confirmed():
         HistogramData = dict()
-        with open("public/csvData/cases.csv", 'r') as csvfile:
+        with open("public/new_confirmed.csv", 'r') as csvfile:
             datareader = csv.reader(csvfile)
             # skip header
             next(datareader)
@@ -44,6 +44,31 @@ def date_total_confirmed():
                 csvfile.write("%s,%s\n" % (key, HistogramData[key]))
 
 
+def date_total_deceased():
+        HistogramData = dict()
+        with open("public/new_deceased.csv", 'r') as csvfile:
+            datareader = csv.reader(csvfile)
+            # skip header
+            next(datareader)
+            for row in datareader:
+                date = row[0]
+                new_confirmed = row[2] 
+                try:
+                    if len(row[1])==2:
+                        if date in HistogramData:
+                            if not math.isnan(float(new_confirmed)):
+                                HistogramData[date] = HistogramData[date] + float(new_confirmed)
+                        else:
+                            if not math.isnan(float(new_confirmed)):
+                                HistogramData[date] = float(new_confirmed)
+
+                except ValueError as e:
+                    print("error: ", e)
+        with open("public/csvData/total_deceased.csv", 'w') as csvfile:
+            csvfile.write("%s,%s\n" % ("date", "total_confirmed"))
+            for key in HistogramData.keys():
+                csvfile.write("%s,%s\n" % (key, HistogramData[key]))
+
 # STÅ I /bachelor-app
 if __name__=="__main__":
     # demographics = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/demographics.csv")
@@ -53,7 +78,8 @@ if __name__=="__main__":
     # fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
 
     # update cases.csv before date total_confirmed to get newest version
-    fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
+    # fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
     date_total_confirmed()
+    date_total_deceased()
     
     
