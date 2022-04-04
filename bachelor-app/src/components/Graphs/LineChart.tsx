@@ -246,7 +246,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             )}
                         </g>
                     </svg>
-                    <div ref={divRef} style={{ opacity: showToolTip ? 1 : 0 }} className='tool-tip'></div>
+                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip'></div>
                 </>
                 :
                 <>
