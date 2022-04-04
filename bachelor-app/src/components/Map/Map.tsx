@@ -162,7 +162,7 @@ const _LoadData = (locations: string[]) => {
 const _LoadSmallData = (locations: string[]) => {
     return new Promise<DataType[]>((resolve) => {
         // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-        csv("public/cases.csv").then(d => {
+        csv("cases.csv").then(d => {
             resolve(d)
         })
 
