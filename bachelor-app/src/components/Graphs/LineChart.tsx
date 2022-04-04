@@ -223,7 +223,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
 
                             {dots.map((points, index) => (
-                                <circle cx={points["x"]} cy={points["y"]} r={4} fill={points["color"]} opacity={showToolTip ? 1 : 0} />
+                                <circle key={index} cx={points["x"]} cy={points["y"]} r={4} fill={points["color"]} opacity={showToolTip ? 1 : 0} />
                             ))}
                         </g>
 

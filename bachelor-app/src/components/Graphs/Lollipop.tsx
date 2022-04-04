@@ -65,11 +65,12 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 >
                     {Data.length !== 0 ?
-                        YAxis.map((element) => (
-                            <>
-                                <line stroke='black' strokeWidth={"1px"} x1={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} x2={xScale(0)} y1={yScale(element)} y2={yScale(element)}></line>
-                                <circle stroke='black' fill='#69b3a2' cx={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} cy={yScale(element)} r={4}></circle>
-                            </>
+                        YAxis.map((element, index) => (
+                        // added div to <> to allow for key
+                            <div key={index}>
+                                <line  stroke='black' strokeWidth={"1px"} x1={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} x2={xScale(0)} y1={yScale(element)} y2={yScale(element)}></line>
+                                <circle  stroke='black' fill='#69b3a2' cx={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} cy={yScale(element)} r={4}></circle>
+                            </div>
                         ))
                         :
                         <h2>Loading...</h2>}
