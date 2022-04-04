@@ -6,6 +6,7 @@ import Epidemiology from './components/EpidemiologyContext/Epidemiology';
 import SearchTrends from './components/SearchTrends/SearchTrends';
 import { SearchTrendsMap } from './components/SearchTrendsMap/SearchTrendsMapPage';
 import SidebarC from "./components/Sidebar";
+import Vaccinations from './components/Vaccinations/Vaccinations';
 
 function App() {
   let DummyData = [
@@ -34,7 +35,7 @@ function App() {
           <Route path="/Searchtrends" element={<SearchTrends />} />
           <Route path="/EpidemiologyPlots" element={<Epidemiology />} />
           <Route path="/SearchTrendsMap/:country" element={<SearchTrendsMap />} />
-          <Route path="/Vaccinations" element={<h1>Vaccinations</h1>} />
+          <Route path="/Vaccinations" element={<Vaccinations />} />
           <Route path="/Mobility" element={<h1>Mobility</h1>} />
           <Route path="/About" element={<h1>About</h1>} />
 
