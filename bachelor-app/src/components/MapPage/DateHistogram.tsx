@@ -1,9 +1,5 @@
-import { scaleLinear, scaleTime, max, bisector, timeFormat, extent, bin, timeMonths, sum, brushX, select, ScaleTime, ScaleLinear, timeParse, timeDays, axisLeft, axisBottom, line } from 'd3';
-import { useRef, useEffect, useMemo, SetStateAction, Dispatch, RefObject, useState, MouseEvent } from 'react';
-import { setConstantValue } from 'typescript';
-import { DataType } from '../DataContext/MasterDataType';
-import Epidemiology from '../EpidemiologyContext/Epidemiology';
-import { DataAccessor, Scale } from '../Graphs/Scaling';
+import { scaleLinear, scaleTime, extent, bin, sum, select, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
+import { useRef, useEffect, useMemo, useState, MouseEvent } from 'react';
 import Marks from './Marks';
 
 
@@ -16,14 +12,14 @@ interface HistogramProps {
     Data: EpidemiologyMinimum[],
     width: number,
     height: number,
-    selectedDate: (date: string) => void
+    selectedDate: (date: string) => void,
+    curDate: string,
 }
 
 export interface binData {
     total_confirmed: number,
     date_start: Date,
     date_end: Date
-
 }
 
 const margin = { top: 40, right: 50, bottom: 40, left: 50 };
@@ -31,7 +27,7 @@ const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
 const yAxisLabel = "Total New Cases";
 let parseTime = timeParse("%Y-%m-%d")
 
-export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramProps) => {
+export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: HistogramProps) => {
 
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
@@ -104,15 +100,79 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
     }
 
     function hoverDate(event: MouseEvent<SVGRectElement, globalThis.MouseEvent>) {
-        let date = xScale.invert(event.nativeEvent.offsetX - margin.left).toISOString().split("T")[0]
-        let id = Data.findIndex((d) => d["date"] === date);
-        let newdots: number[][] = []
-        if (id !== -1) {
-            newdots.push([(event.nativeEvent.offsetX - margin.left - 5), yScale(yValue(Data[id])!)])
-            setdots(newdots);
-            setTooltipx(event.nativeEvent.offsetX - margin.left - 5);
+        let xPos = event.nativeEvent.offsetX - margin.left
+        updateLine(xPos, true)
+    }
+
+    function updateLine(xPos: number, hover=false) {
+        let data = []
+        let containerClass = ".cursor"
+        let fill = "red"
+
+        if (hover) {
+            containerClass = ".tooltip-container"
+            fill = "black"
+        }
+
+        if (xPos != -1) {
+            let date = xScale.invert(xPos).toISOString().split("T")[0]
+            let id = Data.findIndex((d) => d["date"] === date);
+            if (id != -1) data.push(Data[id])
+        }
+
+
+        let tooltipContainer = select(containerClass)
+
+        // Line
+        let line = tooltipContainer.selectAll("line").data(data)
+
+        line.enter()
+            .append("line")
+            .attr("x1", xPos)
+            .attr("x2", xPos)
+            .attr("y1", 0)
+            .attr("y2", innerHeight)
+            .attr("stroke", fill)
+            .attr("stroke-width", 1)
+
+        line
+            .attr("x1", xPos)
+            .attr("x2", xPos)
+            .attr("y1", 0)
+            .attr("y2", innerHeight)
+            .attr("stroke", fill)
+            .attr("stroke-width", 1)
+
+        line.exit().remove()
+
+        if (hover){
+            // Circle
+            let circle = tooltipContainer.selectAll("circle").data(data)
+    
+            circle.enter()
+                .append("circle")
+                .attr("cx", xPos)
+                .attr("cy", d => yScale(yValue(d)!))
+                .attr("r", 4)
+                .attr("fill", "black")
+                .attr("opacity", d => showToolTip ? 1 : 0)
+    
+            circle
+                .attr("cx", xPos)
+                .attr("cy", d => yScale(yValue(d)!))
+                .attr("r", 4)
+                .attr("fill", "black")
+                .attr("opacity", d => showToolTip ? 1 : 0)
+    
+            circle.exit().remove()
         }
     }
+
+    useEffect(() => {
+        if (Data.length != 0){
+            updateLine(xScale(parseTime(curDate)!))
+        }
+    }, [curDate, Data]) 
 
     return (
         <>
@@ -143,17 +203,20 @@ export const DateHistogram = ({ Data, width, height, selectedDate }: HistogramPr
                     />
 
                     {/* Tooltips */}
-                    <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={innerHeight} stroke='white' strokeWidth={1} opacity={showToolTip ? 1 : 0} />
+                    <g className="tooltip-container">
+                        <line />
+                        <circle />
+                    </g>
 
-                    {dots.map((points, index) => (
-                        <circle key={index} cx={points[0]} cy={points[1]} r={4} fill='black' opacity={showToolTip ? 1 : 0} />
-                    ))}
+                    <g className="cursor">
+                        <line id='date-histogram-cursor' />
+                    </g>
 
                     <rect className="rekd" width={innerWidth} height={innerHeight} fillOpacity={0} strokeOpacity={0} fill={"white"} opacity={0}
                         onClick={(event) => (clickedDate(event))}
                         onMouseMove={(event) => (hoverDate(event))}
                         onMouseEnter={() => (setShowTooltip(true))}
-                        onMouseLeave={() => (setShowTooltip(false))}>
+                        onMouseLeave={() => (updateLine(-1, true))}>
                     </rect>
                 </g>
             </g>
