@@ -113,8 +113,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
         }
 
-        console.log(scalePer100K)
-
         return scaleSequential(interpolateYlOrRd).domain([0, maxa])
     }, [data, DataTypeProperty]);
 
@@ -165,6 +163,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             features
                 .enter()
                 .append("path")
+                .on("click", (e, data) => clicked(e, data))
                 .attr("d", d => path(d.feature))
                 .attr("style", (d, i) => {
                     let color: string;
