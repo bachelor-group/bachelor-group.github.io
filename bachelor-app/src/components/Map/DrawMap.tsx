@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, useRef, memo } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { select, scaleSequential, geoAlbersUsa, format, max, csv } from 'd3';
+import { select, scaleSequential, geoAlbersUsa, max, csv } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
-import { interpolateYlOrRd } from "d3-scale-chromatic"
+import { interpolateOrRd } from "d3-scale-chromatic"
 import { DataType } from '../DataContext/MasterDataType';
 import Translater from './helpers';
 import { MapToolTip } from './ToolTip';
@@ -27,15 +27,16 @@ export type FeatureData = { data: DataType, feature: Feature }
 
 export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false}: DrawMapProps) => {
     const translater = new Translater(adminLvl);
-    
+
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
     const pathRef = useRef(null);
     const innerPathRef = useRef(null);
-    
+    const dateTextRef = useRef(null);
+
     // ToolTip
-    const Tooltip = new MapToolTip({width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K});
+    const Tooltip = new MapToolTip({ width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K });
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -86,7 +87,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             .translateExtent([[0, 0], [width, height]]) // Set pan Borders
             .on('zoom', (event) => {
                 svg
-                    .selectAll('g')
+                    .selectAll('.move-on-zoom')
                     .attr('transform', event.transform);
 
                 //@ts-ignore
@@ -113,9 +114,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
         }
 
-        console.log(scalePer100K)
-
-        return scaleSequential(interpolateYlOrRd).domain([0, maxa])
+        return scaleSequential(interpolateOrRd).domain([0, maxa])
     }, [data, DataTypeProperty]);
 
     useEffect(() => {
@@ -177,7 +176,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: ${d.data[DataTypeProperty] ? color : "gray"} `
                 })
                 .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
-                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) });
+                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) })
+                .on("click", (e, data) => clicked(e, data));
 
             features
                 .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
@@ -197,20 +197,34 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 })
 
             features.exit().remove()
+
+            updateDateText(CurDate)
         }
+    }
+
+    function updateDateText(date: string) {
+            let textSelection = select(dateTextRef.current).selectAll("text").data([date])
+
+            textSelection.enter()
+                .append('text')
+                .attr("x", d => width / 2)
+                .attr("y", d => 35)
+                .attr('text-anchor', 'middle')
+                .attr("dominant-baseline", "middle")
+                .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+                .html(d => CurDate)
+
+            textSelection
+                .attr("x", d => width / 2)
+                .attr("y", d => 35)
+                .attr('text-anchor', 'middle')
+                .attr("dominant-baseline", "middle")
+                .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+                .html(d => CurDate)
     }
 
     function clicked(event: PointerEvent, d: FeatureData) {
         if (InnerGeoJson) {
-            // let countryPaths = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path")
-
-            // countryPaths
-            //     .attr("style", data => {
-            //         if (d === data) {
-            //             return 'display: none'
-            //         }
-            //         return `fill: ${data.data[DataTypeProperty] ? colorScale(parseFloat(data.data[DataTypeProperty]!)) : "gray"} `
-            //     })
             innerPaths(d)
         }
 
@@ -227,7 +241,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             for (let j = 0; j < InnerGeoJson.features.length; j++) {
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
-                if (translater.countryCode(feature, 1) === d.data.country_code) {
+                if (translater.countryCode(feature, 1) === d.data.location_key) {
                     locations.push(translater.locationCode(feature, 1))
                     innerFeatures.push(feature);
                 }
@@ -239,7 +253,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 let countryCode = entry[0].split("_")[0]
                 if (countryCode === d.data.country_code) {
                     needToLoad = false;
-                    console.log("FOUND IT BBY")
                     break;
                 }
             }
@@ -335,8 +348,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         <>
             <svg style={{ width: width, height: height }} id={"map"} ref={svgRef}>
                 {/* Paths */}
-                <g ref={pathRef} />
-                <g ref={innerPathRef} />
+                <g ref={pathRef} className="move-on-zoom" />
+                <g ref={innerPathRef} className="move-on-zoom" />
+                <g ref={dateTextRef} />
             </svg>
             <div ref={toolTipdivRef} />
         </>
@@ -353,9 +367,6 @@ const loadInnerData = (locations: string[]) => {
 
                 temp.set(location, d)
 
-                // d.forEach(element => {
-                //     newData.push(element)
-                // });
                 loaded_location++
                 if (locations.length === loaded_location) {
                     resolve(temp);

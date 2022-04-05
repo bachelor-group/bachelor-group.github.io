@@ -1,62 +1,90 @@
+import csv
+import math
 import pandas as pd
 import os
+from fetch_data import fetch_data_columns
+import concurrent.futures
+import memory_profiler
 
 
-# url = "https://storage.googleapis.com/covid19-open-data/v3/google-search-trends.csv"
-url = "~/Downloads/google-search-trends.csv"
+def epidemiology_locations(location, path):
+    columns=["new_confirmed"]
 
-search_trends = pd.read_csv(url, iterator=True, chunksize=10000)
-dict = {}
-
-
-# location = "wwwwwwwwweeeeeeeeeeeeeeeeeeeeeeeeeeha"
-show_header= True
-for chunk in search_trends:
-    pass
-    # for row in chunk.itertuples(index=False):
-    #     row.to_csv("test.csv", sep=",", header=True)
-        # print(chunk["location_key"])
-    # for row in chunk.location_key:
-    #     print(row)
-    # chuk = chunk.groupby(["location_key"])
-    # for col in chunk:
-    #     print(col)
-        # new_location = str(chunk.location_key)
-        # if new_location != location:
-        #     region_codes = new_location.split("_")
-        #     path = ""
-        #     for region in region_codes:
-        #         path += region+"/"
-        #     print(path)
-        #     if not os.path.exists(path):
-        #         os.makedirs(path)
-        # chunk.location_key.to_csv(path+".csv", sep=',', index=False, header=show_header)
-        # location = "AU"
-        # chunk[chunk.location_key == location].to_csv("test2.csv", sep=',', index=False, header=False)
-        # location = new_location
-
-
-
-    # chunk[chunk.location_key].to_csv(f, sep=",", header=False)
-    # chunk.location_key.to_csv(file, header=False, index=False)
-    # show_header=False
+    epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+location+".csv")
+    fetch_data_columns(path, epidemiology, columns)
     
 
-# for (location_key), group in search_trends.groupby(['location_key']):
-#     location_key = f'{location_key}/'
-#     outname = "data.csv"
-#     outdir = location_key.split("_")
-#     if len(outdir) == 1:
-#         if not os.path.exists(outdir[0]):
-#             os.mkdir(outdir[0])
-#         fullname = os.path.join(location_key, outname)
-#         group.to_csv(fullname, index=False)
-#     elif len(outdir) >= 2:
-#         path = ""
-#         for i in range(len(outdir)-1):
-#             path += outdir[i]+"/"
-#         path += location_key
-#         fullname = os.path.join(path, outname)    
-#         if not os.path.exists(path):
-#             os.makedirs(path)
-#         group.to_csv(fullname, index=False)
+def write_to_file(region_code, filename="cases"):
+    print("=================== "+region_code+" ===================")  
+    path="public/csvData/aggregated"
+    dt = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+region_code+".csv")
+
+    region_code = region_code.split("_")
+    for region in region_code:
+        path += "/"+region
+    if not os.path.exists(path):
+        os.makedirs(path)
+    dt.to_csv(path+"/"+filename+".csv", index=False, columns=COLS)
+    print()
+    
+    
+# @profile
+def generate_data_concurrent(file, threads):
+    urls = []
+    with open(file, 'r') as csvfile:
+        datareader = csv.reader(csvfile)
+        
+        # skip header
+        next(datareader)
+
+        for row in datareader:
+            region_codes = row[0].split("_")
+            
+            url=""
+            for i,region in enumerate(region_codes):
+                url += region
+                if i != len(region_codes)-1:
+                    url += "_"
+            urls.append(url)
+
+        try:
+             with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+                executor.map(write_to_file, urls)
+        except:
+            print()
+
+
+# @profile
+def generate_data(file):
+    with open(file, 'r') as csvfile:
+        datareader = csv.reader(csvfile)
+        
+        # skip header
+        next(datareader)
+
+        for row in datareader:
+            region_codes = row[0].split("_")
+            
+            url=""
+            for i,region in enumerate(region_codes):
+                url += region
+                if i != len(region_codes)-1:
+                    url += "_"
+            try:
+                write_to_file(url)
+            except:
+                print()
+
+
+
+if __name__=="__main__":
+    COLS = ["date", "new_confirmed"]
+
+    generate_data_concurrent("public/csvData/index_min.csv", 16)
+
+    ######### benchmarking #########
+
+    # generate_data_concurrent("public/csvData/index_benchmark_first_200.csv", 16)
+
+    # generate_data("public/csvData/index_benchmark_first_200.csv")
+    
