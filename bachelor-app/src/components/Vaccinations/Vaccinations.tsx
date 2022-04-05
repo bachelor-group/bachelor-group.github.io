@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry'
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
@@ -6,16 +6,16 @@ import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Row, Col, ProgressBar } from 'react-bootstrap';
 import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
+import { FaWindowRestore } from 'react-icons/fa';
 
 export interface VaccinationProps {
     LoadData?: typeof _LoadData
 }
 
-export const Vaccinations = ({ LoadData = _LoadData  }: VaccinationProps) => {
+export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
     const [Countries, setCountries] = useState<TagExtended[]>([]);
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [Data, setData] = useState<DataType[]>([]);
-
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },
@@ -24,6 +24,14 @@ export const Vaccinations = ({ LoadData = _LoadData  }: VaccinationProps) => {
             { PlotType: PlotType.Scatter, Data: [], Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
+
+    //get window size
+    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+    useEffect(() => {
+        window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+        return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+    }, []);
+
 
     useEffect(() => {
         _LoadData(Countries, LoadedCountries, Data).then((d: DataType[]) => {
@@ -67,7 +75,9 @@ export const Vaccinations = ({ LoadData = _LoadData  }: VaccinationProps) => {
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries}/>
+            <p>{windowDimensions.width} x {windowDimensions.height}</p>
+
+            <SelectCountry selectedCountries={selectedCountries} />
 
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
