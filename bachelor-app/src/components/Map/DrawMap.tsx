@@ -25,7 +25,7 @@ const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 export type FeatureData = { data: DataType, feature: Feature }
 
-export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false}: DrawMapProps) => {
+export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false }: DrawMapProps) => {
     const translater = new Translater(adminLvl);
 
     //Refs
@@ -203,24 +203,24 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     }
 
     function updateDateText(date: string) {
-            let textSelection = select(dateTextRef.current).selectAll("text").data([date])
+        let textSelection = select(dateTextRef.current).selectAll("text").data([date])
 
-            textSelection.enter()
-                .append('text')
-                .attr("x", d => width / 2)
-                .attr("y", d => 35)
-                .attr('text-anchor', 'middle')
-                .attr("dominant-baseline", "middle")
-                .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
-                .html(d => CurDate)
+        textSelection.enter()
+            .append('text')
+            .attr("x", d => width / 2)
+            .attr("y", d => 35)
+            .attr('text-anchor', 'middle')
+            .attr("dominant-baseline", "middle")
+            .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+            .html(d => CurDate)
 
-            textSelection
-                .attr("x", d => width / 2)
-                .attr("y", d => 35)
-                .attr('text-anchor', 'middle')
-                .attr("dominant-baseline", "middle")
-                .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
-                .html(d => CurDate)
+        textSelection
+            .attr("x", d => width / 2)
+            .attr("y", d => 35)
+            .attr('text-anchor', 'middle')
+            .attr("dominant-baseline", "middle")
+            .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+            .html(d => CurDate)
     }
 
     function clicked(event: PointerEvent, d: FeatureData) {
@@ -291,15 +291,19 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 let data = innerData.get(translater.locationCode(d, 1));
                 if (data) {
                     let date = findIndexToDate(data);
-
                     let color: string;
-                    let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
-                    if (scalePer100K) {
-                        datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
-                    }
-                    color = colorScale(datapoint);
 
-                    return `fill: ${data[date][DataTypeProperty] ? color : "gray"} `
+                    let fill = "gray"
+                    if (date < data.length && date !== -1) {
+                        let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
+                        if (scalePer100K) {
+                            datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                        }
+                        color = colorScale(datapoint);
+                        fill = data[date][DataTypeProperty] ? color : "gray"
+                    }
+
+                    return `fill: ${fill} `
                 }
                 else {
                     // TODO Colour for missing datapoint...
