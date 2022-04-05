@@ -39,6 +39,13 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     const [startDate, setStartDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1 < 10 ? "0" + (lastWeek.getMonth() + 1) : lastWeek.getMonth() + 1}-${lastWeek.getDate() < 10 ? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
+    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+    //get window size
+    useEffect(() => {
+        window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+        return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+    }, []);
 
     useMemo(() => {
         if (data.length === 0) {
@@ -63,7 +70,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
         }
         let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
         setHistogramData(temp);
-        console.log(HistogramData)
     }, [data])
 
     function selectedDate(date: string) {

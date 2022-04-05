@@ -16,6 +16,7 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
     const [Countries, setCountries] = useState<TagExtended[]>([]);
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [Data, setData] = useState<DataType[]>([]);
+    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },
@@ -26,7 +27,6 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
         ]);
 
     //get window size
-    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
     useEffect(() => {
         window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
         return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
@@ -44,6 +44,7 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
 
     //Handle new Data
     useEffect(() => {
+        console.log("useEffect")
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
@@ -62,11 +63,11 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: windowDimensions.height*0.4, Width: windowDimensions.width*0.6, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data]);
+    }, [Data, windowDimensions]);
 
 
     const selectedCountries = (countries: TagExtended[]) => {
