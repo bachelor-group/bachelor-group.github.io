@@ -75,6 +75,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
     return (
         <>
             <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
+            {Countries.length===0 ? <h3 id="main">select a country to get started</h3> : <></>}
             <div id="main">
                 {
                     Data.length === 0 ?
@@ -88,11 +89,13 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                             {Data[0].location_key !== "NO" ?
                                 <>
                                     <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} />
+
+                                    {Data[0].location_key === "US" || Data[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${Data[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
+
                                     <div style={{ display: 'flex', flexDirection: "row", flexWrap: "wrap", justifyContent: "space-evenly" }}>
                                         < PlotsContainer Plots={Plots.slice(1)} />
                                     </div>
 
-                                    {Data[0].location_key === "US" || Data[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${Data[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
 
                                 </>
                                 :

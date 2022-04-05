@@ -44,7 +44,6 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
 
     //Handle new Data
     useEffect(() => {
-        console.log("useEffect")
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
@@ -63,7 +62,7 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: windowDimensions.height*0.4, Width: windowDimensions.width*0.6, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: windowDimensions.height*0.47, Width: windowDimensions.width*0.5, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
@@ -76,8 +75,6 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
 
     return (
         <>
-            <p>{windowDimensions.width} x {windowDimensions.height}</p>
-
             <SelectCountry selectedCountries={selectedCountries} />
 
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
