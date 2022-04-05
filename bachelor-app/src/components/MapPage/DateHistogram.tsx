@@ -38,9 +38,8 @@ export const DateHistogram = ({ Data, width, height, selectedDate, DataTypePrope
     const [dots, setdots] = useState<number[][]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
-
     const yAxisLabel = "Global " + DataTypeProperty.replace("_", " ");
-    
+
 
     // xScale
     const xScale = useMemo(() => {
@@ -52,7 +51,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, DataTypePrope
     const yScale = useMemo(() => {
         const [min, max] = extent(Data, yValue);
         return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
-    }, [Data])
+    }, [Data, innerHeight])
 
 
     const binnedData = useMemo(() => {
@@ -95,7 +94,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, DataTypePrope
         const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-innerWidth);;
 
         svgElement.append("g").call(yAxisGenerator);
-    }, [xScale, yScale, innerHeight]);
+    }, [xScale, yScale, innerHeight, innerWidth]);
 
 
     function clickedDate(event: MouseEvent<SVGRectElement, globalThis.MouseEvent>) {

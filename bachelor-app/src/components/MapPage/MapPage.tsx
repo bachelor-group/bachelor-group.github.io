@@ -98,12 +98,12 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     return (
         <div style={{ position: "relative" }}>
             <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={false} loadedData={loadedData} />
-            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight}>
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height-56} innerData={true} scalePer100k={false} loadedData={loadedData} />
+            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
                 <DateHistogram
                     Data={HistogramData}
-                    width={width}
-                    height={dateHistogramSize * window.innerHeight}
+                    width={windowDimensions.width}
+                    height={dateHistogramSize * windowDimensions.height}
                     selectedDate={selectedDate}
                     DataTypeProperty={curDataTypeProp}
                 />

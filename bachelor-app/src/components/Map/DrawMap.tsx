@@ -74,7 +74,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         }
         return geoPath()
 
-    }, [curGeoJson])
+    }, [curGeoJson, width, height])
 
     useEffect(() => {
         const svg = select<SVGSVGElement, unknown>("svg#map");
@@ -121,7 +121,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width])
 
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty)
@@ -180,6 +180,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) });
 
             features
+                .attr("d", d => path(d.feature))
                 .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
                 .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) })
                 .on("click", (e, data) => clicked(e, data))
