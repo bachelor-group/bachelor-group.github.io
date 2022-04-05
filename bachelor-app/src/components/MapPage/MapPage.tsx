@@ -10,8 +10,7 @@ const width: number = window.innerWidth;
 const height: number = window.innerHeight - 56;
 const dateHistogramSize: number = 0.2;
 
-type LoadAdmin1MapData = {
-    LoadData?: typeof _LoadData
+type LoadMapDataProps = {
     Animator?: typeof _animator
 }
 interface DataFilter {
@@ -24,7 +23,7 @@ const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
 const ADMINLVL = 0;
 
-export const LoadMapData = ({ LoadData = _LoadData, Animator = _animator }: LoadAdmin1MapData) => {
+export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
 
     //Data
     const [data, setData] = useState<DataType[]>([]);
@@ -36,9 +35,6 @@ export const LoadMapData = ({ LoadData = _LoadData, Animator = _animator }: Load
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
     useMemo(() => {
-        if (data.length === 0) {
-            return
-        }
         var HistogramData = new Map<string, number>()
         csv("csvData/total_confirmed.csv").then(d => {
             d.forEach((row => {
@@ -78,42 +74,21 @@ export const LoadMapData = ({ LoadData = _LoadData, Animator = _animator }: Load
             <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"white"} />
             <Animator CurDate={curDate} setDate={setCurDate} />
             <MapComponent adminLvl={ADMINLVL} Date={curDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={false} loadedData={loadedData} />
-            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight} id="date-histogram">
-                <DateHistogram
-                    Data={HistogramData}
-                    width={width}
-                    height={dateHistogramSize * window.innerHeight}
-                    selectedDate={selectedDate}
-                    curDate={curDate}
-                />
-            </svg>
+            {HistogramData.length !== 0 ?
+                <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight} id="date-histogram">
+                    <DateHistogram
+                        Data={HistogramData}
+                        width={width}
+                        height={dateHistogramSize * window.innerHeight}
+                        selectedDate={selectedDate}
+                        curDate={curDate}
+                    />
+                </svg>
+                :
+                <></>
+            }
         </div>
     );
 }
-
-const _LoadData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let newData: DataType[] = []
-        let loaded_location = 0
-        locations.forEach((location) => {
-            csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
-                d.forEach(element => {
-                    newData.push(element)
-                });
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }).catch((error) => {
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }
-            );
-        });
-    });
-}
-
 
 export default LoadMapData;

@@ -13,7 +13,7 @@ interface DrawMapProps {
     InnerGeoJsonProp?: GeoJsonProperties | undefined
     country?: string
     DataTypeProperty: keyof DataType
-    Data: DataType[]
+    Data: Map<string, DataType[]>
     CurDate: string
     adminLvl: 0 | 1 | 2
     height: number
@@ -40,7 +40,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
-    const [data, setData] = useState<DataType[]>([]);
+    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const InitialMapZoom = zoomIdentity.scale(1)//zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
     const [InnerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>(InnerGeoJsonProp);
 
@@ -106,12 +106,13 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     let colorScale = useMemo(() => {
         //TODO per 100K,
         let maxa: number
+        let dataList: DataType[] = Array.from(data.values()).flat()
 
         if (scalePer100K) {
-            maxa = max(data, d => parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000)!
+            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000)!
         }
         else {
-            maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
+            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!))!
         }
 
         return scaleSequential(interpolateOrRd).domain([0, maxa])
@@ -147,14 +148,21 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 }
 
                 if (!innerDataLoaded) {
-                    for (let i = 0; i < data.length; i++) {
-                        dataElement = data[i];
-                        if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature)) {
-                            break;
+                    let DataArray: DataType[] | undefined = data.get(translater.locationCode(feature))
+                    if (DataArray !== undefined) {
+                        for (let i = 0; i < DataArray.length; i++) {
+                            dataElement = DataArray[i];
+                            if (dataElement.date === CurDate) {
+                                break;
+                            }
+                            dataElement = {}
                         }
-                        dataElement = {}
+                        currentData.push({ data: dataElement, feature: feature });
                     }
-                    currentData.push({ data: dataElement, feature: feature });
+                    // To keep features even when there is no data
+                    else {
+                        currentData.push({ data: {}, feature: feature });
+                    }
                 }
             }
 
@@ -310,8 +318,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) });
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) });
 
         // Update
         innerFeaturesSelect
@@ -320,13 +328,17 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 if (data) {
                     let date = findIndexToDate(data);
                     let color: string;
-                    let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
-                    if (scalePer100K) {
-                        datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                    let fill = "gray"
+                    if (date < data.length && date !== -1) {
+                        let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
+                        if (scalePer100K) {
+                            datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                        }
+                        color = colorScale(datapoint);
+                        fill = data[date][DataTypeProperty] ? color : "gray"
                     }
-                    color = colorScale(datapoint);
 
-                    return `fill: ${data[date][DataTypeProperty] ? color : "gray"} `
+                    return `fill: ${fill} `
                 }
                 else {
                     // TODO Colour for missing datapoint...
@@ -337,7 +349,11 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         innerFeaturesSelect.exit().remove()
     }
 
-    function findIndexToDate(list: DataType[]): number {
+    function findIndexToDate(list: DataType[] | undefined): number {
+        if (!list) {
+            return -1
+        }
+
         let index = -1;
         for (let i = 0; i < list.length; i++) {
             const element = list[i];
@@ -363,22 +379,20 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
 const loadInnerData = (locations: string[]) => {
     return new Promise<Map<string, DataType[]>>((resolve) => {
-        let newData: DataType[] = [];
-        let temp: Map<string, DataType[]> = new Map();
+        let newData: Map<string, DataType[]> = new Map();
         let loaded_location = 0;
         locations.forEach((location) => {
             csv("https://storage.googleapis.com/covid19-open-data/v3/location/" + location.replaceAll("-", "_") + ".csv").then(d => {
-
-                temp.set(location, d)
-
+                newData.set(location, d)
                 loaded_location++
+
                 if (locations.length === loaded_location) {
-                    resolve(temp);
+                    resolve(newData);
                 }
             }).catch((error) => {
                 loaded_location++
                 if (locations.length === loaded_location) {
-                    resolve(temp);
+                    resolve(newData);
                 }
             }
             );
