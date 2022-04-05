@@ -86,7 +86,6 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
     useMemo(() => {
         if (worldData) {
             if (country) {
-                console.log(worldData)
                 let filteredWoldData: GeoJsonProperties = { type: worldData.type, features: [] };
                 let filteredFeatures: Feature[] = [];
 
@@ -162,7 +161,7 @@ const _LoadData = (locations: string[]) => {
 const _LoadSmallData = (datatype: keyof DataType="new_confirmed") => {
     return new Promise<DataType[]>((resolve) => {
         // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-        csv(datatype+".csv").then(d => {
+        csv("csvData/"+datatype+".csv").then(d => {
             resolve(d)
         })
 

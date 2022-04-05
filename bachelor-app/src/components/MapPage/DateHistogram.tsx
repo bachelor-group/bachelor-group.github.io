@@ -38,7 +38,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, DataTypePrope
     const [dots, setdots] = useState<number[][]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
-    const yAxisLabel = "Global " + DataTypeProperty.replace("_", " ");
+    const yAxisLabel = "Global " + DataTypeProperty.replaceAll("_", " ");
 
 
     // xScale

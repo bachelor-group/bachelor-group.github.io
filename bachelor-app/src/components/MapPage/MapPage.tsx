@@ -52,22 +52,12 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
             return
         }
         var HistogramData = new Map<string, number>()
-        if (curDataTypeProp === "new_confirmed") {
-            csv("csvData/total_confirmed.csv").then(d => {
-                d.forEach((row => {
-                    HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
-                }))
-                setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
-            })
-        }
-        if (curDataTypeProp === "new_deceased") {
-            csv("csvData/total_deceased.csv").then(d => {
-                d.forEach((row => {
-                    HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
-                }))
-                setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
-            })
-        }
+        csv("csvData/" + curDataTypeProp + "_total.csv").then(d => {
+            d.forEach((row => {
+                HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
+            }))
+            setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
+        })
         let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
         setHistogramData(temp);
     }, [data])
@@ -89,6 +79,10 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
             title: 'New Deceased',
             dataType: 'new_deceased'
         },
+        {
+            title: 'New Hospitalized',
+            dataType: 'new_hospitalized_patients'
+        },
     ]
     const SelectedFilter = (dataType: keyof DataType) => {
         setDataTypeProp(dataType)
@@ -98,7 +92,7 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     return (
         <div style={{ position: "relative" }}>
             <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height-56} innerData={true} scalePer100k={false} loadedData={loadedData} />
+            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height - 56} innerData={true} scalePer100k={false} loadedData={loadedData} />
             <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
                 <DateHistogram
                     Data={HistogramData}
