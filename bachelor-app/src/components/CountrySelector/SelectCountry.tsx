@@ -9,6 +9,7 @@ export interface TagExtended extends Tag {
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
+// const url = "csvData/index_min.csv"
 
 export const _LoadCountries = () => {
     return new Promise<TagExtended[]>((resolve) => {

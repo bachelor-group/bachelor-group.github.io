@@ -4,11 +4,6 @@ import { FaGithub } from 'react-icons/fa';
 import { Link } from "react-router-dom";
 
 function NavbarC() {
-  const [epidemiologyList] = useState(
-    [
-      "Cases", "Deaths", "Hospitalizations"
-    ]
-  )
   return <>
     <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
       <Container>
@@ -17,9 +12,8 @@ function NavbarC() {
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
             <NavDropdown title="Epidemiology" id="collasible-nav-dropdown" >
-              {epidemiologyList.map((item, i) => <NavDropdown.Item key={i} href={item}>{item}</NavDropdown.Item>)}
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#/EpidemiologyPlots">Graphs</NavDropdown.Item>
+              <NavDropdown.Item href="/">Map</NavDropdown.Item>
+              <NavDropdown.Item href="#/Graphs">Graphs</NavDropdown.Item>
             </NavDropdown>
             <Nav.Link href="#/Searchtrends">Search Trends</Nav.Link>
             <Nav.Link href="#/Vaccinations">Vaccination</Nav.Link>

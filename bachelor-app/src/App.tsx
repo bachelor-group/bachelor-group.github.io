@@ -7,25 +7,10 @@ import SearchTrends from './components/SearchTrends/SearchTrends';
 import { SearchTrendsMap } from './components/SearchTrendsMap/SearchTrendsMapPage';
 import SidebarC from "./components/Sidebar";
 import Vaccinations from './components/Vaccinations/Vaccinations';
+import { GraphPage } from './components/GraphPage/GraphPage';
 
 function App() {
-  let DummyData = [
-    {
-      title: 'Home',
-      path: '/',
-      cName: 'nav-text'
-    },
-    {
-      title: 'Reports',
-      path: '/reports',
-      cName: 'nav-text'
-    },
-    {
-      title: 'Products',
-      path: '/products',
-      cName: 'nav-text'
-    }
-  ]
+
   return (
     <>
       <Router basename='/'>
@@ -33,9 +18,9 @@ function App() {
         <Routes>
           <Route path="/" element={<LoadMapData />} />
           <Route path="/Searchtrends" element={<SearchTrends />} />
-          <Route path="/EpidemiologyPlots" element={<Epidemiology />} />
+        <Route path="/Graphs" element={<GraphPage />} />
           <Route path="/SearchTrendsMap/:country" element={<SearchTrendsMap />} />
-          <Route path="/Vaccinations" element={<Vaccinations />} />
+          {/* <Route path="/Vaccinations" element={<Vaccinations />} /> */}
           <Route path="/Mobility" element={<h1>Mobility</h1>} />
           <Route path="/About" element={<h1>About</h1>} />
 

@@ -74,7 +74,7 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
+            {/* <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} /> */}
             {Countries.length===0 ? <h3 id="main">select a country to get started</h3> : <></>}
             <div id="main">
                 {

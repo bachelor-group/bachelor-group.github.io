@@ -8,12 +8,16 @@ import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from './PlotsContainer';
 
 
-// TODO: Create a handleData that uses the string value so we can Send different data...
 interface Props {
-    LoadData?: typeof _LoadData
+    LoadData?: typeof _LoadData,
+    Data: DataType[],
+    WindowDimensions: {
+        width: number,
+        height: number
+    }
 }
 
-export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
+export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key },
@@ -22,20 +26,7 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
             { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
             { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
-    const [Data, setData] = useState<DataType[]>([]);
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
-    const [Countries, setCountries] = useState<TagExtended[]>([]);
 
-
-    // Update Data if new Data is requested
-    useEffect(() => {
-        _LoadData(Countries, LoadedCountries, Data).then((d: DataType[]) => {
-            setData(d);
-
-            // ensure deep copy
-            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
-        })
-    }, [Countries]);
 
     //Handle new Data
     useEffect(() => {
@@ -58,19 +49,15 @@ export const Epidemiology = ({ LoadData = _LoadData }: Props) => {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
     }, [Data]);
 
-    const selectedCountries = (countries: TagExtended[]) => {
-        setCountries(countries)
-    };
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} />
 
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {

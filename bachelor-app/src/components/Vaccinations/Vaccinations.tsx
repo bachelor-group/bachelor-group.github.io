@@ -9,14 +9,16 @@ import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
 import { FaWindowRestore } from 'react-icons/fa';
 
 export interface VaccinationProps {
-    LoadData?: typeof _LoadData
+    LoadData?: typeof _LoadData,
+    Data: DataType[],
+    WindowDimensions: {
+        width: number,
+        height: number
+    }
 }
 
-export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
-    const [Countries, setCountries] = useState<TagExtended[]>([]);
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
-    const [Data, setData] = useState<DataType[]>([]);
-    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+export const Vaccinations = ({ LoadData = _LoadData, Data, WindowDimensions }: VaccinationProps) => {
+
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },
@@ -25,21 +27,6 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
             { PlotType: PlotType.Scatter, Data: [], Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
-
-    //get window size
-    useEffect(() => {
-        window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
-        return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
-    }, []);
-
-
-    useEffect(() => {
-        _LoadData(Countries, LoadedCountries, Data).then((d: DataType[]) => {
-            setData(d);
-
-            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
-        })
-    }, [Countries]);
 
 
     //Handle new Data
@@ -62,20 +49,16 @@ export const Vaccinations = ({ LoadData = _LoadData }: VaccinationProps) => {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: windowDimensions.height*0.47, Width: windowDimensions.width*0.5, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data, windowDimensions]);
+    }, [Data, WindowDimensions]);
 
 
-    const selectedCountries = (countries: TagExtended[]) => {
-        setCountries(countries)
-    }
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} />
 
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
