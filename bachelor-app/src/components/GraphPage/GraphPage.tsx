@@ -47,7 +47,7 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
         <>
 
             {key === "searchtrends" ?
-                < SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
+                <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
                 :
                 <SelectCountry selectedCountries={selectedCountries} />
             }
@@ -62,7 +62,7 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
                     <Epidemiology Data={Data} WindowDimensions={windowDimensions} />
                 </Tab>
                 <Tab eventKey="searchtrends" title="Search Trends">
-                    <SearchTrends />
+                    <SearchTrends Data={Data} />
                 </Tab>
                 <Tab eventKey="vaccinations" title="Vaccinations">
                     <Vaccinations Data={Data} WindowDimensions={windowDimensions} />

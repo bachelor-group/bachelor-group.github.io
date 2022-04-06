@@ -11,38 +11,25 @@ import { Col, ProgressBar, Row } from 'react-bootstrap';
 import BarRace from '../Graphs/BarRace';
 
 interface Props {
-    LoadData?: typeof _LoadData
+    LoadData?: typeof _LoadData,
+    Data: DataType[]
 }
 
 
 const HARDCODED = SearchTrendsList
 
 
-function SearchTrends({ LoadData = _LoadData }: Props) {
-    const [Data, setData] = useState<DataType[]>([])
-    const [Countries, setCountries] = useState<TagExtended[]>([]);
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
+function SearchTrends({ LoadData = _LoadData, Data }: Props) {
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}` },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            // { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends for AU in 2021-12-31` },
+            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}` },
+            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
         ]);
 
-    //let Data = LoadData().then((d) => setData)
-
-    // Update Data if new Data is requested
-    useEffect(() => {
-        LoadData(Countries, LoadedCountries, Data).then((d) => {
-            setData(d);
-
-            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
-        })
-    }, [Countries]);
 
     //Handle new Data
     useEffect(() => {
@@ -62,20 +49,15 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                 }
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: Plot.GroupBy };
+            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: Plot.GroupBy };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
     }, [Data]);
 
-    const selectedCountries = (countries: TagExtended[]) => {
-        setCountries(countries)
-    }
 
     return (
         <>
-            {/* <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} /> */}
-            {Countries.length===0 ? <h3 id="main">select a country to get started</h3> : <></>}
             <div id="main">
                 {
                     Data.length === 0 ?
