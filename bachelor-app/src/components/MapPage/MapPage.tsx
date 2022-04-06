@@ -26,7 +26,7 @@ const ADMINLVL = 0;
 export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
 
     //Data
-    const [data, setData] = useState<DataType[]>([]);
+    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
 
     const [curDataTypeProp, setDataTypeProp] = useState<keyof DataType>("new_confirmed")
     var startDate = new Date()
@@ -50,7 +50,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
         setCurDate(date)
     }
 
-    function loadedData(Data: DataType[]) {
+    function loadedData(Data: Map<string, DataType[]>) {
         setData(Data);
     }
     let dataFilter: DataFilter[] = [
@@ -73,7 +73,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
         <div style={{ position: "relative" }}>
             <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"white"} />
             <Animator CurDate={curDate} setDate={setCurDate} />
-            <MapComponent adminLvl={ADMINLVL} Date={curDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={false} loadedData={loadedData} />
+            <MapComponent adminLvl={ADMINLVL} data={data} Date={curDate} DataTypeProperty={curDataTypeProp} width={width} height={height} innerData={true} scalePer100k={false} loadedData={loadedData} />
             {HistogramData.length !== 0 ?
                 <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * window.innerHeight}px)` }} width={width} height={dateHistogramSize * window.innerHeight} id="date-histogram">
                     <DateHistogram

@@ -13,6 +13,7 @@ import Translater from './helpers';
 // import MapData from '../../geojson/admin_1_topojson.json'
 type MapProps = {
     adminLvl: 0 | 1 | 2,
+    data: Map<string, DataType[]>,
     innerData?: boolean,
     country?: string,
     Date: string,
@@ -20,7 +21,7 @@ type MapProps = {
     height: number,
     width: number,
     scalePer100k?: boolean,
-    loadedData?: (Data: DataType[]) => void
+    loadedData: (Data: Map<string, DataType[]>) => void
     LoadData?: typeof _LoadSmallData,
 }
 
@@ -31,11 +32,11 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
+export const MapComponent = ({ adminLvl, data, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
     const translater = new Translater(adminLvl);
 
     //Data
-    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
+    // const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [innerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>();
@@ -104,13 +105,10 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                 locations.push(translater.locationCode(element))
             }
             LoadData(locations).then(d => {
-                setData(d)
-                // if (loadedData) {
-                //     // loadedData(d)
-                // }
+                loadedData(d)
             })
         } else {
-            setData(new Map());
+            loadedData(new Map());
         }
     }, [curGeoJson])
 

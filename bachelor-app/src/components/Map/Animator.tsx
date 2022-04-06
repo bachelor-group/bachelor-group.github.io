@@ -15,7 +15,7 @@ type AnimatorProps = {
 let parseTime = timeParse("%Y-%m-%d")
 
 export const Animator = ({ CurDate, setDate }: AnimatorProps) => {
-
+    const today = new Date();
     const [ticker, setTicker] = useState<Timer>();
 
     async function Animate() {
@@ -27,12 +27,16 @@ export const Animator = ({ CurDate, setDate }: AnimatorProps) => {
         else {
             let cursor = CurDate
             let tickerTemp = interval(e => {
-                if (cursor >= "2022-04-05") { tickerTemp.stop(); setTicker(undefined); return };
+                if (cursor >= formatDate(today)) { tickerTemp.stop(); setTicker(undefined); return };
                 cursor = nextDay(cursor);
                 setDate(cursor)
             }, TICKDURATION);
             setTicker(tickerTemp);
         }
+    }
+
+    function formatDate(date: Date): string {
+        return `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1}-${date.getDate() < 10 ? "0" + date.getDate() : date.getDate()}`
     }
 
     function nextDay(date: string): string {
@@ -41,7 +45,7 @@ export const Animator = ({ CurDate, setDate }: AnimatorProps) => {
             throw `Date ${date} is a invalid date`
         }
         let nextDay: Date = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate() + 1)
-        let nextDayString = `${nextDay.getFullYear()}-${nextDay.getMonth() + 1 < 10 ? "0" + (nextDay.getMonth() + 1) : nextDay.getMonth() + 1}-${nextDay.getDate() < 10 ? "0" + nextDay.getDate() : nextDay.getDate()}`
+        let nextDayString = formatDate(nextDay);
         return nextDayString
     }
 
