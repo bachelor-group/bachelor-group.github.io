@@ -104,7 +104,7 @@ export const MapComponent = ({ adminLvl, data, innerData = false, country, Date,
                 const element = curGeoJson.features[i];
                 locations.push(translater.locationCode(element))
             }
-            LoadData(DataTypeProperty).then(d => {
+            LoadData(DataTypeProperty,locations).then(d => {
                 loadedData(d)
             })
         } else {
