@@ -34,11 +34,6 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     const [startDate, setStartDate] = useState('2020-01-01');
 
-    
-
-   
-
-
     function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
         //@ts-ignore
         let newValue = e.target.value;
@@ -72,8 +67,8 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
         <div id='main'>
             <div className='col-6'>
                 <Form.Label><b>Search Trend:</b></Form.Label>
-                <Form.Select onChange={(e) => setSearchTrend(e)}> 
-                {/* //disabled={data.length === 0 ? true : false}> */}
+                <Form.Select onChange={(e) => setSearchTrend(e)}>
+                    {/* //disabled={data.length === 0 ? true : false}> */}
                     {SEARCHTRENDS.map((SEARCHTREND) =>
                         <option key={SEARCHTREND} value={SEARCHTREND} className='suggestion'>{SEARCHTREND}</option>
                     )}
@@ -87,22 +82,19 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
             </div>
 
             <div style={{ position: "relative" }} className='plot-container'>
-                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} Date={startDate} height={500} width={800}/>
-                {/* <DrawAdmin1Map GeoJson={curGeoJson} country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} Data={data} Date={startDate} adminLvl={ADMINLVL} height={500} width={800} /> */}
+                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} Date={startDate} height={500} width={800} LoadData={_LoadData} />
             </div>
         </div>
     );
 }
 
 const _LoadData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let newData: DataType[] = []
+    return new Promise<Map<string, DataType[]>>((resolve) => {
+        let newData: Map<string, DataType[]> = new Map();
         let loaded_location = 0
         locations.forEach((location) => {
             csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
-                d.forEach(element => {
-                    newData.push(element)
-                });
+                newData.set(location.replaceAll("-", "_"), d)
                 loaded_location++
                 if (locations.length === loaded_location) {
                     resolve(newData);

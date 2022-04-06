@@ -1,0 +1,111 @@
+200 lines, 198 regions, 2 empty lines: 
+16 threads:
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    36  909.059 MiB  909.059 MiB           1   @profile
+    37                                         def generate_data(file, threads):
+    38  909.059 MiB    0.000 MiB           1       urls = []
+    39  944.918 MiB    0.000 MiB           2       with open(file, 'r') as csvfile:
+    40  909.059 MiB    0.000 MiB           1           datareader = csv.reader(csvfile)
+    41
+    42                                                 # skip header
+    43  909.059 MiB    0.000 MiB           1           next(datareader)
+    44
+    45  909.059 MiB    0.000 MiB         199           for row in datareader:
+    46  909.059 MiB    0.000 MiB         198               region_codes = row[0].split("_")
+    47
+    48  909.059 MiB    0.000 MiB         198               url=""
+    49  909.059 MiB    0.000 MiB         734               for i,region in enumerate(region_codes):
+    50  909.059 MiB    0.000 MiB         536                   url += region
+    51  909.059 MiB    0.000 MiB         536                   if i != len(region_codes)-1:
+    52  909.059 MiB    0.000 MiB         338                       url += "_"
+    53  909.059 MiB    0.000 MiB         198               urls.append(url)
+    54
+    55  909.059 MiB    0.000 MiB           1           try:
+    56  944.918 MiB   30.219 MiB           2                with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+    57  914.863 MiB    5.641 MiB           1                   executor.map(write_to_file, urls)
+    58                                                 except:
+    59                                                     print()
+
+AND:
+
+
+Command being timed: "python ./Python/generate_data.py"
+	User time (seconds): 24.39
+	System time (seconds): 7.05
+	Percent of CPU this job got: 84%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:37.40
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2229780
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 803764
+	Voluntary context switches: 310249
+	Involuntary context switches: 6042
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 5064
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+
+
+#######################################################################################################################################################
+
+single thread, same file as above
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    57  909.234 MiB  909.234 MiB           1   @profile
+    58                                         def generate_data(file):
+    59  916.309 MiB   -0.934 MiB           2       with open(file, 'r') as csvfile:
+    60  909.234 MiB    0.000 MiB           1           datareader = csv.reader(csvfile)
+    61
+    62                                                 # skip header
+    63  909.234 MiB    0.000 MiB           1           next(datareader)
+    64
+    65  917.242 MiB -121.559 MiB         199           for row in datareader:
+    66  917.242 MiB -122.090 MiB         198               region_codes = row[0].split("_")
+    67
+    68  917.242 MiB -122.090 MiB         198               url=""
+    69  917.242 MiB -437.945 MiB         734               for i,region in enumerate(region_codes):
+    70  917.242 MiB -320.371 MiB         536                   url += region
+    71  917.242 MiB -320.371 MiB         536                   if i != len(region_codes)-1:
+    72  917.242 MiB -198.281 MiB         338                       url += "_"
+    73  917.242 MiB -122.090 MiB         198               try:
+    74  917.242 MiB -115.016 MiB         198                   write_to_file(url)
+    75  912.711 MiB   -1.465 MiB           2               except:
+    76  912.711 MiB    0.000 MiB           2                   print()
+
+
+    AND:
+
+    Command being timed: "python ./Python/generate_data.py"
+	User time (seconds): 31.15
+	System time (seconds): 6.53
+	Percent of CPU this job got: 36%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:42.38
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2229768
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 825778
+	Voluntary context switches: 26251
+	Involuntary context switches: 2623
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 5064
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
