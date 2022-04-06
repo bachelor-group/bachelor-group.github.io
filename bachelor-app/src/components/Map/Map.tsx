@@ -1,23 +1,19 @@
-import { csv, json } from 'd3';
-import { useEffect, useState, MouseEvent, ChangeEvent, useMemo } from 'react'
+import { csv } from 'd3';
+import { useEffect, useState, useMemo } from 'react'
 import { feature } from 'topojson';
 import { Topology } from 'topojson-specification'
-import { GeoJsonProperties, Feature, GeometryCollection, GeometryObject, FeatureCollection } from "geojson";
-import DrawAdmin1Map from './DrawMap';
-import { useParams } from 'react-router-dom';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
-import { Form, ProgressBar } from 'react-bootstrap';
+import { GeoJsonProperties, Feature } from "geojson";
+import { ProgressBar } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
-import { hasKey } from '../DataContext/DataTypes';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DrawMap } from './DrawMap';
 import Translater from './helpers';
 
 
-
 // import MapData from '../../geojson/admin_1_topojson.json'
 type MapProps = {
     adminLvl: 0 | 1 | 2,
+    data: Map<string, DataType[]>,
     innerData?: boolean,
     country?: string,
     Date: string,
@@ -25,7 +21,7 @@ type MapProps = {
     height: number,
     width: number,
     scalePer100k?: boolean,
-    loadedData?: (Data: DataType[]) => void
+    loadedData: (Data: Map<string, DataType[]>) => void
     LoadData?: typeof _LoadSmallData,
 }
 
@@ -36,18 +32,14 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
-    // let helperObject = newHelperObject(adminLvl);
+export const MapComponent = ({ adminLvl, data, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
     const translater = new Translater(adminLvl);
 
     //Data
-    const [data, setData] = useState<DataType[]>([]);
+    // const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [innerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>();
-    const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
-    // const [startDate, setStartDate] = useState('2020-01-01');
-
 
     //Load GeoJson
     useEffect(() => {
@@ -113,20 +105,17 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
                 locations.push(translater.locationCode(element))
             }
             LoadData(DataTypeProperty).then(d => {
-                setData(d)
-                if (loadedData) {
-                    loadedData(d)
-                }
+                loadedData(d)
             })
         } else {
-            setData([]);
+            loadedData(new Map());
         }
     }, [curGeoJson, DataTypeProperty])
 
     return (
         <>
             {
-                data.length === 0 ? <ProgressBar animated now={100}></ProgressBar>
+                data.size === 0 ? <ProgressBar animated now={100}></ProgressBar>
                     :
                     <DrawMap GeoJson={curGeoJson} InnerGeoJsonProp={innerGeoJson} country={country} DataTypeProperty={DataTypeProperty} Data={data} CurDate={Date} adminLvl={adminLvl} height={height} width={width} scalePer100K={scalePer100k} />
             }
@@ -134,35 +123,27 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
     );
 }
 
-const _LoadData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let newData: DataType[] = []
-        let loaded_location = 0
-        locations.forEach((location) => {
-            csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
-                d.forEach(element => {
-                    newData.push(element)
-                });
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }).catch((error) => {
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }
-            );
-        });
-    });
-}
 
-const _LoadSmallData = (datatype: keyof DataType="new_confirmed") => {
-    return new Promise<DataType[]>((resolve) => {
+const _LoadSmallData = (datatype: keyof DataType="new_confirmed", locations: string[]=[]) => {
+    let temp: Map<string, DataType[]> = new Map();
+    return new Promise<Map<string, DataType[]>>((resolve) => {
         // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
         csv("csvData/"+datatype+".csv").then(d => {
-            resolve(d)
+
+            for (let i = 0; i < d.length; i++) {
+                const element = d[i];
+
+                if (temp.has(element["location_key"]!)) {
+                    let list = temp.get(element["location_key"]!)!;
+                    list.push(element)
+                    temp.set(element["location_key"]!, list)
+                }
+                else {
+                    temp.set(element["location_key"]!, [element])
+                }
+            }
+
+            resolve(temp)
         })
 
     });

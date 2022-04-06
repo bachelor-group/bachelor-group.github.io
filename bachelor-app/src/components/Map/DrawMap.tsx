@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, useRef, memo } from 'react'
 import { GeoJsonProperties, Feature } from "geojson";
-import { select, scaleSequential, geoAlbersUsa, format, max, csv } from 'd3';
+import { select, scaleSequential, geoAlbersUsa, max, csv } from 'd3';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
-import { interpolateYlOrRd } from "d3-scale-chromatic"
+import { interpolateOrRd } from "d3-scale-chromatic"
 import { DataType } from '../DataContext/MasterDataType';
 import Translater from './helpers';
 import { MapToolTip } from './ToolTip';
@@ -13,7 +13,7 @@ interface DrawMapProps {
     InnerGeoJsonProp?: GeoJsonProperties | undefined
     country?: string
     DataTypeProperty: keyof DataType
-    Data: DataType[]
+    Data: Map<string, DataType[]>
     CurDate: string
     adminLvl: 0 | 1 | 2
     height: number
@@ -25,21 +25,22 @@ const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 
 export type FeatureData = { data: DataType, feature: Feature }
 
-export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false}: DrawMapProps) => {
+export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false }: DrawMapProps) => {
     const translater = new Translater(adminLvl);
-    
+
     //Refs
     const toolTipdivRef = useRef(null);
     const svgRef = useRef(null);
     const pathRef = useRef(null);
     const innerPathRef = useRef(null);
-    
+    const dateTextRef = useRef(null);
+
     // ToolTip
-    const Tooltip = new MapToolTip({width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K});
+    const Tooltip = new MapToolTip({ width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K });
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
-    const [data, setData] = useState<DataType[]>([]);
+    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const InitialMapZoom = zoomIdentity.scale(1)//zoomIdentity.scale(1.5).translate(-width / Math.PI / 2, 2 * (-height / Math.PI / 2) / 3);
     const [InnerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>(InnerGeoJsonProp);
 
@@ -86,7 +87,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             .translateExtent([[0, 0], [width, height]]) // Set pan Borders
             .on('zoom', (event) => {
                 svg
-                    .selectAll('g')
+                    .selectAll('.move-on-zoom')
                     .attr('transform', event.transform);
 
                 //@ts-ignore
@@ -105,15 +106,16 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     let colorScale = useMemo(() => {
         //TODO per 100K,
         let maxa: number
+        let dataList: DataType[] = Array.from(data.values()).flat()
 
         if (scalePer100K) {
-            maxa = max(data, d => parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000)!
+            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000)!
         }
         else {
-            maxa = max(data, d => parseFloat(d[DataTypeProperty]!))!
+            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!))!
         }
 
-        return scaleSequential(interpolateYlOrRd).domain([0, maxa])
+        return scaleSequential(interpolateOrRd).domain([0, maxa])
     }, [data, DataTypeProperty]);
 
     useEffect(() => {
@@ -146,14 +148,21 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 }
 
                 if (!innerDataLoaded) {
-                    for (let i = 0; i < data.length; i++) {
-                        dataElement = data[i];
-                        if (dataElement.date === CurDate && dataElement["location_key"] === translater.locationCode(feature)) {
-                            break;
+                    let DataArray: DataType[] | undefined = data.get(translater.locationCode(feature))
+                    if (DataArray !== undefined) {
+                        for (let i = 0; i < DataArray.length; i++) {
+                            dataElement = DataArray[i];
+                            if (dataElement.date === CurDate) {
+                                break;
+                            }
+                            dataElement = {}
                         }
-                        dataElement = {}
+                        currentData.push({ data: dataElement, feature: feature });
                     }
-                    currentData.push({ data: dataElement, feature: feature });
+                    // To keep features even when there is no data
+                    else {
+                        currentData.push({ data: {}, feature: feature });
+                    }
                 }
             }
 
@@ -176,7 +185,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: ${d.data[DataTypeProperty] ? color : "gray"} `
                 })
                 .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
-                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) });
+                .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) })
+                .on("click", (e, data) => clicked(e, data));
 
             features
                 .attr("d", d => path(d.feature))
@@ -197,20 +207,34 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 })
 
             features.exit().remove()
+
+            updateDateText(CurDate)
         }
+    }
+
+    function updateDateText(date: string) {
+        let textSelection = select(dateTextRef.current).selectAll("text").data([date])
+
+        textSelection.enter()
+            .append('text')
+            .attr("x", d => width / 2)
+            .attr("y", d => 35)
+            .attr('text-anchor', 'middle')
+            .attr("dominant-baseline", "middle")
+            .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+            .html(d => CurDate)
+
+        textSelection
+            .attr("x", d => width / 2)
+            .attr("y", d => 35)
+            .attr('text-anchor', 'middle')
+            .attr("dominant-baseline", "middle")
+            .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
+            .html(d => CurDate)
     }
 
     function clicked(event: PointerEvent, d: FeatureData) {
         if (InnerGeoJson) {
-            // let countryPaths = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path")
-
-            // countryPaths
-            //     .attr("style", data => {
-            //         if (d === data) {
-            //             return 'display: none'
-            //         }
-            //         return `fill: ${data.data[DataTypeProperty] ? colorScale(parseFloat(data.data[DataTypeProperty]!)) : "gray"} `
-            //     })
             innerPaths(d)
         }
 
@@ -239,7 +263,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 let countryCode = entry[0].split("_")[0]
                 if (countryCode === d.data.country_code) {
                     needToLoad = false;
-                    console.log("FOUND IT BBY")
                     break;
                 }
             }
@@ -278,23 +301,27 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 let data = innerData.get(translater.locationCode(d, 1));
                 if (data) {
                     let date = findIndexToDate(data);
-
                     let color: string;
-                    let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
-                    if (scalePer100K) {
-                        datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
-                    }
-                    color = colorScale(datapoint);
 
-                    return `fill: ${data[date][DataTypeProperty] ? color : "gray"} `
+                    let fill = "gray"
+                    if (date < data.length && date !== -1) {
+                        let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
+                        if (scalePer100K) {
+                            datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                        }
+                        color = colorScale(datapoint);
+                        fill = data[date][DataTypeProperty] ? color : "gray"
+                    }
+
+                    return `fill: ${fill} `
                 }
                 else {
                     // TODO Colour for missing datapoint...
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data)], feature: featureData }, true) });
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) });
 
         // Update
         innerFeaturesSelect
@@ -303,13 +330,17 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 if (data) {
                     let date = findIndexToDate(data);
                     let color: string;
-                    let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
-                    if (scalePer100K) {
-                        datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                    let fill = "gray"
+                    if (date < data.length && date !== -1) {
+                        let datapoint: number = parseFloat(data[date][DataTypeProperty]!);
+                        if (scalePer100K) {
+                            datapoint = datapoint / parseInt(data[date]["population"]!) * 100_000;
+                        }
+                        color = colorScale(datapoint);
+                        fill = data[date][DataTypeProperty] ? color : "gray"
                     }
-                    color = colorScale(datapoint);
 
-                    return `fill: ${data[date][DataTypeProperty] ? color : "gray"} `
+                    return `fill: ${fill} `
                 }
                 else {
                     // TODO Colour for missing datapoint...
@@ -320,7 +351,11 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         innerFeaturesSelect.exit().remove()
     }
 
-    function findIndexToDate(list: DataType[]): number {
+    function findIndexToDate(list: DataType[] | undefined): number {
+        if (!list) {
+            return -1
+        }
+
         let index = -1;
         for (let i = 0; i < list.length; i++) {
             const element = list[i];
@@ -335,8 +370,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         <>
             <svg style={{ width: width, height: height }} id={"map"} ref={svgRef}>
                 {/* Paths */}
-                <g ref={pathRef} />
-                <g ref={innerPathRef} />
+                <g ref={pathRef} className="move-on-zoom" />
+                <g ref={innerPathRef} className="move-on-zoom" />
+                <g ref={dateTextRef} />
             </svg>
             <div ref={toolTipdivRef} />
         </>
@@ -345,25 +381,20 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
 const loadInnerData = (locations: string[]) => {
     return new Promise<Map<string, DataType[]>>((resolve) => {
-        let newData: DataType[] = [];
-        let temp: Map<string, DataType[]> = new Map();
+        let newData: Map<string, DataType[]> = new Map();
         let loaded_location = 0;
         locations.forEach((location) => {
             csv("https://storage.googleapis.com/covid19-open-data/v3/location/" + location.replaceAll("-", "_") + ".csv").then(d => {
-
-                temp.set(location, d)
-
-                // d.forEach(element => {
-                //     newData.push(element)
-                // });
+                newData.set(location, d)
                 loaded_location++
+
                 if (locations.length === loaded_location) {
-                    resolve(temp);
+                    resolve(newData);
                 }
             }).catch((error) => {
                 loaded_location++
                 if (locations.length === loaded_location) {
-                    resolve(temp);
+                    resolve(newData);
                 }
             }
             );

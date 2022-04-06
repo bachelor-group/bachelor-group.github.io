@@ -1,23 +1,15 @@
-import { json, csv } from 'd3';
-import { useEffect, useMemo, useState, MouseEvent, ChangeEvent } from 'react'
-import { feature } from 'topojson';
-import { Topology } from 'topojson-specification'
-import { GeoJsonProperties, Feature } from "geojson";
+import { csv } from 'd3';
+import { useEffect, useMemo, useState } from 'react'
 import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DataType } from '../DataContext/MasterDataType';
-import { hasKey } from '../DataContext/DataTypes';
-import { Form, ProgressBar } from 'react-bootstrap';
 import { MapComponent } from '../Map/Map';
 import SidebarC from '../Sidebar';
-import { getDefaultSettings } from 'http2';
+import { Animator as _animator } from '../Map/Animator';
 
-const width: number = window.innerWidth;
-const height: number = window.innerHeight - 56;
 const dateHistogramSize: number = 0.2;
 
-type LoadAdmin1MapData = {
-    LoadData?: typeof _LoadData
+type LoadMapDataProps = {
+    Animator?: typeof _animator
 }
 interface DataFilter {
     title: string,
@@ -28,15 +20,15 @@ const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
 const ADMINLVL = 0;
 
-export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
+export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
 
     //Data
-    const [data, setData] = useState<DataType[]>([]);
+    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
 
     const [curDataTypeProp, setDataTypeProp] = useState<keyof DataType>("new_confirmed");
-    var curDate = new Date()
-    var lastWeek = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate() - 7);
-    const [startDate, setStartDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1 < 10 ? "0" + (lastWeek.getMonth() + 1) : lastWeek.getMonth() + 1}-${lastWeek.getDate() < 10 ? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
+    var startDate = new Date()
+    var lastWeek = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() - 7);
+    const [curDate, setCurDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1 < 10 ? "0" + (lastWeek.getMonth() + 1) : lastWeek.getMonth() + 1}-${lastWeek.getDate() < 10 ? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
     const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -48,9 +40,6 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     }, []);
 
     useMemo(() => {
-        if (data.length === 0) {
-            return
-        }
         var HistogramData = new Map<string, number>()
         csv("csvData/" + curDataTypeProp + "_total.csv").then(d => {
             d.forEach((row => {
@@ -63,11 +52,10 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     }, [data])
 
     function selectedDate(date: string) {
-        console.log(date)
-        setStartDate(date)
+        setCurDate(date)
     }
 
-    function loadedData(Data: DataType[]) {
+    function loadedData(Data: Map<string, DataType[]>) {
         setData(Data);
     }
     let dataFilter: DataFilter[] = [
@@ -86,49 +74,30 @@ export const LoadMapData = ({ LoadData = _LoadData }: LoadAdmin1MapData) => {
     ]
     const SelectedFilter = (dataType: keyof DataType) => {
         setDataTypeProp(dataType)
-        console.log("changed dataType to: ", dataType)
     }
 
     return (
         <div style={{ position: "relative" }}>
             <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
-            <MapComponent adminLvl={ADMINLVL} Date={startDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height - 56} innerData={true} scalePer100k={false} loadedData={loadedData} />
-            <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
-                <DateHistogram
-                    Data={HistogramData}
-                    width={windowDimensions.width}
-                    height={dateHistogramSize * windowDimensions.height}
-                    selectedDate={selectedDate}
-                    DataTypeProperty={curDataTypeProp}
-                />
-            </svg>
+            <Animator CurDate={curDate} setDate={setCurDate} />
+            <MapComponent adminLvl={ADMINLVL} data={data} Date={curDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height - 56} innerData={true} scalePer100k={false} loadedData={loadedData} />
+            {data.size !== 0 ?
+                <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
+                    <DateHistogram
+                        Data={HistogramData}
+                        width={windowDimensions.width}
+                        height={dateHistogramSize * windowDimensions.height}
+                        selectedDate={selectedDate}
+                        DataTypeProperty={curDataTypeProp}
+                        curDate={curDate}
+                    />
+
+                </svg>
+                :
+                <></>
+            }
         </div>
     );
 }
-
-const _LoadData = (locations: string[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let newData: DataType[] = []
-        let loaded_location = 0
-        locations.forEach((location) => {
-            csv(url + location.replaceAll("-", "_") + ".csv").then(d => {
-                d.forEach(element => {
-                    newData.push(element)
-                });
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }).catch((error) => {
-                loaded_location++
-                if (locations.length === loaded_location) {
-                    resolve(newData);
-                }
-            }
-            );
-        });
-    });
-}
-
 
 export default LoadMapData;

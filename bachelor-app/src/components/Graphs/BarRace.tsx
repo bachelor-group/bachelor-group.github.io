@@ -105,7 +105,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             let cursor = FindDateIndex(startDate) - 1
             let tickerTemp = interval(e => {
                 if (cursor >= barsData.length - 1) { tickerTemp.stop(); setTicker(undefined); return };
-                cursor = cursor + 1;
+                cursor += 1;
                 updatePlot(cursor);
             }, tickDuration);
             setTicker(tickerTemp);
