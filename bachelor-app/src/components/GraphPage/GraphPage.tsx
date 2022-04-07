@@ -22,7 +22,7 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
 
     const [Data, setData] = useState<DataType[]>([])
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
-    const [Countries, setCountries] = useState<TagExtended[]>([]);
+    const [SelectedCountries, setSelectedCountries] = useState<TagExtended[]>([]);
 
     const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
     //get window size
@@ -32,25 +32,20 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
     }, []);
 
     const selectedCountries = (countries: TagExtended[]) => {
-        setCountries(countries)
+        setSelectedCountries(countries)
     };
 
     useEffect(() => {
-        LoadData(Countries, LoadedCountries, Data).then((d) => {
+        LoadData(SelectedCountries, LoadedCountries, Data).then((d) => {
             setData(d);
 
-            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
+            setLoadedCountries(JSON.parse(JSON.stringify(SelectedCountries)));
         })
-    }, [Countries]);
+    }, [SelectedCountries]);
 
     return (
         <>
-
-            {key === "searchtrends" ?
-                <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
-                :
-                <SelectCountry selectedCountries={selectedCountries} />
-            }
+            <SelectCountry selectedCountries={selectedCountries} Key={key} />
 
             <br></br>
 

@@ -53,7 +53,7 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data]);
+    }, [Data, WindowDimensions]);
 
 
     return (

@@ -27,32 +27,70 @@ export const _LoadCountries = () => {
 interface SelectCountryProps {
     LoadCountries?: typeof _LoadCountries
     selectedCountries: (countries: TagExtended[]) => void
+    Key: string
 }
 
-export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountries }: SelectCountryProps) => {
+export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountries, Key }: SelectCountryProps) => {
 
     const [tags, setTags] = useState<TagExtended[]>([])
     const [suggestions, setSuggestions] = useState<Tag[]>([])
+
+    const [allCountries, setAllCountries] = useState<Tag[]>([])
+
+    const [searchtrendCountries, setSearchtrendCountries] = useState<TagExtended[]>([
+        { id: 1, name: "Australia", location_key: "AU" },
+        { id: 2, name: "United Kingdom", location_key: "GB" },
+        { id: 3, name: "Ireland", location_key: "IE" },
+        { id: 4, name: "Singapore", location_key: "SG" },
+        { id: 5, name: "United States of America", location_key: "US" },
+        { id: 6, name: "New Zealand", location_key: "NZ" }
+    ])
+
     const [data, setData] = useState<TagExtended[]>([])
     const reactTags = useRef<Tag>()
 
     useEffect(() => {
         LoadCountries().then((d: TagExtended[]) => {
             setData(d)
+            setAllCountries(d)
+
+            // default is epi, (not searchtrends):
             setSuggestions(d)
         })
         return () => {
-            setData([]); 
+            setData([]);
+            setAllCountries([])
             setSuggestions([])
         };
     }, [])
 
 
 
+    useEffect(() => {
+        if (Key !== "searchtrends") {
+            if (tags.length !== 0) {
+                setSuggestions(allCountries.filter(s => tags.find(t => t.name !== s.name)))
+
+            } else {
+                setSuggestions(allCountries)
+            }
+        } else {
+            if (tags.length !== 0) {
+                setSuggestions(searchtrendCountries.filter(s => tags.find(t => t.name !== s.name)))
+
+            } else {
+                setSuggestions(searchtrendCountries)
+            }
+        }
+
+    }, [Key])
+
+
     // when tags change, let parent component know
     useEffect(() => {
         // tags does not include location_key, data does:
-        selectedCountries(data.filter(d => tags.find(t => t.id === d.id)))
+        selectedCountries(data.filter(d => tags.find(t => t.name === d.name)))
+
     }, [tags])
 
 

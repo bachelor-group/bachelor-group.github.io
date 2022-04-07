@@ -6,7 +6,7 @@ import SelectCountry, { TagExtended } from "./SelectCountry";
 let dummyCountries: TagExtended[] = []
 let container: HTMLDivElement | null = null;
 
-let fakeParentState: TagExtended[]  = []
+let fakeParentState: TagExtended[] = []
 const fakeParentStateFunction = (countries: TagExtended[]) => {
   fakeParentState = countries;
 }
@@ -39,12 +39,12 @@ let FakeData = () => {
 }
 
 test('renders SelectCountry', () => {
-  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} />);
+  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} Key={"epidemiology"} />);
 });
 
 
 test('renders SelectCountry check first 6 countries match', async () => {
-  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} />);
+  render(<SelectCountry selectedCountries={() => []} LoadCountries={FakeData} Key={"epidemiology"} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
@@ -55,7 +55,7 @@ test('renders SelectCountry check first 6 countries match', async () => {
 });
 
 test('render selectcountry and makes sure only 6 suggestions are displayed', async () => {
-  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} />);
+  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} Key={"epidemiology"} />);
   let input = await screen.findAllByPlaceholderText("Add country")
   input[0].focus()
 
@@ -74,7 +74,7 @@ ${6}
 ${7}
 ${8}
 `('checks that selected countries are correct, number of selected countries: $NumberOfCountriesToSelect', async ({ NumberOfCountriesToSelect }) => {
-  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} />);
+  render(<SelectCountry selectedCountries={() => ([])} LoadCountries={FakeData} Key={"epidemiology"} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
@@ -110,7 +110,7 @@ ${2}
 ${3}
 ${4}
 `('Test that StateFunction gets called with NumberofCountries: $NumberOfCountriesToSelect', async ({ NumberOfCountriesToSelect }) => {
-  render(<SelectCountry selectedCountries={fakeParentStateFunction} LoadCountries={FakeData} />);
+  render(<SelectCountry selectedCountries={fakeParentStateFunction} LoadCountries={FakeData} Key={"epidemiology"} />);
   let input = await screen.findByPlaceholderText("Add country")
   input.focus()
 
@@ -118,7 +118,7 @@ ${4}
     const element = dummyCountries[i];
     let CountryToSelect = await screen.findByText(element.name)
     fireEvent.click(CountryToSelect)
-    expect(fakeParentState.length).toBe(i+1)
+    expect(fakeParentState.length).toBe(i + 1)
   }
   input.blur()
 
