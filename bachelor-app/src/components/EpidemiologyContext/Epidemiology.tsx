@@ -19,16 +19,15 @@ interface Props {
     }
 }
 
-let TEST = 0;
 
 export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
-    const [Redraw, setRedraw] = useState<number>(0)
+    const [displayCustomPlots, setDisplayCustomPlots] = useState<boolean>(false)
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases", GroupBy: EpidemiologyEnum.location_key },
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: 300, Width: 600, Title: "New Tested", GroupBy: EpidemiologyEnum.location_key },
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_deceased], Height: 300, Width: 600, Title: "New Deaths", GroupBy: EpidemiologyEnum.location_key },
-            // { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases", GroupBy: EpidemiologyEnum.location_key },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: 300, Width: 600, Title: "New Tested", GroupBy: EpidemiologyEnum.location_key },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_deceased], Height: 300, Width: 600, Title: "New Deaths", GroupBy: EpidemiologyEnum.location_key },
+            { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
@@ -49,7 +48,6 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                     if (Plot.GroupBy !== undefined) {
                         PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
                     } else {
-                        console.log("check")
                         PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
                     }
                 }
@@ -59,16 +57,16 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data, WindowDimensions, Redraw]);
+    }, [Data, WindowDimensions]);
 
 
     const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
-        TEST++
-        
-        Plots.push(
+        // add plot to Plots, and then need to redraw plots
+
+        Plots.unshift(
             { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
         )
-        setRedraw(TEST)
+        console.log(Plots)
     }
 
     return (
@@ -85,7 +83,10 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         :
                         <>
 
-                            <CustomPlots Data={Data[0]} AddPlot={addPlot}></CustomPlots>
+                            <Button onClick={()=>setDisplayCustomPlots(!displayCustomPlots)}>Custom Plots</Button>
+                            <br></br>
+                            {displayCustomPlots ? <CustomPlots Data={Data[0]} AddPlot={addPlot}></CustomPlots> : <></>}
+                            
 
                             <PlotsContainer Plots={Plots} />
                         </>
