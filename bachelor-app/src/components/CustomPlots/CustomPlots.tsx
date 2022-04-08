@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { DataType } from '../DataContext/MasterDataType'
 import { PlotType } from '../Graphs/PlotType'

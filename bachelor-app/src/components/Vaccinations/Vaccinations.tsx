@@ -1,16 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry'
-import { LoadData as _LoadData } from '../DataContext/LoadData';
+import { useEffect, useState } from 'react'
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
 import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
-import { FaWindowRestore } from 'react-icons/fa';
-import GraphForm from '../CustomPlots/CustomPlots';
 
 export interface VaccinationProps {
-    LoadData?: typeof _LoadData,
     Data: DataType[],
     WindowDimensions: {
         width: number,
@@ -18,7 +13,7 @@ export interface VaccinationProps {
     }
 }
 
-export const Vaccinations = ({ LoadData = _LoadData, Data, WindowDimensions }: VaccinationProps) => {
+export const Vaccinations = ({ Data, WindowDimensions }: VaccinationProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },

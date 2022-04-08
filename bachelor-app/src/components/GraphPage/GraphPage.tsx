@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Button } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
 import Tabs from 'react-bootstrap/esm/Tabs';
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
@@ -7,7 +6,6 @@ import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
 import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import SearchTrends from '../SearchTrends/SearchTrends';
-import SearchTrendsData from '../SearchTrends/SearchTrendsData';
 import Vaccinations from '../Vaccinations/Vaccinations';
 import CustomGraphs from './CustomGraphs';
 
@@ -25,7 +23,6 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
     const [Data, setData] = useState<DataType[]>([])
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [SelectedCountries, setSelectedCountries] = useState<TagExtended[]>([]);
-    const [displayCustomPlots, setDisplayCustomPlots] = useState<boolean>(false)
     const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
     //get window size
     useEffect(() => {

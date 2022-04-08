@@ -92,7 +92,7 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         <>
 
                         <GraphForm Data={Data[0]} AddPlot={addPlot}></GraphForm>
-                       {Plots.length === 0 ? <h3>Define your own plots here</h3>:<PlotsContainer Plots={Plots} />}
+                       {Plots.length === 0 ? <h3><br></br><br></br>Define your own plots here</h3>:<PlotsContainer Plots={Plots} />}
                         </>
                 }
             </div>

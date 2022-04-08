@@ -1,17 +1,12 @@
 import { FormEventHandler, useEffect, useState } from 'react'
-import { Button, Col, Form, ProgressBar, Row, } from 'react-bootstrap';
+import {  Col, ProgressBar, Row, } from 'react-bootstrap';
 import { EpidemiologyEnum, hasKey } from '../DataContext/DataTypes';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from './PlotsContainer';
-import { setDefaultResultOrder } from 'dns/promises';
-import GraphForm from '../CustomPlots/CustomPlots';
 
 
 interface Props {
-    LoadData?: typeof _LoadData,
     Data: DataType[],
     WindowDimensions: {
         width: number,
@@ -20,7 +15,7 @@ interface Props {
 }
 
 
-export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
+export const Epidemiology = ({ Data, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases", GroupBy: EpidemiologyEnum.location_key },
