@@ -7,7 +7,7 @@ import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
 import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
 import { FaWindowRestore } from 'react-icons/fa';
-import CustomPlots from '../CustomPlots/CustomPlots';
+import GraphForm from '../CustomPlots/CustomPlots';
 
 export interface VaccinationProps {
     LoadData?: typeof _LoadData,
@@ -19,13 +19,12 @@ export interface VaccinationProps {
 }
 
 export const Vaccinations = ({ LoadData = _LoadData, Data, WindowDimensions }: VaccinationProps) => {
-    const [displayCustomPlots, setDisplayCustomPlots] = useState<boolean>(false)
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
-            // { PlotType: PlotType.Scatter, Data: [], Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
+            { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
+            { PlotType: PlotType.Scatter, Data: [], Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
@@ -57,33 +56,9 @@ export const Vaccinations = ({ LoadData = _LoadData, Data, WindowDimensions }: V
     }, [Data, WindowDimensions]);
 
 
-    const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
-        
-        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: VaccinationEnum.location_key }
-        let PlotData: DataType[] = []
-
-        for (let j = 0; j < Data.length; j++) {
-            //TODO: Two different ways of doing this, See in !== undefined
-            if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
-                if (Plot.GroupBy !== undefined) {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                } else {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
-                }
-            }
-        }
-
-        Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
-
-        let newPlots: Plot[] = [Plot];
-
-        setPlots(newPlots.concat(Plots))
-    }
-
 
     return (
         <>
-
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
                     Data.length === 0 ?
@@ -93,14 +68,7 @@ export const Vaccinations = ({ LoadData = _LoadData, Data, WindowDimensions }: V
                             </Col>
                         </Row>
                         :
-                        <>
-                            <Button onClick={() => setDisplayCustomPlots(!displayCustomPlots)}>{displayCustomPlots ? "Close Menu" : "Custom Plots"}</Button>
-                            <br></br>
-                            {displayCustomPlots ? <CustomPlots Data={Data[0]} AddPlot={addPlot}></CustomPlots> : <></>}
-
-
-                            <PlotsContainer Plots={Plots} />
-                        </>
+                        <PlotsContainer Plots={Plots} />
                 }
             </div>
         </>

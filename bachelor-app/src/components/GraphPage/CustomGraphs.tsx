@@ -5,7 +5,7 @@ import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
 import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from './PlotsContainer';
+import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { setDefaultResultOrder } from 'dns/promises';
 import GraphForm from '../CustomPlots/CustomPlots';
 
@@ -20,15 +20,8 @@ interface Props {
 }
 
 
-export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
-    const [Plots, setPlots] = useState<Plot[]>(
-        [
-            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases", GroupBy: EpidemiologyEnum.location_key },
-            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_tested], Height: 300, Width: 600, Title: "New Tested", GroupBy: EpidemiologyEnum.location_key },
-            { PlotType: PlotType.LineChart, Data: [], Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_deceased], Height: 300, Width: 600, Title: "New Deaths", GroupBy: EpidemiologyEnum.location_key },
-            { PlotType: PlotType.Scatter, Data: [], Axis: [EpidemiologyEnum.new_tested, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "Tested(X) vs Confirmed(Y)" },
-            // { PlotType: PlotType.Lollipop, Data: [], Axis: [EpidemiologyEnum.new_confirmed, EpidemiologyEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
-        ]);
+export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
+    const [Plots, setPlots] = useState<Plot[]>([]);
 
 
     //Handle new Data
@@ -60,6 +53,29 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
     }, [Data, WindowDimensions]);
 
 
+    const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
+        
+        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
+        let PlotData: DataType[] = []
+
+        for (let j = 0; j < Data.length; j++) {
+            //TODO: Two different ways of doing this, See in !== undefined
+            if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
+                if (Plot.GroupBy !== undefined) {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
+                } else {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
+                }
+            }
+        }
+
+        Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+
+        let newPlots: Plot[] = [Plot];
+
+        setPlots(newPlots.concat(Plots))
+    }
+
 
     return (
         <>
@@ -73,11 +89,15 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} />
+                        <>
+
+                        <GraphForm Data={Data[0]} AddPlot={addPlot}></GraphForm>
+                       {Plots.length === 0 ? <h3>Define your own plots here</h3>:<PlotsContainer Plots={Plots} />}
+                        </>
                 }
             </div>
         </>
     );
 }
 
-export default Epidemiology;
+export default CustomGraphs;

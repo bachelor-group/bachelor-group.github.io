@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Button } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
 import Tabs from 'react-bootstrap/esm/Tabs';
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
@@ -8,6 +9,7 @@ import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import SearchTrends from '../SearchTrends/SearchTrends';
 import SearchTrendsData from '../SearchTrends/SearchTrendsData';
 import Vaccinations from '../Vaccinations/Vaccinations';
+import CustomGraphs from './CustomGraphs';
 
 
 interface Props {
@@ -23,8 +25,8 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
     const [Data, setData] = useState<DataType[]>([])
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [SelectedCountries, setSelectedCountries] = useState<TagExtended[]>([]);
-
-    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
+    const [displayCustomPlots, setDisplayCustomPlots] = useState<boolean>(false)
+    const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
     //get window size
     useEffect(() => {
         window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE }));
@@ -43,6 +45,7 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
         })
     }, [SelectedCountries]);
 
+
     return (
         <>
             <SelectCountry selectedCountries={selectedCountries} Key={key} />
@@ -54,13 +57,16 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
             }
             } className="mb-3">
                 <Tab eventKey="epidemiology" title="Epidemiology">
-                    <Epidemiology Data={Data} WindowDimensions={windowDimensions} />
+                    <Epidemiology Data={Data} WindowDimensions={WindowDimensions} />
                 </Tab>
                 <Tab eventKey="searchtrends" title="Search Trends">
                     <SearchTrends Data={Data} />
                 </Tab>
                 <Tab eventKey="vaccinations" title="Vaccinations">
-                    <Vaccinations Data={Data} WindowDimensions={windowDimensions} />
+                    <Vaccinations Data={Data} WindowDimensions={WindowDimensions} />
+                </Tab>
+                <Tab eventKey="customgraphs" title="Custom Graphs">
+                    <CustomGraphs Data={Data} WindowDimensions={WindowDimensions} />
                 </Tab>
             </Tabs>
 
