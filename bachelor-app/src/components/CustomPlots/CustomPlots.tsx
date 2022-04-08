@@ -31,15 +31,15 @@ export const GraphForm = ({ Data, AddPlot }: CustomPlotsInterface) => {
                     {Object.keys(Data).splice(10).map((d, i) => (
                         <option key={i} value={d}>{d.replaceAll("_", " ")}</option>
                     ))}
-                    <option>date</option>
+                    <option value="date">date</option>
                 </Form.Control>
             </Form.Group>
 
             {customPlotType === "Scatter" ? <>
                 <Form.Group className="mb-3">
-                    <Form.Label htmlFor="plottypeSelect">Choose plot x-axis: </Form.Label>
-                    <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotXaxis(e.target.value))}>
-                        <option>date</option>
+                    <Form.Label htmlFor="axisSelect">Choose plot x-axis: </Form.Label>
+                    <Form.Control as="select" id="axisSelect" onChange={(e => setCustomPlotXaxis(e.target.value))}>
+                        <option value="date">date</option>
                         {Object.keys(Data).splice(10).map((d, i) => (
                             <option key={i} value={d}>{d.replaceAll("_", " ")}</option>
                         ))}

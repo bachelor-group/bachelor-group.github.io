@@ -54,12 +54,20 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
 
 
     const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
+        let title: string;
         
-        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
+        if (plotType === PlotType.Scatter){
+            title = `${xAxis.replaceAll("_", " ")} (X) vs ${yAxis.replaceAll("_", " ")} (Y)`
+            
+        } else {
+            title = yAxis.replaceAll("_", " ")
+        }
+
+        
+        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title, GroupBy: EpidemiologyEnum.location_key }
         let PlotData: DataType[] = []
 
         for (let j = 0; j < Data.length; j++) {
-            //TODO: Two different ways of doing this, See in !== undefined
             if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
                 if (Plot.GroupBy !== undefined) {
                     PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
