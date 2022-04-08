@@ -7,6 +7,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from './PlotsContainer';
 import { setDefaultResultOrder } from 'dns/promises';
+import CustomPlots from '../CustomPlots/CustomPlots';
 
 
 interface Props {
@@ -21,9 +22,6 @@ interface Props {
 let TEST = 0;
 
 export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
-    const [customPlotType, setCustomPlotType] = useState<string>("Scatter")
-    const [customPlotYaxis, setCustomPlotYaxis] = useState<string>("new_confirmed")
-    const [customPlotXaxis, setCustomPlotXaxis] = useState<string>("date")
     const [Redraw, setRedraw] = useState<number>(0)
     const [Plots, setPlots] = useState<Plot[]>(
         [
@@ -37,7 +35,6 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
 
     //Handle new Data
     useEffect(() => {
-        console.log("handle new data")
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
 
@@ -65,12 +62,11 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
     }, [Data, WindowDimensions, Redraw]);
 
 
-    const addPlot = () => {
+    const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
         TEST++
         
         Plots.push(
-            // { PlotType: PlotType.LineChart, Data: [], Axis: [customPlotXaxis as unknown as keyof DataType, customPlotYaxis as unknown as keyof DataType], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: customPlotYaxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
-            { PlotType: customPlotType as unknown as PlotType, Data: [], Axis: [customPlotXaxis as unknown as keyof DataType, customPlotYaxis as unknown as keyof DataType], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: customPlotYaxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
+            { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
         )
         setRedraw(TEST)
     }
@@ -88,45 +84,10 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         </Row>
                         :
                         <>
-                            <fieldset>
-                                <Form.Group className="mb-3">
-                                    <Form.Label htmlFor="plottypeSelect">Choose plot type: </Form.Label>
-                                    <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotType(e.target.value))}>
-                                        {Object.keys(PlotType).splice(5).map((d, i) => (
-                                            <option key={i} value={d}>{d}</option>
-                                        ))}
-                                    </Form.Control>
-                                </Form.Group>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label htmlFor="axisSelect">Choose plot y-axis: </Form.Label>
-                                    <Form.Control as="select" id="axisSelect" onChange={(e => setCustomPlotYaxis(e.target.value))}>
-                                        {Object.keys(Data[0]).splice(10).map((d, i) => (
-                                            <option key={i} value={d}>{d.replaceAll("_", " ")}</option>
-                                        ))}
-                                        <option>date</option>
-                                    </Form.Control>
-                                </Form.Group>
+                            <CustomPlots Data={Data[0]} AddPlot={addPlot}></CustomPlots>
 
-                                {customPlotType === "Scatter" ? <>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label htmlFor="plottypeSelect">Choose plot x-axis: </Form.Label>
-                                        <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotXaxis(e.target.value))}>
-                                            <option>date</option>
-                                            {Object.keys(Data[0]).splice(10).map((d, i) => (
-                                                <option key={i} value={d}>{d.replaceAll("_", " ")}</option>
-                                            ))}
-                                        </Form.Control>
-                                    </Form.Group>
-
-                                </> : <></>}
-
-
-                                <Button type="submit" onClick={addPlot}>Add Plot</Button>
-                            </fieldset>
-
-
-                            < PlotsContainer Plots={Plots} />
+                            <PlotsContainer Plots={Plots} />
                         </>
                 }
             </div>
