@@ -3,12 +3,12 @@ import { Button, Form } from 'react-bootstrap'
 import { DataType } from '../DataContext/MasterDataType'
 import { PlotType } from '../Graphs/PlotType'
 
-interface CustomPlotsInterface {
+interface GraphFormInterface {
     Data: DataType
     AddPlot: (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => void
 }
 
-export const GraphForm = ({ Data, AddPlot }: CustomPlotsInterface) => {
+export const GraphForm = ({ Data, AddPlot }: GraphFormInterface) => {
     const [customPlotType, setCustomPlotType] = useState<string>("Scatter")
     const [customPlotYaxis, setCustomPlotYaxis] = useState<string>("new_confirmed")
     const [customPlotXaxis, setCustomPlotXaxis] = useState<string>("date")

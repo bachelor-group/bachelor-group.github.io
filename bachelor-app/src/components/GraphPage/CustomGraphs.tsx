@@ -7,7 +7,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { setDefaultResultOrder } from 'dns/promises';
-import GraphForm from '../CustomPlots/CustomPlots';
+import GraphForm from './GraphForm';
 
 
 interface Props {
