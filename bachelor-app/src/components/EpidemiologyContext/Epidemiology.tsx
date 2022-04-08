@@ -42,6 +42,7 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
             let newPlot: Plot;
             let PlotData: DataType[] = []
 
+
             for (let j = 0; j < Data.length; j++) {
                 //TODO: Two different ways of doing this, See in !== undefined
                 if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
@@ -61,12 +62,26 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
 
 
     const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
-        // add plot to Plots, and then need to redraw plots
+        
+        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
+        let PlotData: DataType[] = []
 
-        Plots.unshift(
-            { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: yAxis.replaceAll("_", " "), GroupBy: EpidemiologyEnum.location_key }
-        )
-        console.log(Plots)
+        for (let j = 0; j < Data.length; j++) {
+            //TODO: Two different ways of doing this, See in !== undefined
+            if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
+                if (Plot.GroupBy !== undefined) {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
+                } else {
+                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
+                }
+            }
+        }
+
+        Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+
+        let newPlots: Plot[] = [Plot];
+
+        setPlots(newPlots.concat(Plots))
     }
 
     return (
@@ -83,10 +98,10 @@ export const Epidemiology = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         :
                         <>
 
-                            <Button onClick={()=>setDisplayCustomPlots(!displayCustomPlots)}>Custom Plots</Button>
+                            <Button onClick={() => setDisplayCustomPlots(!displayCustomPlots)}>{displayCustomPlots ? "Close Menu" : "Custom Plots"}</Button>
                             <br></br>
                             {displayCustomPlots ? <CustomPlots Data={Data[0]} AddPlot={addPlot}></CustomPlots> : <></>}
-                            
+
 
                             <PlotsContainer Plots={Plots} />
                         </>

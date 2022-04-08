@@ -15,12 +15,11 @@ interface PlotsProps {
 }
 
 export const PlotsContainer = ({ Plots }: PlotsProps) => {
-    //TODO check if temp really is needed here
     const [temp, setTemp] = useState(Plots)
 
-    //Used to make the container Rerender
+    // Used to make the container Rerender
     useEffect(() => {
-        setTemp(Plots);
+        setTemp(Plots)
     }, [Plots])
 
     return (
