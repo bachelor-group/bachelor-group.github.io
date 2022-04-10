@@ -21,10 +21,8 @@ const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 const ADMINLVL = 0;
 
 export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
-
     //Data
     const [data, setData] = useState<Map<string, DataType[]>>(new Map());
-
     const [curDataTypeProp, setDataTypeProp] = useState<keyof DataType>("new_confirmed");
     var startDate = new Date()
     var lastWeek = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() - 7);
@@ -32,11 +30,26 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
 
     const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+    const [dataFilter, setDataFilter] = useState<DataFilter[]>([
+        {
+            title: 'New Cases',
+            dataType: 'new_confirmed'
+        },
+        {
+            title: 'New Deceased',
+            dataType: 'new_deceased'
+        },
+        {
+            title: 'New Hospitalized',
+            dataType: 'new_hospitalized_patients'
+        },
+    ])
 
     //get window size
     useEffect(() => {
         window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
         return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+
     }, []);
 
     useMemo(() => {
@@ -58,20 +71,6 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     function loadedData(Data: Map<string, DataType[]>) {
         setData(Data);
     }
-    let dataFilter: DataFilter[] = [
-        {
-            title: 'New Cases',
-            dataType: 'new_confirmed'
-        },
-        {
-            title: 'New Deceased',
-            dataType: 'new_deceased'
-        },
-        {
-            title: 'New Hospitalized',
-            dataType: 'new_hospitalized_patients'
-        },
-    ]
     const SelectedFilter = (dataType: keyof DataType) => {
         setDataTypeProp(dataType)
     }

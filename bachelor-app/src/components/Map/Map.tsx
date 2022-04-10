@@ -7,7 +7,7 @@ import { ProgressBar } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DrawMap } from './DrawMap';
-import Translater from './helpers';
+import Translator from './helpers';
 
 
 // import MapData from '../../geojson/admin_1_topojson.json'
@@ -33,7 +33,7 @@ const MAXDATE = "2025-01-01"
 
 
 export const MapComponent = ({ adminLvl, data, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
-    const translater = new Translater(adminLvl);
+    const translator = new Translator(adminLvl);
 
     //Data
     // const [data, setData] = useState<Map<string, DataType[]>>(new Map());
@@ -83,7 +83,7 @@ export const MapComponent = ({ adminLvl, data, innerData = false, country, Date,
 
                 for (let i = 0; i < worldData.features.length; i++) {
                     let Feature = worldData.features[i];
-                    if (translater.countryCode(Feature).toLowerCase() === country.toLowerCase()) {
+                    if (translator.countryCode(Feature).toLowerCase() === country.toLowerCase()) {
                         filteredFeatures.push(Feature)
                     }
                 }
@@ -102,7 +102,7 @@ export const MapComponent = ({ adminLvl, data, innerData = false, country, Date,
             let locations: string[] = []
             for (let i = 0; i < curGeoJson.features.length; i++) {
                 const element = curGeoJson.features[i];
-                locations.push(translater.locationCode(element))
+                locations.push(translator.locationCode(element))
             }
             LoadData(DataTypeProperty,locations).then(d => {
                 loadedData(d)

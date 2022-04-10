@@ -1,6 +1,6 @@
 import { Feature } from "geojson";
 
-export class Translater {
+export class Translator {
     adminLvl: 0 | 1 | 2;
 
     constructor(adminLvl: 0 | 1 | 2) {
@@ -43,4 +43,4 @@ export class Translater {
     }
 }
 
-export default Translater;
+export default Translator;
