@@ -59,7 +59,7 @@ export const Epidemiology = ({ Data, WindowDimensions }: Props) => {
     return (
         <>
 
-            <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
+            <div id='main'>
                 {
                     Data.length === 0 ?
                         <Row md="auto" className="align-items-center">

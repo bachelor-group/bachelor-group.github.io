@@ -64,8 +64,16 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
         }
 
         
-        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title, GroupBy: EpidemiologyEnum.location_key }
-        let PlotData: DataType[] = []
+        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title};
+        let PlotData: DataType[] = [];
+        
+        if (plotType === PlotType.LineChart){
+            Plot.GroupBy = "location_key";
+            Plot.Axis[0] = "date";
+        }
+
+        xAxis = Plot.Axis[0];
+        yAxis = Plot.Axis[1];
 
         for (let j = 0; j < Data.length; j++) {
             if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
@@ -76,8 +84,9 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                 }
             }
         }
-
+        
         Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+        console.log(Plot);
 
         let newPlots: Plot[] = [Plot];
 
@@ -87,7 +96,6 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
 
     return (
         <>
-
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
                     Data.length === 0 ?

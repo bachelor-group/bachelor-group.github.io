@@ -1,10 +1,9 @@
 import { extent, scaleLinear, scaleTime, timeParse } from "d3";
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 import { DataType } from "../DataContext/MasterDataType";
 import { Plot } from '../Graphs/PlotType';
 
 // Scale, Return a scale to use for Axis for a graph
-export const Scale = (Plot: Plot, bounds: number, getter: ((d: EpidemiologyData) => Date | null) | ((d: EpidemiologyData) => number), axis: string = "X"
+export const Scale = (Plot: Plot, bounds: number, getter: ((d: DataType) => Date | null) | ((d: DataType) => number), axis: string = "X"
 ) => {
     const [min, max] = extent(Plot.Data, (d) => getter(d));
 
@@ -20,7 +19,7 @@ export const Scale = (Plot: Plot, bounds: number, getter: ((d: EpidemiologyData)
         AxisToGet = 1;
     }
 
-    if (Plot.Axis[AxisToGet] === EpidemiologyEnum.date) {
+    if (Plot.Axis[AxisToGet] === "date") {
         return scaleTime().domain([min!, max!]).range([StartOfBounds, EndOfBounds]);
     }
     else {
