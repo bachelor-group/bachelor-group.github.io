@@ -175,7 +175,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
         if (Data.length != 0){
             updateLine(xScale(parseTime(curDate)!))
         }
-    }, [curDate, Data]) 
+    }, [curDate, Data, width, height]) 
 
     return (
         <>
