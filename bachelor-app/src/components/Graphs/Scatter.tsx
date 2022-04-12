@@ -3,6 +3,7 @@ import { axisLeft, axisBottom, select } from 'd3';
 import { Plot } from "./PlotType";
 import { DataAccessor, Scale } from "./Scaling";
 import { GraphTooltip } from "./Tooltip";
+import { DataType } from "../DataContext/MasterDataType";
 
 interface ScatterProps {
     Width: number,
@@ -21,7 +22,14 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
 
     // Set State on loaded data
     useEffect(() => {
-        setData(Plot.Data);
+        let filteredData: DataType[] = [];
+        for (let i = 0; i < Plot.Data.length; i++) {
+            const element = Plot.Data[i];
+            if (element[Plot.Axis[0]] !== "" && element[Plot.Axis[1]] !== ""){
+                filteredData.push(element)
+            }
+        }
+        setData(filteredData);
     }, [Plot]);
 
     const yValue = useMemo(() => {
@@ -70,7 +78,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                 <circle
                     key={i}
                     r={2}
-                    cx={xScale(parseInt(d[Plot.Axis[0]]!)!)}
+                    cx={xScale(xValue(d)!)}
                     cy={yScale(parseInt(d[Plot.Axis[1]]!))}
                     opacity={1}
                     stroke="#9a6fb0"
