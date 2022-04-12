@@ -57,7 +57,7 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
                     <Epidemiology Data={Data} WindowDimensions={WindowDimensions} />
                 </Tab>
                 <Tab eventKey="searchtrends" title="Search Trends">
-                    <SearchTrends Data={Data} />
+                    <SearchTrends Data={Data} SelectedCountries={SelectedCountries}/>
                 </Tab>
                 <Tab eventKey="vaccinations" title="Vaccinations">
                     <Vaccinations Data={Data} WindowDimensions={WindowDimensions} />

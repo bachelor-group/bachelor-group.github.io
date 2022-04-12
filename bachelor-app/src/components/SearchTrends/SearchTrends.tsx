@@ -13,13 +13,15 @@ import BarRace from '../Graphs/BarRace';
 interface Props {
     LoadData?: typeof _LoadData,
     Data: DataType[]
+    SelectedCountries: TagExtended[]
 }
 
 
 const HARDCODED = SearchTrendsList
+const LOCATION_KEYS_SEARCH_TRENDS = ["AU", "US", "GB", "SG", "IE", "NZ"]
 
 
-function SearchTrends({ LoadData = _LoadData, Data }: Props) {
+function SearchTrends({ LoadData = _LoadData, Data, SelectedCountries }: Props) {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}` },
@@ -30,6 +32,23 @@ function SearchTrends({ LoadData = _LoadData, Data }: Props) {
             { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Data[0] !== undefined ? Data[0].country_name : "US"}`, GroupBy: "location_key" },
         ]);
 
+    function SelectedCountrySearchTrendsDataExists(): string[] {
+        if (SelectedCountries.length === 0) {
+            return ["Please select a location"]
+        }
+        else if (SelectedCountries.length !== 1) {
+            return [`Only one location can be shown`]
+        }
+
+        let countryCode = SelectedCountries[0].location_key.split("_")[0]
+
+        if (LOCATION_KEYS_SEARCH_TRENDS.includes(countryCode)) {
+            return []
+        }
+        else {
+            return [`Location ${SelectedCountries[0].name} does not have search trend data`]
+        }
+    }
 
     //Handle new Data
     useEffect(() => {
@@ -68,7 +87,7 @@ function SearchTrends({ LoadData = _LoadData, Data }: Props) {
                         </Row>
                         :
                         <>
-                            {Data[0].location_key !== "NO" ?
+                            {SelectedCountrySearchTrendsDataExists().length === 0 ?
                                 <>
                                     <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} />
 
@@ -77,11 +96,9 @@ function SearchTrends({ LoadData = _LoadData, Data }: Props) {
                                     <div style={{ display: 'flex', flexDirection: "row", flexWrap: "wrap", justifyContent: "space-evenly" }}>
                                         < PlotsContainer Plots={Plots.slice(1)} />
                                     </div>
-
-
                                 </>
                                 :
-                                <></>
+                                <h2>{SelectedCountrySearchTrendsDataExists()[0]}</h2>
                             }
                         </>
                 }
