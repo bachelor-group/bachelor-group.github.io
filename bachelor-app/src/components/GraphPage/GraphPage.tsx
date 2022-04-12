@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
 import Tabs from 'react-bootstrap/esm/Tabs';
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
@@ -15,7 +16,7 @@ interface Props {
 }
 
 const H_SCALE = 0.45
-const W_SCALE = 0.55
+const W_SCALE = 0.8
 
 export const GraphPage = ({ LoadData = _LoadData }: Props) => {
     const [key, setKey] = useState<string>('epidemiology');
@@ -49,23 +50,45 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
 
             <br></br>
 
-            <Tabs activeKey={key} onSelect={(key) => {
-                setKey(key!)
-            }
-            } className="mb-3">
-                <Tab eventKey="epidemiology" title="Epidemiology">
-                    <Epidemiology Data={Data} WindowDimensions={WindowDimensions} />
-                </Tab>
-                <Tab eventKey="searchtrends" title="Search Trends">
-                    <SearchTrends Data={Data} SelectedCountries={SelectedCountries}/>
-                </Tab>
-                <Tab eventKey="vaccinations" title="Vaccinations">
-                    <Vaccinations Data={Data} WindowDimensions={WindowDimensions} />
-                </Tab>
-                <Tab eventKey="customgraphs" title="Custom Graphs">
-                    <CustomGraphs Data={Data} WindowDimensions={WindowDimensions} />
-                </Tab>
-            </Tabs>
+            <Tab.Container defaultActiveKey={"Epidemiology"} onSelect={(key) => { setKey(key!) }}>
+                <Nav justify variant="tabs">
+                    <Nav.Item>
+                        <Nav.Link eventKey="Epidemiology">
+                            Epidemiology
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="searchtrends">
+                            Search Trends
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="vaccinations">
+                            Vaccinations
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="customgraphs">
+                            Custom Graphs
+                        </Nav.Link>
+                    </Nav.Item>
+                </Nav>
+
+                <Tab.Content>
+                    <Tab.Pane eventKey="Epidemiology">
+                        <Epidemiology Data={Data} WindowDimensions={WindowDimensions} />
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="searchtrends">
+                        <SearchTrends Data={Data} SelectedCountries={SelectedCountries} />
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="vaccinations">
+                        <Vaccinations Data={Data} WindowDimensions={WindowDimensions} />
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="customgraphs">
+                        <CustomGraphs Data={Data} WindowDimensions={WindowDimensions} />
+                    </Tab.Pane>
+                </Tab.Content>
+            </Tab.Container>
 
         </>
     );
