@@ -29,6 +29,11 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
 
     const [data, setData] = useState<DataType[]>([]);
     const [Group, setGroup] = useState(group(data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        if (!mounted && axesRef.current !== null) setMounted(true);
+    });
 
     useEffect(() => {
         let FilterData: DataType[] = [];
@@ -84,7 +89,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
 
         AxisBoys.push(svgElement.append("g").call(yAxisGenerator));
         return AxisBoys
-    }, [xScale, yScale, boundsHeight, data]);
+    }, [xScale, yScale, mounted]);
 
     //ZOOM
     const Zoom = useMemo(() => {
@@ -127,7 +132,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
     const colorscale = scaleOrdinal<string>().range(COLORS)
 
     // Init line-generator
-    const reactLine = line<EpidemiologyData>()
+    const reactLine = line<DataType>()
         .x(d => xScale(xValue(d)!))
         .y(d => yScale(yValue(d)!))
     // .curve(curveBasis);
