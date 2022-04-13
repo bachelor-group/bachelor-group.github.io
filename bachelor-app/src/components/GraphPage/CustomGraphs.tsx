@@ -55,19 +55,19 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
 
     const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
         let title: string;
-        
-        if (plotType === PlotType.Scatter){
+
+        if (plotType === PlotType.Scatter) {
             title = `${xAxis.replaceAll("_", " ")} (X) vs ${yAxis.replaceAll("_", " ")} (Y)`
-            
+
         } else {
             title = yAxis.replaceAll("_", " ")
         }
 
-        
-        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title};
+
+        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title };
         let PlotData: DataType[] = [];
-        
-        if (plotType === PlotType.LineChart){
+
+        if (plotType === PlotType.LineChart) {
             Plot.GroupBy = "location_key";
             Plot.Axis[0] = "date";
         }
@@ -84,7 +84,7 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                 }
             }
         }
-        
+
         Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
         console.log(Plot);
 
@@ -107,8 +107,10 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         :
                         <>
 
-                        <GraphForm Data={Data[0]} AddPlot={addPlot}></GraphForm>
-                       {Plots.length === 0 ? <h3><br></br><br></br>Define your own plots here</h3>:<PlotsContainer Plots={Plots} />}
+                            <GraphForm Data={Data} AddPlot={addPlot}></GraphForm>
+                            <i className='note'>Note: that saved plots will be removed once you leave this page! </i>
+                            <h3><br></br><br></br>Your Saved Plots</h3>
+                            <PlotsContainer Plots={Plots} />
                         </>
                 }
             </div>
