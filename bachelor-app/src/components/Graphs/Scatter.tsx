@@ -79,7 +79,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
                     key={i}
                     r={2}
                     cx={xScale(xValue(d)!)}
-                    cy={yScale(parseInt(d[Plot.Axis[1]]!))}
+                    cy={yScale(parseFloat(d[Plot.Axis[1]]!))}
                     opacity={1}
                     stroke="#9a6fb0"
                     fill="#9a6fb0"

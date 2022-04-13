@@ -35,5 +35,5 @@ export const DataAccessor = (property: keyof DataType) => {
     if (property === "date"){
         return (d: DataType) => parseTime(d.date!)
     }
-        return (d: DataType) => parseInt(d[property]!)
+        return (d: DataType) => parseFloat(d[property]!)
 }
