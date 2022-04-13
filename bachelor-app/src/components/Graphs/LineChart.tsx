@@ -43,7 +43,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                 FilterData.push(element);
             }
         }
-        setData(FilterData)
+        setData(FilterData);
     }, [Data]);
 
     const yValue = useMemo(() => {
@@ -251,7 +251,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             )}
                         </g>
                     </svg>
-                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip'></div>
+                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip fade show popover bs-popover-end'></div>
                 </>
                 :
                 <>

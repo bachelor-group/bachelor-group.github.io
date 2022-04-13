@@ -18,20 +18,25 @@ export const GraphForm = ({ Data, AddPlot }: GraphFormInterface) => {
 
     useEffect(() => {
         let xAxis = customPlotXaxis;
+        let groupBy: keyof DataType | undefined = undefined;
 
-        if (customPlotType === PlotType.LineChart) xAxis = "date"
+        if (customPlotType === PlotType.LineChart) {
+            xAxis = "date"
+            groupBy = "location_key"
+        }
 
 
         let curPlot: Plot = {
             PlotType: customPlotType,
             Data: Data,
             Axis: [xAxis, customPlotYaxis],
+            GroupBy: groupBy,
             Height: 300,
             Width: 600,
             Title: 'Preview'
         }
         setPlot([curPlot])
-    }, [customPlotXaxis, customPlotYaxis, customPlotType])
+    }, [customPlotXaxis, customPlotYaxis, customPlotType, Data])
 
     return (<>
         <fieldset>
