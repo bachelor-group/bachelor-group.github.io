@@ -4,6 +4,7 @@ import { Plot } from "./PlotType";
 import { DataAccessor, Scale } from "./Scaling";
 import { GraphTooltip } from "./Tooltip";
 import { filterDataBasedOnProps } from "../DataContext/LoadData";
+import { DataType } from "../DataContext/MasterDataType";
 
 interface ScatterProps {
     Width: number,
@@ -19,8 +20,8 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
     const axesRef = useRef(null)
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left; // ops på den - 0.5*margin.left, ser bedre ut med men det er jo hradcoda hehehehehehhe så det er ikke bra :PPPPPPPPPPPPPPPPPPPPPP
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-    const [mapData, setMapData] = useState(Plot.MapData)
-    const [dataPoints, setDataPoints] = useState<JSX.Element[]>([])
+    const [mapData, setMapData] = useState<Map<string, DataType[]>>(new Map());
+    const [dataPoints, setDataPoints] = useState<JSX.Element[]>([]);
 
     useEffect(() => {
         setMapData(filterDataBasedOnProps(Plot.MapData, [...Plot.Axis]));

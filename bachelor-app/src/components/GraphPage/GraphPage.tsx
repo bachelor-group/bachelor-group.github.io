@@ -76,19 +76,27 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap }: Props) => {
                     </Nav.Item>
                 </Nav>
 
-                <Tab.Content>
-                    <Tab.Pane eventKey="Epidemiology">
-                        <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
-                    </Tab.Pane>
-                    <Tab.Pane eventKey="SearchTrends">
-                        <SearchTrends MapData={mapData} SelectedCountries={SelectedCountries} />
-                    </Tab.Pane>
-                    <Tab.Pane eventKey="Vaccinations">
-                        <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />
-                    </Tab.Pane>
-                    <Tab.Pane eventKey="CustomGraphs">
-                        <CustomGraphs MapData={mapData} WindowDimensions={WindowDimensions} />
-                    </Tab.Pane>
+                <Tab.Content style={{margin: "auto"}}>
+                    {SelectedCountries.length === 0 ?
+                        <div>
+                            <h2>Please select a location</h2>
+                        </div>
+                        :
+                        <>
+                            <Tab.Pane eventKey="Epidemiology">
+                                <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
+                            </Tab.Pane>
+                            <Tab.Pane eventKey="SearchTrends">
+                                <SearchTrends MapData={mapData} SelectedCountries={SelectedCountries} />
+                            </Tab.Pane>
+                            <Tab.Pane eventKey="Vaccinations">
+                                <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />
+                            </Tab.Pane>
+                            <Tab.Pane eventKey="CustomGraphs">
+                                <CustomGraphs MapData={mapData} WindowDimensions={WindowDimensions} />
+                            </Tab.Pane>
+                        </>
+                    }
                 </Tab.Content>
             </Tab.Container>
 
