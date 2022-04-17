@@ -34,7 +34,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     });
 
     useEffect(() => {
-        setFilteredData(filterDataBasedOnProps(Plot.MapData, [Plot.Axis[1]]));
+        setFilteredData(filterDataBasedOnProps(Plot.MapData, filteredData, [Plot.Axis[1]]));
     }, [Plot]);
 
     const yValue = useMemo(() => {

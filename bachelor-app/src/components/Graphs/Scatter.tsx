@@ -24,7 +24,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
     const [dataPoints, setDataPoints] = useState<JSX.Element[]>([]);
 
     useEffect(() => {
-        setMapData(filterDataBasedOnProps(Plot.MapData, [...Plot.Axis]));
+        setMapData(filterDataBasedOnProps(Plot.MapData, mapData ,[...Plot.Axis]));
     }, [Plot])
 
     const yValue = useMemo(() => {

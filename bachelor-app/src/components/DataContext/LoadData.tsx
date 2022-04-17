@@ -43,24 +43,28 @@ export const LoadDataAsMap = (locationKeys: string[], data: Map<string, DataType
     });
 }
 
-// TODO: Current implementation check keys that has been filtered previously
-export function filterDataBasedOnProps(Data: Map<string, DataType[]>, Props: (keyof DataType)[]): Map<string, DataType[]> {
+export function filterDataBasedOnProps(Data: Map<string, DataType[]>, PrevData: Map<string, DataType[]>, Props: (keyof DataType)[]): Map<string, DataType[]> {
     let FilterData: Map<string, DataType[]> = new Map();
 
     Data.forEach((data, key) => {
-        let dataArray: DataType[] = []
-        for (let i = 0; i < data.length; i++) {
-            const element = data[i];
-            let nullValueFound = false;
-            for (let i = 0; i < Props.length; i++) {
-                if (element[Props[i]] === "" || !element[Props[i]]) {
-                    nullValueFound = true;
-                    break;
+        let dataArray: DataType[] = [];
+
+        if (PrevData.has(key)) {
+            dataArray = data;
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                let nullValueFound = false;
+                for (let i = 0; i < Props.length; i++) {
+                    if (element[Props[i]] === "" || !element[Props[i]]) {
+                        nullValueFound = true;
+                        break;
+                    }
                 }
+                if (!nullValueFound) dataArray.push(element);
             }
-            if (!nullValueFound) dataArray.push(element)
         }
-        FilterData.set(key, dataArray)
+        FilterData.set(key, dataArray);
     })
     return FilterData
 }
