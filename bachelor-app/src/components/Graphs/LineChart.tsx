@@ -193,7 +193,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
         div
             .enter()
             .append("div")
-            .text(d => `${d.country}: ${d.data[Plot.Axis[1]]}`)
+            .text(d => `${d.country}: ${d.data[Plot.Axis[1]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`)
             .style("color", d => colorscale(d.country))
 
         div.transition().duration(0)

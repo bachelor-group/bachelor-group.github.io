@@ -62,7 +62,7 @@ export const Scatter = ({ Width, Height, Plot }: ScatterProps) => {
             .attr("transform", "translate(0," + boundsHeight + ")")
             .call(xAxisGenerator);
 
-        const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-boundsWidth);;
+        const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-boundsWidth);
 
         svgElement.append("g").call(yAxisGenerator);
     }, [xScale, yScale, boundsHeight]);
