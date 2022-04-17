@@ -215,3 +215,7 @@ svg {
   color: white;
   stroke-width: 0.2;
 }
+
+.nav-justified:hover {
+  cursor: pointer;
+}
