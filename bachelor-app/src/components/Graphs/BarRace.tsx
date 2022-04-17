@@ -34,9 +34,8 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     let barPadding = (Height - (MARGIN.bottom + MARGIN.top)) / (top_n * 5);
 
     //Data
-    const [Data, setData] = useState<DataType[]>([]);
+    const [mapData, setMapData] = useState<Map<string, DataType[]>>(Plot.MapData);
     const [barsData, setBarsData] = useState<Bar[]>([]);
-    const [countries, setCountries] = useState<string[]>([]);
 
     //Animation
     const [ticker, setTicker] = useState<Timer>();
@@ -46,12 +45,8 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     // Handle new Data
     useEffect(() => {
-        if (Plot.Data.length !== 0) {
+        if (mapData.size !== 0) {
             let newBarsData: Bar[] = []
-
-            if (countries.length > 1) {
-                throw ("Currently only 1 country supported")
-            }
 
             let colourDict: { [property: string]: HSLColor } = {}
             for (let i = 0; i < SearchTrendsList.length; i++) {
@@ -59,8 +54,9 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             }
 
             let prevBar: Bar | null = null;
-            for (let i = 0; i < Data.length; i++) {
-                const element = Data[i];
+            let allData: DataType[] = Array.from(mapData.values()).flat();
+            for (let i = 0; i < allData.length; i++) {
+                const element = allData[i];
                 let newBar: Bar = { Data: element, sorted: [] };
                 let unsorted_list: { property: (keyof DataType), lastValue: number, value: number, colour: HSLColor, rank: number }[] = []
                 let undefinedData = 0;
@@ -93,7 +89,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             }
             setBarsData(newBarsData);
         }
-    }, [Data])
+    }, [mapData])
 
     async function Animate() {
         // Animation is already playing
@@ -130,9 +126,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     //Set new Data
     useEffect(() => {
-        if (Plot.Data.length !== 0) {
-            setData(Plot.Data)
-        }
+        setMapData(Plot.MapData);
     }, [Plot]);
 
     // Y axis

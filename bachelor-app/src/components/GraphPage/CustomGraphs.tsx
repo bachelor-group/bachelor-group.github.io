@@ -1,26 +1,21 @@
-import { FormEventHandler, useEffect, useState } from 'react'
-import { Button, Col, Form, ProgressBar, Row, } from 'react-bootstrap';
-import { EpidemiologyEnum, hasKey } from '../DataContext/DataTypes';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadData as _LoadData } from '../DataContext/LoadData';
+import { useEffect, useState } from 'react'
+import { Col, ProgressBar, Row, } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot, PlotType } from '../Graphs/PlotType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
-import { setDefaultResultOrder } from 'dns/promises';
 import GraphForm from './GraphForm';
 
-
 interface Props {
-    LoadData?: typeof _LoadData,
-    Data: DataType[],
+    MapData: Map<string, DataType[]>,
     WindowDimensions: {
         width: number,
         height: number
     }
 }
 
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 
-export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: Props) => {
+export const CustomGraphs = ({ MapData, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>([]);
 
 
@@ -28,29 +23,18 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
     useEffect(() => {
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
-
-            let xAxis = Plot.Axis[0];
-            let yAxis = Plot.Axis[1];
-            let newPlot: Plot;
-            let PlotData: DataType[] = []
-
-
-            for (let j = 0; j < Data.length; j++) {
-                //TODO: Two different ways of doing this, See in !== undefined
-                if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
-                    if (Plot.GroupBy !== undefined) {
-                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                    } else {
-                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
-                    }
-                }
-            }
-
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            let newPlot: Plot = {
+                PlotType: Plot.PlotType,
+                MapData: MapData,
+                Axis: Plot.Axis,
+                Height: WindowDimensions.height,
+                Width: WindowDimensions.width,
+                Title: Plot.Title
+            };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data, WindowDimensions]);
+    }, [MapData, WindowDimensions]);
 
 
     const addPlot = (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => {
@@ -63,30 +47,18 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
             title = yAxis.replaceAll("_", " ")
         }
 
-
-        let Plot: Plot = { PlotType: plotType, Data: [], Axis: [xAxis, yAxis], Height: WindowDimensions.height, Width: WindowDimensions.width, Title: title };
-        let PlotData: DataType[] = [];
-
         if (plotType === PlotType.LineChart) {
-            Plot.GroupBy = "location_key";
-            Plot.Axis[0] = "date";
+            xAxis = "date";
         }
 
-        xAxis = Plot.Axis[0];
-        yAxis = Plot.Axis[1];
-
-        for (let j = 0; j < Data.length; j++) {
-            if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
-                if (Plot.GroupBy !== undefined) {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                } else {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
-                }
-            }
-        }
-
-        Plot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
-        console.log(Plot);
+        let Plot: Plot = {
+            PlotType: plotType,
+            MapData: MapData,
+            Axis: [xAxis, yAxis],
+            Height: WindowDimensions.height,
+            Width: WindowDimensions.width,
+            Title: title
+        };
 
         let newPlots: Plot[] = [Plot];
 
@@ -98,7 +70,7 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
         <>
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
-                    Data.length === 0 ?
+                    MapData.size === 0 ?
                         <Row md="auto" className="align-items-center">
                             <Col style={{ width: "500px" }}>
                                 <ProgressBar animated now={100} />
@@ -107,10 +79,10 @@ export const CustomGraphs = ({ LoadData = _LoadData, Data, WindowDimensions }: P
                         :
                         <>
 
-                            <GraphForm Data={Data} AddPlot={addPlot}></GraphForm>
+                            <GraphForm MapData={MapData} AddPlot={addPlot}></GraphForm>
                             <i className='note'>Note: that saved plots will be removed once you leave this page! </i>
                             <h3><br></br><br></br>Your Saved Plots</h3>
-                            <PlotsContainer Plots={Plots} />
+                            <PlotsContainer Plots={Plots} Colors={COLORS} />
                         </>
                 }
             </div>

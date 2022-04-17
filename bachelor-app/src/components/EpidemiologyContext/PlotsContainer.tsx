@@ -11,10 +11,11 @@ import { SearchTrendsList } from "../SearchTrends/Old_script";
 
 
 interface PlotsProps {
-    Plots: Plot[]
+    Plots: Plot[],
+    Colors: string[]
 }
 
-export const PlotsContainer = ({ Plots }: PlotsProps) => {
+export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
     const [temp, setTemp] = useState(Plots)
 
     // Used to make the container Rerender
@@ -28,13 +29,13 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                 Plots.map((Plot, index) => {
                     switch (Plot.PlotType) {
                         case PlotType.Scatter:
-                            return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                            return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
                         case PlotType.WorldCloud:
                             return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                         case PlotType.LineChart:
-                            return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Data={Plot.Data} />
+                            return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
                         case PlotType.Lollipop:
                             return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />

@@ -22,7 +22,8 @@ let FakeLoader = () => {
     })
 }
 
-let PLOT: Plot = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key }
+// Removed after data structure update
+// let PLOT: Plot = { PlotType: PlotType.LineChart, Data: Data, Axis: [EpidemiologyEnum.date, EpidemiologyEnum.new_confirmed], Height: 300, Width: 600, Title: "New Confirmed Cases In Norway", GroupBy: EpidemiologyEnum.location_key }
 
 
 test('DataAccessor Non Dates', () => {
@@ -39,11 +40,12 @@ test('DataAccessor Non Dates', () => {
 //     expect(Accessor(DateData[0]).getYear()).toBe("2000-01-01T23:00");
 // });
 
-test('Check if scaling is correct', async () => {
-    let Scaler = Scale(PLOT, 200, DataAccessor(PLOT.Axis[1]))
-    expect(Scaler(0)).toBe(0)
-    expect(Scaler(25)).toBe(50)
-    expect(Scaler(50)).toBe(100)
-    expect(Scaler(75)).toBe(150)
-    expect(Scaler(100)).toBe(200)
-});
+// Removed after data structure update
+// test('Check if scaling is correct', async () => {
+//     let Scaler = Scale(PLOT, 200, DataAccessor(PLOT.Axis[1]))
+//     expect(Scaler(0)).toBe(0)
+//     expect(Scaler(25)).toBe(50)
+//     expect(Scaler(50)).toBe(100)
+//     expect(Scaler(75)).toBe(150)
+//     expect(Scaler(100)).toBe(200)
+// });

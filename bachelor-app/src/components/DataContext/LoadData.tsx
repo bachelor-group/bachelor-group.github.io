@@ -1,50 +1,68 @@
 import { DataType } from "./MasterDataType"
 import { csv } from "d3"
-import { TagExtended } from "../CountrySelector/SelectCountry"
 
-const NorwayEpidemiologyUrl = "https://storage.googleapis.com/covid19-open-data/v3/location/NO.csv"
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 
 
-export const LoadData = (requestedCountries: TagExtended[], loadedCountries: TagExtended[], data?: DataType[]) => {
-    return new Promise<DataType[]>((resolve) => {
-        let loaded_csv: number = loadedCountries.length;
-        if (requestedCountries.length + 1 === loaded_csv && requestedCountries.length !== 0) {
-            csv(url + requestedCountries.at(-1)!.location_key + ".csv").then(d => {
-                d.forEach(element => {
-                    data.push(element)
-                });
-                loaded_csv++
-                if (requestedCountries.length === loaded_csv) {
-                    resolve(data);
-                    return;
+export const LoadDataAsMap = (locationKeys: string[], data: Map<string, DataType[]>) => {
+    let newMap: Map<string, DataType[]> = new Map();
+    let requestedLocations: string[] = [];
+
+    // Remove unwanted locations
+    for (let i = 0; i < locationKeys.length; i++) {
+        const element = locationKeys[i];
+        if (data.has(element)) {
+            newMap.set(element, data.get(element)!);
+        }
+        else {
+            requestedLocations.push(element)
+        }
+    }
+
+    const numRequestedLocations = requestedLocations.length;
+    let loadedLocations = 0;
+    // Request new nations
+    return new Promise<Map<string, DataType[]>>((resolve) => {
+
+        if (numRequestedLocations === 0) {
+            resolve(newMap)
+        }
+
+        requestedLocations.forEach((locationKey, i) => {
+            csv(url + locationKey + ".csv").then(d => {
+                newMap.set(locationKey, d);
+                loadedLocations++
+                if (loadedLocations === numRequestedLocations) resolve(newMap)
+            }).catch((error) => {
+                loadedLocations++
+                if (locationKeys.length === loadedLocations) {
+                    resolve(newMap);
                 }
             });
-        }
-        loaded_csv = 0;
-        let data: DataType[] = []
-        if (requestedCountries.length === 0) {
-            csv(NorwayEpidemiologyUrl).then(d => {
-                d.forEach(element => {
-                    data.push(element)
-                });
-                resolve(data);
-            });
-        } else {
-            requestedCountries.forEach((country) => {
-                csv(url + country.location_key + ".csv").then(d => {
-                    d.forEach(element => {
-                        data.push(element)
-                    });
-                    loaded_csv++
-                    if (requestedCountries.length === loaded_csv) {
-                        resolve(data);
-                    }
-                });
-            });
-        }
-    })
+        });
+    });
 }
 
+// TODO: Current implementation check keys that has been filtered previously
+export function filterDataBasedOnProps(Data: Map<string, DataType[]>, Props: (keyof DataType)[]): Map<string, DataType[]> {
+    let FilterData: Map<string, DataType[]> = new Map();
 
-export default LoadData;
+    Data.forEach((data, key) => {
+        let dataArray: DataType[] = []
+        for (let i = 0; i < data.length; i++) {
+            const element = data[i];
+            let nullValueFound = false;
+            for (let i = 0; i < Props.length; i++) {
+                if (element[Props[i]] === "" || !element[Props[i]]) {
+                    nullValueFound = true;
+                    break;
+                }
+            }
+            if (!nullValueFound) dataArray.push(element)
+        }
+        FilterData.set(key, dataArray)
+    })
+    return FilterData
+}
+
+export default LoadDataAsMap;

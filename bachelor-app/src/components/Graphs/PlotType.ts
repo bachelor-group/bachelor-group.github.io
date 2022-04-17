@@ -1,6 +1,4 @@
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 import { DataType } from "../DataContext/MasterDataType";
-import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 
 export enum PlotType {
     Scatter,
@@ -17,10 +15,9 @@ export type PlotDataType = {
 
 export interface Plot {
     PlotType: PlotType,
-    Data: DataType[],
+    MapData: Map<string, DataType[]>,
     Axis: (keyof DataType)[],
     Height: number,
     Width: number,
     Title: string,
-    GroupBy?: (keyof DataType),
 }

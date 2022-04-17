@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
-import Tabs from 'react-bootstrap/esm/Tabs';
 import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadData as _LoadData } from '../DataContext/LoadData';
+import { LoadDataAsMap as _LoadDataAsMap } from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
 import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import SearchTrends from '../SearchTrends/SearchTrends';
@@ -12,16 +11,16 @@ import CustomGraphs from './CustomGraphs';
 
 
 interface Props {
-    LoadData?: typeof _LoadData
+    LoadDataAsMap?: typeof _LoadDataAsMap
 }
 
 const H_SCALE = 0.45
 const W_SCALE = 0.8
 
-export const GraphPage = ({ LoadData = _LoadData }: Props) => {
+export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap }: Props) => {
     const [key, setKey] = useState<string>('epidemiology');
 
-    const [Data, setData] = useState<DataType[]>([])
+    const [mapData, setMapData] = useState<Map<string, DataType[]>>(new Map());
     const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [SelectedCountries, setSelectedCountries] = useState<TagExtended[]>([]);
     const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
@@ -36,13 +35,16 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
     };
 
     useEffect(() => {
-        LoadData(SelectedCountries, LoadedCountries, Data).then((d) => {
-            setData(d);
+        let locationKeys: string[] = []
+        SelectedCountries.forEach(element => {
+            locationKeys.push(element.location_key)
+        });
 
-            setLoadedCountries(JSON.parse(JSON.stringify(SelectedCountries)));
+        LoadDataAsMap(locationKeys, mapData).then((d) => {
+            setMapData(d);
+            setLoadedCountries(SelectedCountries);
         })
     }, [SelectedCountries]);
-
 
     return (
         <>
@@ -58,17 +60,17 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
                         </Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                        <Nav.Link eventKey="searchtrends">
+                        <Nav.Link eventKey="SearchTrends">
                             Search Trends
                         </Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                        <Nav.Link eventKey="vaccinations">
+                        <Nav.Link eventKey="Vaccinations">
                             Vaccinations
                         </Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                        <Nav.Link eventKey="customgraphs">
+                        <Nav.Link eventKey="CustomGraphs">
                             Custom Graphs
                         </Nav.Link>
                     </Nav.Item>
@@ -76,16 +78,16 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
 
                 <Tab.Content>
                     <Tab.Pane eventKey="Epidemiology">
-                        <Epidemiology Data={Data} WindowDimensions={WindowDimensions} />
+                        <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
                     </Tab.Pane>
-                    <Tab.Pane eventKey="searchtrends">
-                        <SearchTrends Data={Data} SelectedCountries={SelectedCountries} />
+                    <Tab.Pane eventKey="SearchTrends">
+                        <SearchTrends MapData={mapData} SelectedCountries={SelectedCountries} />
                     </Tab.Pane>
-                    <Tab.Pane eventKey="vaccinations">
-                        <Vaccinations Data={Data} WindowDimensions={WindowDimensions} />
+                    <Tab.Pane eventKey="Vaccinations">
+                        <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />
                     </Tab.Pane>
-                    <Tab.Pane eventKey="customgraphs">
-                        <CustomGraphs Data={Data} WindowDimensions={WindowDimensions} />
+                    <Tab.Pane eventKey="CustomGraphs">
+                        <CustomGraphs MapData={mapData} WindowDimensions={WindowDimensions} />
                     </Tab.Pane>
                 </Tab.Content>
             </Tab.Container>
@@ -93,5 +95,3 @@ export const GraphPage = ({ LoadData = _LoadData }: Props) => {
         </>
     );
 }
-
-

@@ -6,20 +6,23 @@ import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
 import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
 
 export interface VaccinationProps {
-    Data: DataType[],
+    MapData: Map<string, DataType[]>,
     WindowDimensions: {
         width: number,
         height: number
     }
 }
 
-export const Vaccinations = ({ Data, WindowDimensions }: VaccinationProps) => {
+//TODO: This is written several places
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
+
+export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered", GroupBy: VaccinationEnum.location_key },
-            { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
-            { PlotType: PlotType.LineChart, Data: [], Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated", GroupBy: VaccinationEnum.location_key },
-            { PlotType: PlotType.Scatter, Data: [], Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
+            { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered" },
+            { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated" },
+            { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated" },
+            { PlotType: PlotType.Scatter, MapData: MapData, Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
@@ -28,27 +31,18 @@ export const Vaccinations = ({ Data, WindowDimensions }: VaccinationProps) => {
     useEffect(() => {
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
-
-            let xAxis = Plot.Axis[0];
-            let yAxis = Plot.Axis[1];
-            let newPlot: Plot;
-            let PlotData: DataType[] = []
-
-            for (let j = 0; j < Data.length; j++) {
-                if (hasKey(Data[j], xAxis) && hasKey(Data[j], yAxis)) {
-                    if (Plot.GroupBy !== undefined) {
-                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                    } else {
-                        PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis] })
-                    }
-                }
-            }
-
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: WindowDimensions.height, Width: WindowDimensions.width, Title: Plot.Title, GroupBy: Plot.GroupBy };
+            let newPlot: Plot = {
+                PlotType: Plot.PlotType,
+                MapData: MapData,
+                Axis: Plot.Axis,
+                Height: WindowDimensions.height,
+                Width: WindowDimensions.width,
+                Title: Plot.Title
+            };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data, WindowDimensions]);
+    }, [MapData, WindowDimensions]);
 
 
 
@@ -56,18 +50,18 @@ export const Vaccinations = ({ Data, WindowDimensions }: VaccinationProps) => {
         <>
             <div style={{ display: 'flex', flexDirection: "column", alignItems: "center" }}>
                 {
-                    Data.length === 0 ?
+                    MapData.size === 0 ?
                         <Row md="auto" className="align-items-center">
                             <Col style={{ width: "500px" }}>
                                 <ProgressBar animated now={100} />
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} />
+                        <PlotsContainer Plots={Plots} Colors={COLORS} />
                 }
             </div>
         </>
     )
 }
 
-export default Vaccinations
+export default Vaccinations;
