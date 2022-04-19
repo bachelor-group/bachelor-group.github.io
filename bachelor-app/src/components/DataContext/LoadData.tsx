@@ -50,7 +50,7 @@ export function filterDataBasedOnProps(Data: Map<string, DataType[]>, PrevData: 
         let dataArray: DataType[] = [];
 
         if (PrevData.has(key)) {
-            dataArray = data;
+            dataArray = PrevData.get(key)!;
         } else {
             for (let i = 0; i < data.length; i++) {
                 const element = data[i];

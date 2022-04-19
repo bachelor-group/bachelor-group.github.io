@@ -67,7 +67,7 @@ export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountrie
 
 
     useEffect(() => {
-        if (Key !== "searchtrends") {
+        if (Key !== "SearchTrends") {
             if (tags.length !== 0) {
                 setSuggestions(allCountries.filter(s => tags.find(t => t.name !== s.name)))
 
