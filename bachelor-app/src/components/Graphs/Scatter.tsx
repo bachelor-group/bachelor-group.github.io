@@ -24,7 +24,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
     const [dataPoints, setDataPoints] = useState<JSX.Element[]>([]);
 
     useEffect(() => {
-        setMapData(filterDataBasedOnProps(Plot.MapData, mapData ,[...Plot.Axis]));
+        setMapData(filterDataBasedOnProps(Plot.MapData, mapData, [...Plot.Axis]));
     }, [Plot])
 
     const yValue = useMemo(() => {
@@ -72,6 +72,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
             let color = colorscale(locationKey);
 
             let circle = data.map((d, i) => {
+                console.log(d);
                 return (
                     GraphTooltip(Plot, d,
                         <circle
@@ -100,27 +101,24 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
 
     return (
         <div>
-            {mapData.size === 0 ? <></>
-                :
-                <svg className="plot" width={Width} height={Height} style={{ display: "inline-block" }}>
-                    <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
-                    {/* first group is for the violin and box shapes */}
-                    <g
-                        width={boundsWidth}
-                        height={boundsHeight}
-                        transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-                    >
-                        {dataPoints}
-                    </g>
-                    {/* Second is for the axes */}
-                    <g
-                        width={boundsWidth}
-                        height={boundsHeight}
-                        ref={axesRef}
-                        transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-                    />
-                </svg>
-            }
+            <svg className="plot" width={Width} height={Height} style={{ display: dataPoints.length !== 0 ? "inline-block" : "none" }}>
+                <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
+                {/* first group is for the violin and box shapes */}
+                <g
+                    width={boundsWidth}
+                    height={boundsHeight}
+                    transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                >
+                    {dataPoints}
+                </g>
+                {/* Second is for the axes */}
+                <g
+                    width={boundsWidth}
+                    height={boundsHeight}
+                    ref={axesRef}
+                    transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                />
+            </svg>
         </div>
     );
 }
