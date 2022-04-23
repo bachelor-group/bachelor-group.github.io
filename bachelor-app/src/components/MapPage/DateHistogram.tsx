@@ -107,7 +107,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
         updateLine(xPos, true)
     }
 
-    function updateLine(xPos: number, hover=false) {
+    function updateLine(xPos: number, hover = false) {
         let data = []
         let containerClass = ".cursor"
         let fill = "red"
@@ -148,10 +148,10 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
 
         line.exit().remove()
 
-        if (hover){
+        if (hover) {
             // Circle
             let circle = tooltipContainer.selectAll("circle").data(data)
-    
+
             circle.enter()
                 .append("circle")
                 .attr("cx", xPos)
@@ -159,23 +159,24 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
                 .attr("r", 4)
                 .attr("fill", "black")
                 .attr("opacity", d => showToolTip ? 1 : 0)
-    
+
             circle
                 .attr("cx", xPos)
                 .attr("cy", d => yScale(yValue(d)!))
                 .attr("r", 4)
                 .attr("fill", "black")
                 .attr("opacity", d => showToolTip ? 1 : 0)
-    
+
             circle.exit().remove()
         }
     }
 
     useEffect(() => {
-        if (Data.length != 0){
+        if (Data.length != 0) {
             updateLine(xScale(parseTime(curDate)!))
         }
-    }, [curDate, Data, width, height]) 
+    }, [curDate, Data, width, height])
+
 
     return (
         <>
@@ -226,3 +227,22 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
         </>
     );
 };
+
+
+export function calculateHistData(data: DataType[], datatype: keyof DataType) {
+    var HistogramData = new Map<string, number>()
+    data.forEach(d => {
+        if (HistogramData.has(d.date!)) {
+            if (!isNaN(parseInt(d[datatype]!))) {
+                HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d[datatype]!))
+            }
+
+        } else {
+            if (!isNaN(parseInt(d[datatype]!))) {
+                HistogramData.set(d.date!, parseInt(d[datatype]!))
+            }
+        }
+    })
+    return Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
+
+}

@@ -1,6 +1,6 @@
 import { csv } from 'd3';
 import { useEffect, useMemo, useState } from 'react'
-import { DateHistogram, EpidemiologyMinimum } from './DateHistogram';
+import { calculateHistData, DateHistogram, EpidemiologyMinimum } from './DateHistogram';
 import { DataType } from '../DataContext/MasterDataType';
 import { MapComponent } from '../Map/Map';
 import SidebarC from '../Sidebar';
@@ -53,16 +53,21 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     }, []);
 
     useMemo(() => {
-        var HistogramData = new Map<string, number>()
-        csv("csvData/" + curDataTypeProp + "_total.csv").then(d => {
-            d.forEach((row => {
-                HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
-            }))
-            setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
-        })
-        let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
-        setHistogramData(temp);
+        if (curDataTypeProp === "new_confirmed" || curDataTypeProp === "new_deceased") {
+            var HistogramData = new Map<string, number>()
+            csv("csvData/" + curDataTypeProp + "_total.csv").then(d => {
+                d.forEach((row => {
+                    HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
+                }))
+                setHistogramData(Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed })));
+            })
+            let temp = Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
+            setHistogramData(temp);
+        } else {
+            setHistogramData(calculateHistData(Array.from(data.values()).flat(), curDataTypeProp))
+        }
     }, [data])
+
 
     function selectedDate(date: string) {
         setCurDate(date)
