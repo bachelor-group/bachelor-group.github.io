@@ -8,6 +8,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DrawMap } from './DrawMap';
 import Translator from './helpers';
+import LoadDataAsMap from '../DataContext/LoadData';
 
 
 // import MapData from '../../geojson/admin_1_topojson.json'
@@ -104,7 +105,7 @@ export const MapComponent = ({ adminLvl, data, innerData = false, country, Date,
                 const element = curGeoJson.features[i];
                 locations.push(translator.locationCode(element))
             }
-            LoadData(DataTypeProperty,locations).then(d => {
+            LoadData(DataTypeProperty, locations).then(d => {
                 loadedData(d)
             })
         } else {
@@ -124,29 +125,33 @@ export const MapComponent = ({ adminLvl, data, innerData = false, country, Date,
 }
 
 
-const _LoadSmallData = (datatype: keyof DataType="new_confirmed", locations: string[]=[]) => {
+const _LoadSmallData = (datatype: keyof DataType = "new_confirmed", locations: string[] = []) => {
     let temp: Map<string, DataType[]> = new Map();
-    return new Promise<Map<string, DataType[]>>((resolve) => {
-        // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-        csv("csvData/"+datatype+".csv").then(d => {
+    if (datatype === "new_confirmed" || datatype === "new_deceased") {
+        return new Promise<Map<string, DataType[]>>((resolve) => {
+            csv("https://storage.googleapis.com/covid-data-minimized/" + datatype + ".csv").then(d => {
 
-            for (let i = 0; i < d.length; i++) {
-                const element = d[i];
+                for (let i = 0; i < d.length; i++) {
+                    const element = d[i];
 
-                if (temp.has(element["location_key"]!)) {
-                    let list = temp.get(element["location_key"]!)!;
-                    list.push(element)
-                    temp.set(element["location_key"]!, list)
+                    if (temp.has(element["location_key"]!)) {
+                        let list = temp.get(element["location_key"]!)!;
+                        list.push(element)
+                        temp.set(element["location_key"]!, list)
+                    }
+                    else {
+                        temp.set(element["location_key"]!, [element])
+                    }
                 }
-                else {
-                    temp.set(element["location_key"]!, [element])
-                }
-            }
-
-            resolve(temp)
+                resolve(temp)
+            })
         })
 
-    });
+    } else {
+        console.log(datatype)
+        return LoadDataAsMap(locations, new Map())
+
+    };
 }
 
 export default MapComponent;
