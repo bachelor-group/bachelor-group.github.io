@@ -11,13 +11,8 @@ function NavbarC() {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <NavDropdown title="Epidemiology" id="collasible-nav-dropdown" >
-              <NavDropdown.Item href="/">Map</NavDropdown.Item>
-              <NavDropdown.Item href="#/Graphs">Graphs</NavDropdown.Item>
-            </NavDropdown>
-            <Nav.Link href="#/Searchtrends">Search Trends</Nav.Link>
-            <Nav.Link href="#/Vaccinations">Vaccination</Nav.Link>
-            <Nav.Link href="#/Mobility">Mobility</Nav.Link>
+            <Nav.Link href="/">Map</Nav.Link>
+            <Nav.Link href="#/Graphs">Graphs</Nav.Link>
           </Nav>
           <Nav>
             <Nav.Link href="#/About">About</Nav.Link>

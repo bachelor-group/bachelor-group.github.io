@@ -17,9 +17,8 @@ function App() {
         <NavbarC />
         <Routes>
           <Route path="/" element={<LoadMapData />} />
-        <Route path="/Graphs" element={<GraphPage />} />
+          <Route path="/Graphs" element={<GraphPage />} />
           <Route path="/SearchTrendsMap/:country" element={<SearchTrendsMap />} />
-          <Route path="/Mobility" element={<h1>Mobility</h1>} />
           <Route path="/About" element={<h1>About</h1>} />
 
           <Route path="*" element=
