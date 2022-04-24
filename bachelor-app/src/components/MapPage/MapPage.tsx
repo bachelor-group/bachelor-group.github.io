@@ -5,15 +5,12 @@ import { DataType } from '../DataContext/MasterDataType';
 import { MapComponent } from '../Map/Map';
 import SidebarC from '../Sidebar';
 import { Animator as _animator } from '../Map/Animator';
+import { DataFilter } from '../Sidebar'
 
 const dateHistogramSize: number = 0.2;
 
 type LoadMapDataProps = {
     Animator?: typeof _animator
-}
-interface DataFilter {
-    title: string,
-    dataType: keyof DataType
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
@@ -33,7 +30,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     const [dataFilter, setDataFilter] = useState<DataFilter[]>([
         {
             title: 'New Cases',
-            dataType: 'new_confirmed'
+            dataType: 'new_confirmed',
         },
         {
             title: 'New Deceased',
@@ -42,6 +39,14 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
         {
             title: 'New Hospitalized',
             dataType: 'new_hospitalized_patients'
+        },
+        {
+            title: 'New Tested',
+            dataType: 'new_tested'
+        },
+        {
+            title: 'New Vaccinations',
+            dataType: 'new_persons_vaccinated'
         },
     ])
 

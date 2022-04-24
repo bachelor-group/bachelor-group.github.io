@@ -148,7 +148,6 @@ const _LoadSmallData = (datatype: keyof DataType = "new_confirmed", locations: s
         })
 
     } else {
-        console.log(datatype)
         return LoadDataAsMap(locations, new Map())
 
     };

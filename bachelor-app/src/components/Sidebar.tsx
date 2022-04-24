@@ -6,14 +6,17 @@ import { IconContext } from 'react-icons';
 import { AiOutlineClose } from 'react-icons/ai';
 import { DataType } from "./DataContext/MasterDataType";
 
-interface SidebarData {
-  Data: {
+export interface DataFilter{
     title: string,
     dataType: keyof DataType,
-  }[]
-  SelectedFilter: (dataType: keyof DataType) => void
+}
+
+interface SidebarData {
+  Data: DataFilter[],
+  SelectedFilter: (dataType: keyof DataType) => void,
   iconColor: string,
 }
+
 
 function SidebarC({ Data, SelectedFilter, iconColor }: SidebarData) {
   const [sidebar, setSidebar] = useState(false);
