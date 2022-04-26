@@ -5,16 +5,6 @@ import os
 from google.cloud import storage
 
 
-epidemiology = pd.read_csv(
-    "https://storage.googleapis.com/covid19-open-data/v3/epidemiology.csv"
-)
-hospitalizations = pd.read_csv(
-    "https://storage.googleapis.com/covid19-open-data/v3/hospitalizations.csv"
-)
-
-index_url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
-
-
 # fetch only specific columns from a csv file:
 def fetch_data_columns(filename: str, dt: str, cols):
     """filter out selected columns"""
@@ -24,6 +14,7 @@ def fetch_data_columns(filename: str, dt: str, cols):
         open(path, "w+").close()
     dt.to_csv(path, index=False, columns=cols)
 
+
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     storage_client = storage.Client()
@@ -32,6 +23,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
     blob.upload_from_filename(source_file_name)
 
     print("File {} uploaded to {}.".format(source_file_name, destination_blob_name))
+
 
 def download_blob(bucket_name, source_blob_name, destination_file_name):
     """Downloads a blob from the bucket."""
@@ -85,16 +77,5 @@ def date_total_confirmed(datatype):
 
 # STÅ I /bachelor-app
 if __name__ == "__main__":
-    # demographics = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/demographics.csv")
-    # search_trends = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/google-search-trends.csv")
-    # vaccinations = pd.cread_csv("https://storage.googleapis.com/covid19-open-data/v3/vaccinations.csv")
-
-    # fetch_data_columns("index_min.csv", pd.read_csv(index_url), ["location_key", "country_code", "subregion1_code", "subregion2_code"])
-
-    # update cases.csv before date total_confirmed to get newest version
-    # fetch_data_columns("cases.csv", epidemiology, ["date", "location_key", "new_confirmed"])
-    # fetch_data_columns("new_hospitalized_patients.csv", hospitalizations, ["date", "location_key", "new_hospitalized_patients"])
-
     date_total_confirmed("new_confirmed")
     date_total_confirmed("new_deceased")
-    # date_total_confirmed("new_hospitalized_patients")
