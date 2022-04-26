@@ -1,6 +1,6 @@
 import { csv } from 'd3';
 import { useEffect, useMemo, useState } from 'react'
-import { calculateHistData, DateHistogram, EpidemiologyMinimum } from './DateHistogram';
+import { calculateHistData, DateHistogram, HistogramData } from './DateHistogram';
 import { DataType } from '../DataContext/MasterDataType';
 import { MapComponent } from '../Map/Map';
 import SidebarC from '../Sidebar';
@@ -24,7 +24,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     var startDate = new Date()
     var lastWeek = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() - 7);
     const [curDate, setCurDate] = useState(`${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1 < 10 ? "0" + (lastWeek.getMonth() + 1) : lastWeek.getMonth() + 1}-${lastWeek.getDate() < 10 ? "0" + lastWeek.getDate() : lastWeek.getDate()}`);
-    const [HistogramData, setHistogramData] = useState<EpidemiologyMinimum[]>([]);
+    const [HistogramData, setHistogramData] = useState<HistogramData[]>([]);
 
     const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
     const [dataFilter, setDataFilter] = useState<DataFilter[]>([
@@ -60,7 +60,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     useMemo(() => {
         if (curDataTypeProp === "new_confirmed" || curDataTypeProp === "new_deceased") {
             var HistogramData = new Map<string, number>()
-            csv("csvData/" + curDataTypeProp + "_total.csv").then(d => {
+            csv("https://storage.googleapis.com/covid-data-minimized/" + curDataTypeProp + "_total.csv").then(d => {
                 d.forEach((row => {
                     HistogramData.set(row["date"]!, parseInt(row["total_confirmed"]!))
                 }))

@@ -4,13 +4,13 @@ import { DataType } from '../DataContext/MasterDataType';
 import Marks from './Marks';
 
 
-export type EpidemiologyMinimum = {
+export type HistogramData = {
     date: string,
     total_confirmed: number
 }
 
 interface HistogramProps {
-    Data: EpidemiologyMinimum[],
+    Data: HistogramData[],
     width: number,
     height: number,
     DataTypeProperty: keyof DataType,
@@ -25,7 +25,7 @@ export interface binData {
 }
 
 const margin = { top: 40, right: 50, bottom: 40, left: 50 };
-const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
+const yValue = (d: HistogramData) => d.total_confirmed;
 let parseTime = timeParse("%Y-%m-%d")
 
 export const DateHistogram = ({ Data, width, height, selectedDate, curDate, DataTypeProperty }: HistogramProps) => {
@@ -61,7 +61,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
             }]
         }
         const [start, stop] = xScale.domain();
-        const bar = bin<EpidemiologyMinimum, Date>()
+        const bar = bin<HistogramData, Date>()
             .value((d) => parseTime(d.date)!)
             .domain([start, stop])
             .thresholds(timeDays(start, stop))(Data)
