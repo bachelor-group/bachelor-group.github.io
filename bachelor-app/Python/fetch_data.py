@@ -2,6 +2,7 @@ import pandas as pd
 import csv
 import math
 import os
+from google.cloud import storage
 
 
 epidemiology = pd.read_csv(
@@ -22,6 +23,15 @@ def fetch_data_columns(filename: str, dt: str, cols):
     if not os.path.isfile(path):
         open(path, "w+").close()
     dt.to_csv(path, index=False, columns=cols)
+
+def upload_blob(bucket_name, source_file_name, destination_blob_name):
+    """Uploads a file to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
+    print("File {} uploaded to {}.".format(source_file_name, destination_blob_name))
 
 
 # Generates a file with date: total_confirmed
@@ -51,6 +61,9 @@ def date_total_confirmed(datatype):
         csvfile.write("%s,%s\n" % ("date", "total_confirmed"))
         for key in HistogramData.keys():
             csvfile.write("%s,%s\n" % (key, HistogramData[key]))
+
+    # Upload the file to the cloud:
+    upload_blob("covid-data-minimized","public/csvData/"+datatype+"_total.csv", datatype+"_total.csv")
 
 
 # STÅ I /bachelor-app
