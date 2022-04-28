@@ -2,7 +2,7 @@ import csv
 import math
 import pandas as pd
 import os
-from fetch_data import fetch_data_columns
+from fetch_data import filter_data_columns
 import concurrent.futures
 import memory_profiler
 
@@ -11,21 +11,18 @@ def epidemiology_locations(location, path):
     columns=["new_confirmed"]
 
     epidemiology = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+location+".csv")
-    fetch_data_columns(path, epidemiology, columns)
+    filter_data_columns(path, epidemiology, columns)
     
 
 def write_to_file(region_code, filename="cases"):
-    print("=================== "+region_code+" ===================")  
     path="public/csvData/aggregated"
     dt = pd.read_csv("https://storage.googleapis.com/covid19-open-data/v3/location/"+region_code+".csv")
-
     region_code = region_code.split("_")
     for region in region_code:
         path += "/"+region
     if not os.path.exists(path):
         os.makedirs(path)
     dt.to_csv(path+"/"+filename+".csv", index=False, columns=COLS)
-    print()
     
     
 # @profile

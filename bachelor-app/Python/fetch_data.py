@@ -6,7 +6,7 @@ from google.cloud import storage
 
 
 # fetch only specific columns from a csv file:
-def fetch_data_columns(filename: str, dt: str, cols):
+def filter_data_columns(filename, dt, cols):
     """filter out selected columns"""
     path = "public/csvData/" + filename
     # Create the file if it does not exist
@@ -38,9 +38,12 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
         )
     )
 
+
 # Generates a file with date: total_confirmed
 def date_total_confirmed(datatype):
-    download_blob("covid-data-minimized", datatype+".csv", "public/csvData/"+datatype+".csv")
+    download_blob(
+        "covid-data-minimized", datatype + ".csv", "public/csvData/" + datatype + ".csv"
+    )
     HistogramData = dict()
     with open("public/csvData/" + datatype + ".csv", "r") as csvfile:
         datareader = csv.reader(csvfile)
@@ -68,11 +71,15 @@ def date_total_confirmed(datatype):
             csvfile.write("%s,%s\n" % (key, HistogramData[key]))
 
     # Upload the file to the cloud:
-    upload_blob("covid-data-minimized","public/csvData/"+datatype+"_total.csv", datatype+"_total.csv")
-    
+    upload_blob(
+        "covid-data-minimized",
+        "public/csvData/" + datatype + "_total.csv",
+        datatype + "_total.csv",
+    )
+
     # files are no longer needed, delete them:
-    os.remove("public/csvData/"+datatype+"_total.csv")
-    os.remove("public/csvData/"+datatype+".csv")
+    os.remove("public/csvData/" + datatype + "_total.csv")
+    os.remove("public/csvData/" + datatype + ".csv")
 
 
 # STÅ I /bachelor-app
