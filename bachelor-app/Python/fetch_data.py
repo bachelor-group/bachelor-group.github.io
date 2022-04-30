@@ -3,6 +3,7 @@ import csv
 import math
 import os
 from google.cloud import storage
+import numpy as np
 
 
 # fetch only specific columns from a csv file:
@@ -44,6 +45,7 @@ def date_total_confirmed(datatype):
     download_blob(
         "covid-data-minimized", datatype + ".csv", "public/csvData/" + datatype + ".csv"
     )
+
     HistogramData = dict()
     with open("public/csvData/" + datatype + ".csv", "r") as csvfile:
         datareader = csv.reader(csvfile)
@@ -52,23 +54,47 @@ def date_total_confirmed(datatype):
         for row in datareader:
             date = row[0]
             new_confirmed = row[2]
+            population = row[3]
             try:
-                if len(row[1]) == 2:
-                    if date in HistogramData:
-                        if not math.isnan(float(new_confirmed)):
-                            HistogramData[date] = HistogramData[date] + float(
-                                new_confirmed
-                            )
-                    else:
-                        if not math.isnan(float(new_confirmed)):
-                            HistogramData[date] = float(new_confirmed)
+                if date in HistogramData:
+                    if not math.isnan(float(new_confirmed)):
+                        data = HistogramData[date]["list"]
+                        data.append(float(new_confirmed) / float(population) * 100000)
 
+                        # print(HistogramData[date])
+                        HistogramData[date] = {
+                            "total_confirmed": HistogramData[date]["total_confirmed"]
+                            + float(new_confirmed),
+                            "list": data,
+                        }
+                else:
+                    if not math.isnan(float(new_confirmed)):
+                        data = []
+                        data.append(float(new_confirmed) / float(population) * 100000)
+                        HistogramData[date] = {
+                            "total_confirmed": float(new_confirmed),
+                            "list": data,
+                        }
             except ValueError as e:
                 print("error: ", e)
+
+        # print(HistogramData[key])
+
     with open("public/csvData/" + datatype + "_total.csv", "w") as csvfile:
-        csvfile.write("%s,%s\n" % ("date", "total_confirmed"))
+        csvfile.write(
+            "%s,%s,%s,%s\n"
+            % ("date", "total_confirmed", "median_per_100k", "std_per_100k")
+        )
         for key in HistogramData.keys():
-            csvfile.write("%s,%s\n" % (key, HistogramData[key]))
+            csvfile.write(
+                "%s,%s,%s,%s\n"
+                % (
+                    key,
+                    HistogramData[key]["total_confirmed"],
+                    np.median(HistogramData[key]["list"]),
+                    np.std(HistogramData[key]["list"]),
+                )
+            )
 
     # Upload the file to the cloud:
     upload_blob(

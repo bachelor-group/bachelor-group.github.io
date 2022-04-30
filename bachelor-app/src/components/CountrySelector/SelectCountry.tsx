@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactTags, { Tag } from 'react-tag-autocomplete'
 import { csv } from "d3";
+import { Button } from "react-bootstrap";
 
 
 export interface TagExtended extends Tag {
@@ -114,7 +115,7 @@ export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountrie
     }, [tags, suggestions])
 
     return (
-        <>
+        <div style={{display: "flex"}}>
             <ReactTags
                 data-testid="tag"
                 //@ts-ignore
@@ -128,7 +129,10 @@ export const SelectCountry = ({ selectedCountries, LoadCountries = _LoadCountrie
                 removeButtonText={"Remove country"}
                 maxSuggestionsLength={6}
             />
-        </>
+            <div style={{margin:"30px auto 0 auto", marginLeft:"-15px"}}>
+                <Button variant="primary" size="lg">Hide</Button>
+            </div>
+        </div>
     );
 }
 

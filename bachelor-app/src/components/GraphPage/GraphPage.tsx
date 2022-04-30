@@ -49,6 +49,8 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap }: Props) => {
     return (
         <>
             <SelectCountry selectedCountries={selectedCountries} Key={key} />
+            <SelectCountry selectedCountries={selectedCountries} Key={key} />
+            <SelectCountry selectedCountries={selectedCountries} Key={key} />
 
             <br></br>
 

@@ -35,6 +35,14 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     const [startDate, setStartDate] = useState('2020-01-01');
     const [maxDate, setMaxDate] = useState('2020-01-01');
+    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+    //get window size
+    useEffect(() => {
+        window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+        return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+
+    }, []);
 
     useEffect(() => {
         let newMaxDate = findMaxDate();
@@ -104,9 +112,9 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
                 {/* {data.length === 0 ? <ProgressBar animated now={100} /> : <></>} */}
             </div>
 
-            <div style={{ position: "relative" }} className='plot-container'>
+            <div style={{position: "relative", marginTop: 15}}>
                 <Animator CurDate={startDate} setDate={setStartDate} />
-                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} data={mapData} Date={startDate} height={500} width={800} LoadData={_LoadData} loadedData={setMapData} />
+                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} data={mapData} Date={startDate} height={windowDimensions.height*0.7} width={0.7*windowDimensions.width} LoadData={_LoadData} loadedData={setMapData} />
             </div>
         </div>
     );

@@ -57,13 +57,12 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
                 {/* <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotType(e.target.value))}> */}
                 <Form.Control id="plottypeSelect" as="select" onChange={e => {
 
-                    let fuckYou: PlotType = Number(e.target.value);
-                    console.log(fuckYou)
                     setCustomPlotType(Number(e.target.value))
                 }
                 }>
 
                     {Object.keys(PlotType).filter((v) => isNaN(Number(v))).map((d, i) => (
+            
                         <option key={i} value={i}>{d}</option>
                     ))}
 
