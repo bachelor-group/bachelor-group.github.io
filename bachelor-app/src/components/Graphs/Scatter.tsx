@@ -72,7 +72,6 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
             let color = colorscale(locationKey);
 
             let circle = data.map((d, i) => {
-                console.log(d);
                 return (
                     GraphTooltip(Plot, d,
                         <circle
