@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ReactTags, { Tag } from 'react-tag-autocomplete'
 import { Button } from "react-bootstrap";
-import { IMap } from "../GraphPage/GraphPage";
+import ReactTags, { Tag } from "react-tag-autocomplete";
 
 
 export interface TagExtended extends Tag {
@@ -10,40 +9,24 @@ export interface TagExtended extends Tag {
 }
 
 interface SelectCountryProps {
-    selectedCountries: (countries: TagExtended[]) => void
+    selectedRegions: (countries: TagExtended[], ADMINLVL: 0|1|2) => void
     Key: string
-    suggs: Map<string, IMap[]>
+    suggs: {location_key: string, name:string}[]
+    ADMINLVL?: 0|1|2
 }
 
-function MapToTag(map: Map<string, IMap[]>) {
-    let countryTags: Tag[] = [];
+function MapToTag(list:{location_key: string, name:string}[] ) {
     let regionTags: Tag[] = [];
-    let i = 0;
-    let j = 0;
-    for (let entry of Array.from(map.entries())) {
-        let regions = entry[1];
-        regions.forEach(region => {
-            if (!region.country_name) {
-                if (region.subregion1_name) {
-                    regionTags.push({ id: j, name: region.subregion1_name, location_key: region.location_key } as Tag)
-                } else {
-                    regionTags.push({ id: j, name: region.subregion2_name, location_key: region.location_key } as Tag)
-                }
-                j++
-            } else {
-
-                countryTags.push({ id: i, name: region.country_name, location_key: region.location_key } as Tag)
-
-            }
-        })
-        i++
-    }
-
-    return [countryTags, regionTags]
+    list.forEach((element, index)=>{
+        regionTags.push({ id: index, name: element.name, location_key: element.location_key } as Tag)
+        
+    })
+    
+    return regionTags
 
 }
 
-export const SelectCountry = ({ selectedCountries, Key, suggs }: SelectCountryProps) => {
+export const SelectCountry = ({ selectedRegions, Key, suggs, ADMINLVL=0 }: SelectCountryProps) => {
 
     const [display, setDisplay] = useState<boolean>(true)
     const [tags, setTags] = useState<TagExtended[]>([])
@@ -64,10 +47,10 @@ export const SelectCountry = ({ selectedCountries, Key, suggs }: SelectCountryPr
     const reactTags = useRef<Tag>()
 
     useEffect(() => {
-        let [countries, subregions] = MapToTag(suggs)
-        setAllCountries(countries)
-        setSuggestions(countries)
-        setData(countries as TagExtended[])
+        let regions = MapToTag(suggs)
+        setAllCountries(regions)
+        setSuggestions(regions)
+        setData(regions as TagExtended[])
         return () => {
             setData([]);
             setAllCountries([])
@@ -100,7 +83,8 @@ export const SelectCountry = ({ selectedCountries, Key, suggs }: SelectCountryPr
     // when tags change, let parent component know
     useEffect(() => {
         // tags does not include location_key, data does:
-        selectedCountries(data.filter(d => tags.find(t => t.name === d.name)))
+        selectedRegions(data.filter(d => tags.find(t => t.name === d.name)), ADMINLVL)
+
 
     }, [tags])
 
@@ -140,6 +124,7 @@ export const SelectCountry = ({ selectedCountries, Key, suggs }: SelectCountryPr
                         placeholderText={"Add country"}
                         removeButtonText={"Remove country"}
                         maxSuggestionsLength={6}
+                        autoresize={true}
                     />
                     <div style={{ margin: "30px auto 0 auto", marginLeft: "-15px" }}>
                         <Button variant="primary" size="lg" onClick={() => setDisplay(false)}>Hide</Button>
