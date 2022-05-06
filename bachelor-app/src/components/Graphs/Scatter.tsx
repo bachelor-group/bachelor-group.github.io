@@ -83,7 +83,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
                             fill={color}
                             fillOpacity={0.7}
                             strokeWidth={1}
-                        />, i
+                        />, locationKey+i
                     )
                 )
             });
