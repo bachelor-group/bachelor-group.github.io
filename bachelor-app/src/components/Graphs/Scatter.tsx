@@ -75,7 +75,6 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
                 return (
                     GraphTooltip(Plot, d,
                         <circle
-                            key={i}
                             r={2}
                             cx={xScale(xValue(d)!)}
                             cy={yScale(parseFloat(d[Plot.Axis[1]]!))}
@@ -84,7 +83,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
                             fill={color}
                             fillOpacity={0.7}
                             strokeWidth={1}
-                        />
+                        />, i
                     )
                 )
             });

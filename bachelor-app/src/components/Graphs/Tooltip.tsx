@@ -4,9 +4,9 @@ import { Plot } from "./PlotType"
 
 const SHOWCOUNTRY = false;
 
-export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element) => {
+export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element, index: number) => {
     return (
-        <OverlayTrigger placement="auto" overlay={
+        <OverlayTrigger placement="auto" key={index} overlay={
             <Popover id="popover-contained">
                 {SHOWCOUNTRY ? <Popover.Header as="h3">{Data["country_name"]} at {Data["date"]}</Popover.Header> : <></>
 
