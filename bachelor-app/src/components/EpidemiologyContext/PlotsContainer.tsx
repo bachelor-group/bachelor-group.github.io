@@ -50,8 +50,6 @@ export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
                 :
                 <>
                     <h3>We want to have plots here, but have yet to define plots.</h3>
-                    <p>While we wait for plots to become a thing, have a cat!</p>
-                    <img src="https://blues-dance.com/wp-content/uploads/2021/07/33326dcddbf15c56d631e374b62338dc.jpg" width={200} />
                 </>
             }
         </>
