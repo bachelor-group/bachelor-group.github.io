@@ -9,7 +9,6 @@ import Epidemiology from '../EpidemiologyContext/Epidemiology';
 import SearchTrends from '../SearchTrends/SearchTrends';
 import Vaccinations from '../Vaccinations/Vaccinations';
 import CustomGraphs from './CustomGraphs';
-import { Tag } from 'react-tag-autocomplete';
 
 
 interface Props {
@@ -35,13 +34,6 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
         return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE }));
     }, []);
 
-    const selectedCountries = (countries: TagExtended[], ADMINLVL: 0 | 1 | 2) => {
-        // when user selects a country
-        // need to find the regions belonging to that country
-
-        setSelectedLocations(countries)
-
-    };
 
     useEffect(() => {
         let locationKeys: string[] = []
@@ -62,46 +54,13 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
         })
     }, [])
 
-    const filterLocations = (ADMINLVL: 0 | 1 | 2): { location_key: string, name: string }[] => {
-
-        let countries: { location_key: string, name: string }[] = []
-
-        if (ADMINLVL === 0) {
-            //  TODO: fix so we dont search for countries
-            for (let entry of Array.from(indexMap.entries())) {
-                let key = entry[0];
-                let value = entry[1];
-                if (key.split("_").length === 1) {
-                    countries.push({ location_key: key, name: value.name })
-                }
-            }
-        } else {
-            SelectedLocations.forEach((location => {
-                if (location.location_key.split("_").length === ADMINLVL){
-                    let entry = indexMap.get(location.location_key)
-                    entry!.children.forEach(child=>{
-                    let childEntry = indexMap.get(child);
-
-                    countries.push({ location_key: child, name: childEntry!.name })
-
-                    })
-                    
-                }
-
-            }))
-
-        }
-        return countries
-
-
-    }
 
 
     return (
         <>
-            <SelectCountry selectedRegions={selectedCountries} Key={key} ADMINLVL={0} suggs={filterLocations(0)} />
-            <SelectCountry selectedRegions={selectedCountries} Key={key} ADMINLVL={1} suggs={filterLocations(1)} />
-            <SelectCountry selectedRegions={selectedCountries} Key={key} ADMINLVL={2} suggs={filterLocations(2)} />
+            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={0} AllLocations={indexMap} />
+            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={1} AllLocations={indexMap} />
+            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={2} AllLocations={indexMap} />
 
             <br></br>
 

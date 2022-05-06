@@ -1,92 +1,103 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import ReactTags, { Tag } from "react-tag-autocomplete";
+import { IMap } from "../GraphPage/GraphPage";
 
 
 export interface TagExtended extends Tag {
     location_key: string
-
 }
 
 interface SelectCountryProps {
-    selectedRegions: (countries: TagExtended[], ADMINLVL: 0|1|2) => void
+    SelectedRegions: (countries: TagExtended[], ADMINLVL: 0 | 1 | 2) => void
     Key: string
-    suggs: {location_key: string, name:string}[]
-    ADMINLVL?: 0|1|2
+    AllLocations: Map<string, IMap>
+    ADMINLVL?: 0 | 1 | 2
+    SelectedLocations: TagExtended[]
 }
 
-function MapToTag(list:{location_key: string, name:string}[] ) {
-    let regionTags: Tag[] = [];
-    list.forEach((element, index)=>{
-        regionTags.push({ id: index, name: element.name, location_key: element.location_key } as Tag)
-        
+function ListToTagArray(list: { location_key: string, name: string }[]): TagExtended[] {
+    let regionTags: TagExtended[] = [];
+    list.forEach((element, index) => {
+        regionTags.push({ id: index, name: element.name, location_key: element.location_key })
     })
-    
-    return regionTags
 
+    return regionTags
 }
 
-export const SelectCountry = ({ selectedRegions, Key, suggs, ADMINLVL=0 }: SelectCountryProps) => {
+const ST_COUNTRY_CODES = ["AU", "GB", "IE", "SG", "US", "NZ"]
+const ST_MAP: Map<string, string> = new Map()
 
-    const [display, setDisplay] = useState<boolean>(true)
+for (let i in ST_COUNTRY_CODES) {
+    ST_MAP.set(ST_COUNTRY_CODES[i], ST_COUNTRY_CODES[i])
+}
+
+
+export const SelectCountry = ({ SelectedRegions, SelectedLocations, Key, AllLocations, ADMINLVL = 0 }: SelectCountryProps) => {
+
+    const [hideData, setHideData] = useState<boolean>(false)
     const [tags, setTags] = useState<TagExtended[]>([])
     const [suggestions, setSuggestions] = useState<Tag[]>([])
-
-    const [allCountries, setAllCountries] = useState<Tag[]>([])
-
-    const searchtrendCountries: TagExtended[] = [
-        { id: 1, name: "Australia", location_key: "AU" },
-        { id: 2, name: "United Kingdom", location_key: "GB" },
-        { id: 3, name: "Ireland", location_key: "IE" },
-        { id: 4, name: "Singapore", location_key: "SG" },
-        { id: 5, name: "United States of America", location_key: "US" },
-        { id: 6, name: "New Zealand", location_key: "NZ" }
-    ];
-
-    const [data, setData] = useState<TagExtended[]>([])
+    const [adminLvlFilteredLocations, setAdminLvlFilteredLocations] = useState<Tag[]>([])
     const reactTags = useRef<Tag>()
 
-    useEffect(() => {
-        let regions = MapToTag(suggs)
-        setAllCountries(regions)
-        setSuggestions(regions)
-        setData(regions as TagExtended[])
-        return () => {
-            setData([]);
-            setAllCountries([])
-            setSuggestions([])
-        };
-    }, [suggs])
 
+    // check if selected Key is searchtrend, and the selected country is a search trend country
+    function handleTabKey(location_key: string) {
+      return (Key === "SearchTrends" && ST_MAP.has(location_key)) || Key !== "SearchTrends"
+    }
 
 
     useEffect(() => {
-        if (Key !== "SearchTrends") {
-            if (tags.length !== 0) {
-                setSuggestions(allCountries.filter(s => tags.find(t => t.name !== s.name)))
+        let locations: { location_key: string, name: string }[] = [];
 
-            } else {
-                setSuggestions(allCountries)
+        if (ADMINLVL === 0) {
+            for (let entry of Array.from(AllLocations.entries())) {
+                let key = entry[0];
+                let value = entry[1];
+                if (handleTabKey(key)) {
+                    if (key.split("_").length === 1) {
+                        locations.push({ location_key: key, name: value.name })
+                    }
+                }
             }
         } else {
-            if (tags.length !== 0) {
-                setSuggestions(searchtrendCountries.filter(s => tags.find(t => t.name !== s.name)))
-
-            } else {
-                setSuggestions(searchtrendCountries)
-            }
+            SelectedLocations.forEach((location => {
+                if (location.location_key.split("_").length === ADMINLVL) {
+                    let entry = AllLocations.get(location.location_key)
+                    entry!.children.forEach(child => {
+                        let childEntry = AllLocations.get(child);
+                        locations.push({ location_key: child, name: childEntry!.name })
+                    })
+                }
+            }))
         }
+        setAdminLvlFilteredLocations(ListToTagArray(locations))
 
-    }, [Key])
+    }, [AllLocations, SelectedLocations, Key])
+
+
+    // set list of suggestions from admin level filtered locations
+    useEffect(() => {
+        if (tags.length !== 0) {
+            setSuggestions(adminLvlFilteredLocations.filter(s => tags.find(t => t.name !== s.name)) as TagExtended[])
+        } else {
+            setSuggestions(adminLvlFilteredLocations)
+        }
+    }, [adminLvlFilteredLocations])
 
 
     // when tags change, let parent component know
     useEffect(() => {
-        // tags does not include location_key, data does:
-        selectedRegions(data.filter(d => tags.find(t => t.name === d.name)), ADMINLVL)
+        let filter: TagExtended[] = []
+        if (!hideData) {
+            filter = adminLvlFilteredLocations.filter(d => tags.find(t => t.name === d.name)) as TagExtended[]
+        }
+        let previouslySelectedLocations = SelectedLocations.filter(l => l.location_key.split("_").length - 1 !== ADMINLVL)
 
+        SelectedRegions(filter.concat(previouslySelectedLocations), ADMINLVL)
 
-    }, [tags])
+    }, [tags, hideData])
 
 
     const onDelete = useCallback((tagIndex) => {
@@ -106,39 +117,47 @@ export const SelectCountry = ({ selectedRegions, Key, suggs, ADMINLVL=0 }: Selec
         // remove from suggestion list:
         setSuggestions(suggestions.filter(Tag => Tag.name !== newTag.name))
 
-    }, [tags, suggestions])
+    }, [suggestions])
+
 
     return (
         <>
-            {display ?
-                <div style={{ display: "flex" }}>
-                    <ReactTags
-                        data-testid="tag"
-                        //@ts-ignore
-                        ref={reactTags}
-                        tags={tags}
-                        suggestions={suggestions}
-                        onDelete={onDelete}
-                        onAddition={onAddition}
-                        minQueryLength={0}
-                        placeholderText={"Add country"}
-                        removeButtonText={"Remove country"}
-                        maxSuggestionsLength={6}
-                        autoresize={true}
-                    />
-                    <div style={{ margin: "30px auto 0 auto", marginLeft: "-15px" }}>
-                        <Button variant="primary" size="lg" onClick={() => setDisplay(false)}>Hide</Button>
+            {tags.length === 0 && suggestions.length === 0 ? <></> :
+                <>
+                    <div style={{ display: "flex" }}>
+                        <ReactTags
+                            data-testid="tag"
+                            //@ts-ignore
+                            ref={reactTags}
+                            tags={tags}
+                            suggestions={suggestions as Tag[]}
+                            onDelete={onDelete}
+                            onAddition={onAddition}
+                            minQueryLength={0}
+                            placeholderText={`${ADMINLVL === 0 ? "Select Country" : "Select Region"}`}
+                            removeButtonText={"Remove country"}
+                            maxSuggestionsLength={6}
+                            autoresize={true}
+                        />
+                        <div style={{ margin: "30px auto 0 auto", marginLeft: "-15px" }}>
+                            <Form>
+                                <Form.Check
+                                    type="switch"
+                                    id="hideData"
+                                    label="Hide"
+                                    onChange={() => setHideData(!hideData)}
+                                />
+                            </Form>
+                        </div>
                     </div>
-                </div>
-                : <>
-                    <div style={{ margin: "30px auto 0 auto" }}>
-                        <Button variant="primary" size="sm" onClick={() => setDisplay(true)}>Show</Button>
-                    </div>
+                </>
 
-                </>}
+            }
+
         </>
     );
 }
 
 
 export default SelectCountry;
+
