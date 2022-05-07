@@ -91,7 +91,7 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
             <Animator CurDate={curDate} setDate={setCurDate} />
             <MapComponent adminLvl={ADMINLVL} data={data} Date={curDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height - 56} innerData={true} scalePer100k={true} loadedData={loadedData} />
             {data.size !== 0 ?
-                <svg style={{ position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
+                <svg style={{ backgroundColor: "#21252950" ,position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
                     <DateHistogram
                         Data={HistogramData}
                         width={windowDimensions.width}
