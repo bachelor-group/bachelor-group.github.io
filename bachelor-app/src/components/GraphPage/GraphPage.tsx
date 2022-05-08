@@ -97,7 +97,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                                 <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="SearchTrends">
-                                <SearchTrends MapData={mapData} SelectedCountries={SelectedLocations} />
+                                <SearchTrends MapData={mapData} SelectedCountries={SelectedLocations} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="Vaccinations">
                                 <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />

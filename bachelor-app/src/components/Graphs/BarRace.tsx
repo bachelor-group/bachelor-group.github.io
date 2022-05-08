@@ -42,10 +42,26 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     const [tickDuration, setTickDuration] = useState(500);
     const [startDate, setStartDate] = useState('2020-01-01');
 
+    //Set new Data
+    useEffect(() => {
+        if (Plot.MapData.size === 1 && Plot.MapData !== mapData) {
+            setMapData(Plot.MapData);
+        }
+    }, [Plot]);
+
+    // Draw When Data arrives
+    useEffect(() => {
+        if (barsData.length !== 0) drawPlot();
+    }, [barsData])
+
+    useEffect(() => {
+        if (barsData.length !== 0) updatePlot();
+    }, [startDate, top_n, Width])
 
     // Handle new Data
     useEffect(() => {
         if (mapData.size !== 0) {
+            console.log(mapData)
             let newBarsData: Bar[] = []
 
             let colourDict: { [property: string]: HSLColor } = {}
@@ -67,14 +83,15 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                         undefinedData += 1
                         if (undefinedData === SearchTrendsList.length) {
                             setBarsData(newBarsData);
+                            console.log(newBarsData)
                             return
-
                         }
                     }
                     unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
-
                 }
+
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
+                console.log(newBar.sorted)
                 for (let j = 0; j < newBar.sorted.length; j++) {
                     newBar.sorted[j].rank = j;
                     if (i === 0) {
@@ -88,8 +105,9 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                 prevBar = newBar;
             }
             setBarsData(newBarsData);
+            console.log(newBarsData)
         }
-    }, [mapData])
+    }, [mapData, Plot])
 
     async function Animate() {
         // Animation is already playing
@@ -124,11 +142,6 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
         return -1
     }
 
-    //Set new Data
-    useEffect(() => {
-        setMapData(Plot.MapData);
-    }, [Plot]);
-
     // Y axis
     const yScale = useMemo(() => {
         return scaleLinear().domain([top_n, 0]).range([boundsHeight, 0]);
@@ -146,7 +159,6 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     const xAxisGenerator = axisTop(xScale).tickSize(-(boundsHeight));
 
     // Draw Axes
-
     useEffect(() => {
         const svgElement = select(axesRef.current);
         svgElement.selectAll("*").remove();
@@ -156,16 +168,6 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("transform", "translate(0," + MARGIN.top + ")")
             .call(xAxisGenerator);
     }, [xScale])
-
-
-    // Draw When Data arrives
-    useEffect(() => {
-        if (barsData.length !== 0) drawPlot();
-    }, [barsData])
-
-    useEffect(() => {
-        if (barsData.length !== 0) updatePlot();
-    }, [startDate, top_n])
 
     //Initial draw
     function drawPlot(cursor = FindDateIndex(startDate)) {
@@ -201,7 +203,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 - 20)
             .attr('text-anchor', 'end')
             .attr("dominant-baseline", "middle")
-            .html(d => d.property.slice(14).replace("_", " "))
+            .html(d => d.property.slice(14).replaceAll("_", " "))
             .attr("opacity", 0)
             .transition()
             .duration(transitionLength / 10)
@@ -232,7 +234,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     function updatePlot(cursor = FindDateIndex(startDate)) {
         let svg = select(svgRef.current);
 
-        xScale.domain([0, max(barsData[cursor].sorted, d => d.value)!]);
+        xScale.domain([0, barsData[cursor].sorted[0].value]);
 
         svg.select('.x-axis').enter()
             //@ts-ignore
@@ -298,7 +300,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("y", d => yScale(top_n) + (yScale(1) - yScale(0)) / 2)
             .attr('text-anchor', 'end')
             .attr("dominant-baseline", "middle")
-            .html(d => d.property.slice(14).replace("_", " "))
+            .html(d => d.property.slice(14).replaceAll("_", " "))
             .transition()
             .duration(tickDuration)
             .ease(easeLinear)
