@@ -28,8 +28,6 @@ let Graphs = SEARCH_TRENDS.map((st) => {
 })
 
 function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
-    // TODO: Data is used to fix error with Data[0], need to find a better way...
-    const [Data, setData] = useState<DataType[]>([]);
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.BarRace, MapData: MapData, Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${SelectedCountries[0].name}` },
@@ -78,7 +76,6 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-        setData(Array.from(MapData.values()).flat())
     }, [MapData, WindowDimensions]);
 
 
@@ -86,7 +83,7 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
         <>
             <div id="main">
                 {
-                    Data.length === 0 ?
+                    MapData.size === 0 ?
                         <Row md="auto" className="align-items-center">
                             <Col style={{ width: "500px" }}>
                                 <ProgressBar animated now={100} />
@@ -101,7 +98,7 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
                                             :
                                             <>
                                                 <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} MapData={MapData} />
-                                                {SelectedCountries[0].location_key === "US" || SelectedCountries[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${Data[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
+                                                {SelectedCountries[0].location_key === "US" || SelectedCountries[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${SelectedCountries[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
                                             </>
                                     }
 

@@ -88,7 +88,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                 </Nav>
 
                 <Tab.Content style={{ margin: "auto" }}>
-                    {mapData.size === 0 ?
+                    {SelectedLocations.length === 0 ?
                         <div>
                             <h2>Please select a location</h2>
                         </div>
