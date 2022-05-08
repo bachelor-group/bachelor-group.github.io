@@ -17,7 +17,14 @@ interface Props {
 const HARDCODED = SearchTrendsList;
 const LOCATION_KEYS_SEARCH_TRENDS = ["AU", "US", "GB", "SG", "IE", "NZ"];
 const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
-const SEARCH_TRENDS = ["infection", "common_cold", "pain", "anxiety", "fever", "anosmia", "asthma", "cough", "depression", "anal_fissure"]
+const SEARCH_TRENDS = [
+    "infection", "common_cold",
+    "fever", "pain",
+    "anosmia", "shortness_of_breath",
+    "cough", "asthma",
+    "anxiety", "depression",
+    "fatigue", "dizziness"
+]
 
 let Graphs = SEARCH_TRENDS.map((st) => {
 
@@ -54,10 +61,11 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
             let title = Plot.Title;
-            let width = WindowDimensions.width * 0.45
+            let width = WindowDimensions.width * 0.48
             let height = WindowDimensions.height * 0.6
 
-            if (width < 300) width = WindowDimensions.width;
+            if (WindowDimensions.width < 750) width = WindowDimensions.width;
+            if (WindowDimensions.width > 1500) width = WindowDimensions.width * 0.3;
 
             if (Plot.PlotType === PlotType.BarRace) {
                 title = `Search Trends in ${SelectedCountries[0].name}`;
