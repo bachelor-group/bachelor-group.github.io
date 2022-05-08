@@ -17,7 +17,7 @@ interface Props {
 const HARDCODED = SearchTrendsList;
 const LOCATION_KEYS_SEARCH_TRENDS = ["AU", "US", "GB", "SG", "IE", "NZ"];
 const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
-const SEARCH_TRENDS = ["infection", "common_cold", "pain", "anxiety", "fever", "anosmia","asthma", "cough", "depression", "anal_fissure"]
+const SEARCH_TRENDS = ["infection", "common_cold", "pain", "anxiety", "fever", "anosmia", "asthma", "cough", "depression", "anal_fissure"]
 
 let Graphs = SEARCH_TRENDS.map((st) => {
 
@@ -97,10 +97,10 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
                             {SelectedCountrySearchTrendsDataExists().length === 0 ?
                                 <>
                                     {
-                                        SelectedCountries.length !== 1 ? <i className='note' style={{ margin: "20px 0px 20px 0px" }}>Select only one location to see a bar race visualization.</i>
+                                        MapData.size !== 1 ? <i className='note' style={{ margin: "20px 0px 20px 0px" }}>Select only one location to see a bar race visualization.</i>
                                             :
                                             <>
-                                                <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} />
+                                                <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} MapData={MapData} />
                                                 {SelectedCountries[0].location_key === "US" || SelectedCountries[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${Data[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
                                             </>
                                     }

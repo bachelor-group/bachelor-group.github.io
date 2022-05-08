@@ -9,6 +9,7 @@ interface BarRaceProps {
     Width: number,
     Height: number,
     Plot: Plot,
+    MapData: Map<string, DataType[]>
 }
 
 const MARGIN = { top: 50, right: 20, bottom: 0, left: 20 };
@@ -18,7 +19,7 @@ type Bar = {
     sorted: { property: (keyof DataType), lastValue: number, value: number, colour: HSLColor, rank: number }[],
 }
 
-function BarRace({ Width, Height, Plot }: BarRaceProps) {
+function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
     //Refs
     const axesRef = useRef(null);
     const titleRef = useRef(null);
@@ -34,20 +35,12 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
     let barPadding = (Height - (MARGIN.bottom + MARGIN.top)) / (top_n * 5);
 
     //Data
-    const [mapData, setMapData] = useState<Map<string, DataType[]>>(Plot.MapData);
     const [barsData, setBarsData] = useState<Bar[]>([]);
 
     //Animation
     const [ticker, setTicker] = useState<Timer>();
     const [tickDuration, setTickDuration] = useState(500);
     const [startDate, setStartDate] = useState('2020-01-01');
-
-    //Set new Data
-    useEffect(() => {
-        if (Plot.MapData.size === 1 && Plot.MapData !== mapData) {
-            setMapData(Plot.MapData);
-        }
-    }, [Plot]);
 
     // Draw When Data arrives
     useEffect(() => {
@@ -60,8 +53,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
 
     // Handle new Data
     useEffect(() => {
-        if (mapData.size !== 0) {
-            console.log(mapData)
+        if (MapData.size !== 0) {
             let newBarsData: Bar[] = []
 
             let colourDict: { [property: string]: HSLColor } = {}
@@ -70,7 +62,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             }
 
             let prevBar: Bar | null = null;
-            let allData: DataType[] = Array.from(mapData.values()).flat();
+            let allData: DataType[] = Array.from(MapData.values()).flat();
             for (let i = 0; i < allData.length; i++) {
                 const element = allData[i];
                 let newBar: Bar = { Data: element, sorted: [] };
@@ -83,31 +75,29 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                         undefinedData += 1
                         if (undefinedData === SearchTrendsList.length) {
                             setBarsData(newBarsData);
-                            console.log(newBarsData)
                             return
                         }
                     }
-                    if (newBar.Data[element] !== "") unsorted_list.push({ property: element, lastValue: -1, value: isNaN(parseFloat(newBar.Data[element]!)) ?  -1 : parseFloat(newBar.Data[element]!), colour: colourDict[element]!, rank: -1 });
+                    if (newBar.Data[element] !== "") unsorted_list.push({ property: element, lastValue: -1, value: isNaN(parseFloat(newBar.Data[element]!)) ? -1 : parseFloat(newBar.Data[element]!), colour: colourDict[element]!, rank: -1 });
                 }
 
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
-                console.log(newBar.sorted)
                 for (let j = 0; j < newBar.sorted.length; j++) {
                     newBar.sorted[j].rank = j;
                     if (i === 0) {
                         newBar.sorted[j].lastValue = newBar.sorted[j].value;
                     } else {
                         let prevValue = parseFloat(prevBar!.Data[newBar.sorted[j].property]!)
-                        newBar.sorted[j].lastValue = isNaN(prevValue) ? -1: prevValue
+                        newBar.sorted[j].lastValue = isNaN(prevValue) ? -1 : prevValue
                     }
                 }
                 newBarsData.push(newBar)
                 prevBar = newBar;
             }
             setBarsData(newBarsData);
-            console.log(newBarsData)
         }
-    }, [mapData, Plot])
+        setBarsData([]);
+    }, [MapData])
 
     async function Animate() {
         // Animation is already playing
@@ -192,6 +182,10 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("width", d => xScale(d.value))
             .delay(function (d, i) { return (i * delay) });
 
+        bars
+            .exit()
+            .remove()
+
         // @ts-ignore
         let labels = select(boundsRef.current).selectAll('.label').data(currentSlice, d => d.property);
 
@@ -212,6 +206,10 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
             .attr("opacity", 1);
 
+        labels
+            .exit()
+            .remove()
+
         // @ts-ignore
         let valueLabels = select(boundsRef.current).selectAll('.valueLabel').data(currentSlice, d => d.property);
         valueLabels
@@ -229,6 +227,10 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
             .delay(function (d, i) { return transitionLength + (i) * delay })
             .attr("y", d => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
             .attr("opacity", 1);
+
+        valueLabels
+            .exit()
+            .remove()
     }
 
     function updatePlot(cursor = FindDateIndex(startDate)) {

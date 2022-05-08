@@ -41,7 +41,7 @@ export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
                             return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                         case PlotType.BarRace:
-                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} MapData={Plot.MapData} />
 
                         default:
                             throw `Plottype: ${Plot.PlotType} not supported`

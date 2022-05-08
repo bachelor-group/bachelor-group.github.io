@@ -20,6 +20,7 @@ interface Props {
 const H_SCALE = 0.45
 const W_SCALE = 0.8
 
+// TODO: currently loading data even if data was loaded previously... (Hide data)
 export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadIndex }: Props) => {
     const [key, setKey] = useState<string>('epidemiology');
 
@@ -87,7 +88,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                 </Nav>
 
                 <Tab.Content style={{ margin: "auto" }}>
-                    {SelectedLocations.length === 0 ?
+                    {mapData.size === 0 ?
                         <div>
                             <h2>Please select a location</h2>
                         </div>
