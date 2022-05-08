@@ -87,7 +87,7 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                             return
                         }
                     }
-                    unsorted_list.push({ property: element, lastValue: -1, value: newBar.Data[element] !== "" ? parseFloat(newBar.Data[element]!) : 0, colour: colourDict[element]!, rank: -1 });
+                    if (newBar.Data[element] !== "") unsorted_list.push({ property: element, lastValue: -1, value: isNaN(parseFloat(newBar.Data[element]!)) ?  -1 : parseFloat(newBar.Data[element]!), colour: colourDict[element]!, rank: -1 });
                 }
 
                 newBar.sorted = unsorted_list.sort((a, b) => descending(a.value, b.value))
@@ -97,8 +97,8 @@ function BarRace({ Width, Height, Plot }: BarRaceProps) {
                     if (i === 0) {
                         newBar.sorted[j].lastValue = newBar.sorted[j].value;
                     } else {
-                        // TODO Optimize
-                        newBar.sorted[j].lastValue = prevBar!.sorted[prevBar!.sorted.findIndex(e => e.property === newBar.sorted[j].property)].value
+                        let prevValue = parseFloat(prevBar!.Data[newBar.sorted[j].property]!)
+                        newBar.sorted[j].lastValue = isNaN(prevValue) ? -1: prevValue
                     }
                 }
                 newBarsData.push(newBar)
