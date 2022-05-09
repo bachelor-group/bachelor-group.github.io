@@ -1,16 +1,12 @@
-import { csv, json } from 'd3';
+import { csv } from 'd3';
 import { useEffect, useState, MouseEvent, ChangeEvent, useMemo } from 'react'
-import { feature } from 'topojson';
-import { Topology } from 'topojson-specification'
-import { GeoJsonProperties, Feature, GeometryCollection, GeometryObject, FeatureCollection } from "geojson";
+import { GeoJsonProperties } from "geojson";
 import { useParams } from 'react-router-dom';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Form, ProgressBar } from 'react-bootstrap';
-import { DataType } from '../DataContext/MasterDataType';
-import { hasKey } from '../DataContext/DataTypes';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
-import { MapComponent } from '../Map/Map';
-import Animator from '../Map/Animator';
+import { DataType } from '../../DataContext/MasterDataType';
+import { SearchTrendsList } from '../../DataContext/Old_script';
+import { MapComponent } from '../../Map/Map';
+import Animator from '../../Map/Animator';
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 type SearchTrendsMap = {
