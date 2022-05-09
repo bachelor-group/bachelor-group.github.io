@@ -8,10 +8,12 @@ import WordCloud from "./WordCloud";
 
 interface PlotsProps {
     Plots: Plot[],
-    Colors: string[]
+    Colors?: string[]
 }
 
-export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
+
+export const PlotsContainer = ({ Plots, Colors = COLORS }: PlotsProps) => {
     const [temp, setTemp] = useState(Plots)
 
     // Used to make the container Rerender

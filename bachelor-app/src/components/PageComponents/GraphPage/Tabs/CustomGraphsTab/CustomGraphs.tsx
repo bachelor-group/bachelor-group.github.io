@@ -13,8 +13,6 @@ interface Props {
     }
 }
 
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
-
 export const CustomGraphs = ({ MapData, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>([]);
 
@@ -82,7 +80,7 @@ export const CustomGraphs = ({ MapData, WindowDimensions }: Props) => {
                             <GraphForm MapData={MapData} AddPlot={addPlot}></GraphForm>
                             <i className='note'>Note: that saved plots will be removed once you leave this page! </i>
                             <h3><br></br><br></br>Your Saved Plots</h3>
-                            <PlotsContainer Plots={Plots} Colors={COLORS} />
+                            <PlotsContainer Plots={Plots} />
                         </>
                 }
             </div>

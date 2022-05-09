@@ -13,9 +13,6 @@ export interface VaccinationProps {
     }
 }
 
-//TODO: This is written several places
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
-
 export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
@@ -57,7 +54,7 @@ export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) =>
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} Colors={COLORS} />
+                        <PlotsContainer Plots={Plots} />
                 }
             </div>
         </>

@@ -10,8 +10,6 @@ interface GraphFormInterface {
     AddPlot: (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => void
 }
 
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
-
 export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
     const [customPlotType, setCustomPlotType] = useState<PlotType>(PlotType.Scatter)
     const [customPlotYaxis, setCustomPlotYaxis] = useState<keyof DataType>("new_confirmed")
@@ -104,7 +102,7 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
             <Button type="submit" onClick={() => AddPlot(customPlotType, customPlotXaxis, customPlotYaxis)}>Save Plot</Button>
         </fieldset>
 
-        <PlotsContainer Plots={plot} Colors={COLORS} />
+        <PlotsContainer Plots={plot} />
     </>)
 }
 
