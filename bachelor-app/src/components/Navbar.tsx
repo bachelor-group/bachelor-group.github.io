@@ -15,7 +15,7 @@ function NavbarC() {
             <Nav.Link href="#/Graphs">Graphs</Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link href="#/About">About</Nav.Link>
+            {/* <Nav.Link href="#/About">About</Nav.Link> */}
             <Nav.Link href="https://github.com/bachelor-group/visualizing-covid-search-trends">
               <FaGithub />
             </Nav.Link>

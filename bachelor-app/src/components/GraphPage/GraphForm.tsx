@@ -62,8 +62,8 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
                 }>
 
                     {Object.keys(PlotType).filter((v) => isNaN(Number(v))).map((d, i) => (
-            
-                        <option key={i} value={i}>{d}</option>
+                          <option key={i} disabled={d == "Lollipop"|| d == "BarRace" || d == "WordCloud" ? 
+                          true : false} value={i}>{d}</option>
                     ))}
 
                 </Form.Control>
