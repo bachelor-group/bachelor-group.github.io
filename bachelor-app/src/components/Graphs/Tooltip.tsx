@@ -4,18 +4,18 @@ import { Plot } from "./PlotType"
 
 const SHOWCOUNTRY = false;
 
-export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element) => {
+export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element, reactKey: string) => {
     return (
-        <OverlayTrigger placement="auto" overlay={
+        <OverlayTrigger placement="auto" key={reactKey} overlay={
             <Popover id="popover-contained">
-                {SHOWCOUNTRY ? <Popover.Header as="h3">Country Text</Popover.Header> : <></>
+                {SHOWCOUNTRY ? <Popover.Header as="h3">{Data["country_name"]} at {Data["date"]}</Popover.Header> : <></>
 
                 }
 
                 <Popover.Body>
-                    <strong>{Plot.Axis[0].replace("_", " ")}:</strong> {Data[Plot.Axis[0]]}
+                    <strong>{Plot.Axis[0].replace("_", " ")}:</strong> {Data[Plot.Axis[0]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
                     <br />
-                    <strong>{Plot.Axis[1].replace("_", " ")}:</strong> {Data[Plot.Axis[1]]}
+                    <strong>{Plot.Axis[1].replace("_", " ")}:</strong> {Data[Plot.Axis[1]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
                 </Popover.Body>
             </Popover>
         }>

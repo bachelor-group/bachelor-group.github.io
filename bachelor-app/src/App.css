@@ -1,9 +1,15 @@
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 * {
   margin: 0;
   padding: 0;
 }
 
-.trends-map-link{
+.trends-map-link {
   color: black;
   border: 1px dashed black;
   border-radius: 0.5em;
@@ -13,7 +19,7 @@
   margin: 10px;
 }
 
-.tool-tip{
+.tool-tip {
   border: black solid 1px;
   padding: 5px;
   background-color: white;
@@ -24,11 +30,11 @@
   color: #6e6e6e;
 }
 
-.svg-header{
-    display: flex;
-    align-items: center;
-    width: 100%;
-    justify-content: space-evenly;
+.svg-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-evenly;
 }
 
 svg {
@@ -51,7 +57,7 @@ svg {
 }
 
 /* Might move this into .plot */
-.plot-container{
+.plot-container {
   width: 800px;
   height: 500px;
   margin: 20px;
@@ -74,7 +80,7 @@ svg {
   border: 1px solid #D1D1D1;
   border-radius: 1px;
   width: 80%;
-  margin: 30px auto 0 auto;
+  margin: 20px 0 0 0;
 
   /* shared font styles */
   font-size: 1em;
@@ -191,7 +197,7 @@ svg {
   text-decoration: underline;
   background: none;
   font-weight: 600;
-  margin:-3px;
+  margin: -3px;
 }
 
 .react-tags__suggestions li:hover {
@@ -209,9 +215,14 @@ svg {
 }
 
 .rekd {
- cursor:pointer; 
+  cursor: pointer;
 }
+
 #map .tick line {
   color: white;
   stroke-width: 0.2;
+}
+
+.nav-justified:hover {
+  cursor: pointer;
 }

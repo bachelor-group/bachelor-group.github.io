@@ -1,23 +1,22 @@
-import { axisBottom, axisLeft, bisector, group, line, max, min, ScaleLinear, scaleOrdinal, scaleTime, ScaleTime, select, zoom } from 'd3';
+import { axisBottom, axisLeft, line, scaleOrdinal, select, zoom } from 'd3';
 import { useEffect, useMemo, useRef, useState, MouseEvent } from 'react';
-import { EpidemiologyData } from "../DataContext/DataTypes";
 import { zoomIdentity } from 'd3-zoom';
 import { Plot } from './PlotType';
 import { DataAccessor, Scale } from './Scaling';
 import { DataType } from '../DataContext/MasterDataType';
+import { filterDataBasedOnProps } from '../DataContext/LoadData';
 
 
 interface LineChartProps {
     Width: number,
     Height: number,
     Plot: Plot,
-    Data: DataType[]
+    Colors: string[],
 }
 
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
-export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
+export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     const axesRef = useRef(null)
     const svgRef = useRef(null)
     const divRef = useRef(null)
@@ -27,19 +26,16 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
     const [dots, setdots] = useState<{ x: number, y: number, color: string }[]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
 
-    const [data, setData] = useState<DataType[]>([]);
-    const [Group, setGroup] = useState(group(data, (d) => d[Plot.GroupBy!])) // Group data by wanted column
+    const [filteredData, setFilteredData] = useState<Map<string, DataType[]>>(new Map());
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        let FilterData: DataType[] = [];
-        for (let i = 0; i < Plot.Data.length; i++) {
-            const element = Plot.Data[i];
-            if (element[Plot.Axis[1]] !== "") {
-                FilterData.push(element);
-            }
-        }
-        setData(FilterData)
-    }, [Data]);
+        if (!mounted && axesRef.current !== null) setMounted(true);
+    });
+
+    useEffect(() => {
+        setFilteredData(filterDataBasedOnProps(Plot.MapData, filteredData, [Plot.Axis[1]]));
+    }, [Plot]);
 
     const yValue = useMemo(() => {
         return DataAccessor(Plot.Axis[1]);
@@ -61,10 +57,6 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
 
     // zoomedxScale is currently the domain
     const [zoomedxScale, setzoomedxScale] = useState<Date[] | number[]>([]);
-    //Groups
-    useEffect(() => {
-        setGroup(group(data, (d) => d[Plot.GroupBy!]));
-    }, [data]);
 
     // Draw Axis
     const [xAxis, yAxis] = useMemo(() => {
@@ -84,7 +76,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
 
         AxisBoys.push(svgElement.append("g").call(yAxisGenerator));
         return AxisBoys
-    }, [xScale, yScale, boundsHeight, data]);
+    }, [xScale, yScale, mounted]);
 
     //ZOOM
     const Zoom = useMemo(() => {
@@ -124,10 +116,10 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
     }, [xAxis, xScale, yScale])
 
     // Colors
-    const colorscale = scaleOrdinal<string>().range(COLORS)
+    const colorscale = scaleOrdinal<string>().range(Colors)
 
     // Init line-generator
-    const reactLine = line<EpidemiologyData>()
+    const reactLine = line<DataType>()
         .x(d => xScale(xValue(d)!))
         .y(d => yScale(yValue(d)!))
     // .curve(curveBasis);
@@ -135,10 +127,11 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
     //Create line-paths
     let paths: string[] = [];
     let countries: string[] = [];
-    Group.forEach((countryData, country) => {
-        paths.push(reactLine(countryData)!)
-        countries.push(country!);
-    });
+
+    filteredData.forEach((data, locationKey) => {
+        paths.push(reactLine(data)!)
+        countries.push(locationKey)
+    })
 
     // TODO: NEEDS MAJOR REFACTORING
     //ToolTip boys
@@ -164,10 +157,10 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
         // Create points dots and move line to pointer
         let newdots: typeof dots = []
         let dataPoints: { country: string, data: DataType }[] = []
-        Group.forEach((countryData, country) => {
+        filteredData.forEach((countryData, country) => {
             let id = countryData.findIndex((d) => d[Plot.Axis[0]] == displayText)
 
-            if (id !== -1) {
+            if (id !== -1 && yValue(countryData[id])) {
                 dataPoints.push({ country: country!, data: countryData[id] })
                 newdots.push({ x: (event.nativeEvent.offsetX - MARGIN.left - 5), y: yScale(yValue(countryData[id])!), color: colorscale(country!) })
             }
@@ -188,7 +181,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
         div
             .enter()
             .append("div")
-            .text(d => `${d.country}: ${d.data[Plot.Axis[1]]}`)
+            .text(d => `${d.country}: ${d.data[Plot.Axis[1]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`)
             .style("color", d => colorscale(d.country))
 
         div.transition().duration(0)
@@ -203,7 +196,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
 
     return (
         <div style={{ position: "relative" }}>
-            {data.length !== 0 ?
+            {filteredData.size !== 0 && Array.from(filteredData.values()).flat().length !== 0 ?
                 <>
                     <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (updateTooltip(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
                         <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
@@ -223,7 +216,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
 
                             {dots.map((points, index) => (
-                                <circle cx={points["x"]} cy={points["y"]} r={4} fill={points["color"]} opacity={showToolTip ? 1 : 0} />
+                                <circle key={index} cx={points["x"]} cy={points["y"]} r={4} fill={points["color"]} opacity={showToolTip ? 1 : 0} />
                             ))}
                         </g>
 
@@ -246,7 +239,7 @@ export const LineChart = ({ Width, Height, Plot, Data }: LineChartProps) => {
                             )}
                         </g>
                     </svg>
-                    <div ref={divRef} style={{ opacity: showToolTip ? 1 : 0 }} className='tool-tip'></div>
+                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip fade show popover bs-popover-end'></div>
                 </>
                 :
                 <>

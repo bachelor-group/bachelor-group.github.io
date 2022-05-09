@@ -1,4 +1,4 @@
-import { axisBottom, axisLeft, extent, scaleBand, scaleLinear, scaleOrdinal, select } from 'd3';
+import { axisBottom, axisLeft, extent, scaleBand, scaleLinear, select } from 'd3';
 import { useEffect, useMemo, useRef } from 'react';
 import { DataType } from '../DataContext/MasterDataType';
 import { Plot } from './PlotType';
@@ -18,7 +18,8 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
     YAxis = YAxis.slice(0, 10)
     const boundsWidth = Width - MARGIN.right - MARGIN.left - 0.5 * MARGIN.left;
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
-    const Data = Plot.Data;
+    const Data = Plot.MapData;
+    const DataAsArray = Array.from(Plot.MapData.values()).flat()
     //TODO Remove
     let HARDCODED_INDEX = 730;
 
@@ -32,10 +33,10 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
 
     // X axis
     let xScale = useMemo(() => {
-        if (Data.length === 0) {
+        if (Data.size === 0) {
             return scaleLinear()
         }
-        const [min, max] = extent(YAxis, (element) => parseFloat(Data[HARDCODED_INDEX][element]!));
+        const [min, max] = extent(YAxis, (element) => parseFloat(DataAsArray[HARDCODED_INDEX][element]!));
         return scaleLinear().domain([0, max!]).range([0, boundsWidth]).nice()
     }, [Data, boundsWidth]);
 
@@ -64,12 +65,13 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
                     height={boundsHeight}
                     transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                 >
-                    {Data.length !== 0 ?
-                        YAxis.map((element) => (
-                            <>
-                                <line stroke='black' strokeWidth={"1px"} x1={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} x2={xScale(0)} y1={yScale(element)} y2={yScale(element)}></line>
-                                <circle stroke='black' fill='#69b3a2' cx={xScale(parseFloat(Data[HARDCODED_INDEX][element]!))} cy={yScale(element)} r={4}></circle>
-                            </>
+                    {Data.size !== 0 ?
+                        YAxis.map((element, index) => (
+                            // added div to <> to allow for key
+                            <div key={index}>
+                                <line stroke='black' strokeWidth={"1px"} x1={xScale(parseFloat(DataAsArray[HARDCODED_INDEX][element]!))} x2={xScale(0)} y1={yScale(element)} y2={yScale(element)}></line>
+                                <circle stroke='black' fill='#69b3a2' cx={xScale(parseFloat(DataAsArray[HARDCODED_INDEX][element]!))} cy={yScale(element)} r={4}></circle>
+                            </div>
                         ))
                         :
                         <h2>Loading...</h2>}

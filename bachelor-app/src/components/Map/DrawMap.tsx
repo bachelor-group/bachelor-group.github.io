@@ -5,7 +5,7 @@ import { zoom, zoomIdentity } from 'd3-zoom';
 import { geoIdentity, geoPath } from 'd3-geo'
 import { interpolateOrRd } from "d3-scale-chromatic"
 import { DataType } from '../DataContext/MasterDataType';
-import Translater from './helpers';
+import Translator from './helpers';
 import { MapToolTip } from './ToolTip';
 
 interface DrawMapProps {
@@ -26,7 +26,7 @@ const MARGIN = { left: 0, right: 0, top: 0, bottom: 0 }
 export type FeatureData = { data: DataType, feature: Feature }
 
 export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypeProperty, Data, CurDate, adminLvl, height, width, scalePer100K = false }: DrawMapProps) => {
-    const translater = new Translater(adminLvl);
+    const translator = new Translator(adminLvl);
 
     //Refs
     const toolTipdivRef = useRef(null);
@@ -36,7 +36,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     const dateTextRef = useRef(null);
 
     // ToolTip
-    const Tooltip = new MapToolTip({ width, translater, DataTypeProperty, divRef: toolTipdivRef, scalePer100K });
+    const Tooltip = new MapToolTip({ width, translator: translator, DataTypeProperty, divRef: toolTipdivRef, scalePer100K });
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -75,7 +75,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         }
         return geoPath()
 
-    }, [curGeoJson])
+    }, [curGeoJson, width, height])
 
     useEffect(() => {
         const svg = select<SVGSVGElement, unknown>("svg#map");
@@ -121,7 +121,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width])
 
     useEffect(() => {
         // setDataTypeProp(DataTypeProperty)
@@ -140,15 +140,15 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
                 // Find if innerData for country is shown
                 for (let index in selectedInnerFeatures) {
-                    let key = translater.countryCode(selectedInnerFeatures[index], 1)
-                    if (key === translater.countryCode(feature, 0)) {
+                    let key = translator.countryCode(selectedInnerFeatures[index], 1)
+                    if (key === translator.countryCode(feature, 0)) {
                         innerDataLoaded = true;
                         break;
                     }
                 }
 
                 if (!innerDataLoaded) {
-                    let DataArray: DataType[] | undefined = data.get(translater.locationCode(feature))
+                    let DataArray: DataType[] | undefined = data.get(translator.locationCode(feature))
                     if (DataArray !== undefined) {
                         for (let i = 0; i < DataArray.length; i++) {
                             dataElement = DataArray[i];
@@ -166,12 +166,13 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 }
             }
 
-            let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translater.locationCode(d.feature));
+            let features = select(pathRef.current).selectAll<SVGSVGElement, FeatureData>("path").data(currentData, d => translator.locationCode(d.feature));
             features.select("*").remove();
 
             features
                 .enter()
                 .append("path")
+                .on("click", (e, data) => clicked(e, data))
                 .attr("d", d => path(d.feature))
                 .attr("style", (d, i) => {
                     let color: string;
@@ -188,6 +189,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 .on("click", (e, data) => clicked(e, data));
 
             features
+                .attr("d", d => path(d.feature))
                 .on("mousemove", (e, data) => { Tooltip.updateTooltipdiv(e, data, true) })
                 .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, data, false) })
                 .on("click", (e, data) => clicked(e, data))
@@ -249,8 +251,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             for (let j = 0; j < InnerGeoJson.features.length; j++) {
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
-                if (translater.countryCode(feature, 1) === d.data.location_key) {
-                    locations.push(translater.locationCode(feature, 1))
+                if (translator.countryCode(feature, 1) === d.data.location_key) {
+                    locations.push(translator.locationCode(feature, 1))
                     innerFeatures.push(feature);
                 }
             }
@@ -287,16 +289,18 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         setInnerData(Data);
         setSelectedInnerFeatures(innerFeatures);
     }
+    
+
     function DrawInnerFeatures() {
         // Drawing innerFeatures
-        let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translater.locationCode(d, 1));
+        let innerFeaturesSelect = select(innerPathRef.current).selectAll<SVGSVGElement, Feature>("path").data(selectedInnerFeatures, d => translator.locationCode(d, 1));
 
         innerFeaturesSelect
             .enter()
             .append("path")
             .attr("d", d => path(d))
             .attr("style", (d, i) => {
-                let data = innerData.get(translater.locationCode(d, 1));
+                let data = innerData.get(translator.locationCode(d, 1));
                 if (data) {
                     let date = findIndexToDate(data);
                     let color: string;
@@ -318,13 +322,13 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translater.locationCode(featureData, 1))![findIndexToDate(data.get(translater.locationCode(featureData)))], feature: featureData }, true) });
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(data.get(translator.locationCode(featureData)))], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(data.get(translator.locationCode(featureData)))], feature: featureData }, true) });
 
         // Update
         innerFeaturesSelect
             .attr("style", (d, i) => {
-                let data = innerData.get(translater.locationCode(d, 1));
+                let data = innerData.get(translator.locationCode(d, 1));
                 if (data) {
                     let date = findIndexToDate(data);
                     let color: string;

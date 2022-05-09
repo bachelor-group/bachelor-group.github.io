@@ -11,16 +11,16 @@ import { SearchTrendsList } from "../SearchTrends/Old_script";
 
 
 interface PlotsProps {
-    Plots: Plot[]
+    Plots: Plot[],
+    Colors: string[]
 }
 
-export const PlotsContainer = ({ Plots }: PlotsProps) => {
-    //TODO check if temp really is needed here
+export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
     const [temp, setTemp] = useState(Plots)
 
-    //Used to make the container Rerender
+    // Used to make the container Rerender
     useEffect(() => {
-        setTemp(Plots);
+        setTemp(Plots)
     }, [Plots])
 
     return (
@@ -29,19 +29,19 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                 Plots.map((Plot, index) => {
                     switch (Plot.PlotType) {
                         case PlotType.Scatter:
-                            return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                            return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
                         case PlotType.WorldCloud:
                             return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                         case PlotType.LineChart:
-                            return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Data={Plot.Data} />
+                            return <LineChart key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
                         case PlotType.Lollipop:
                             return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                         case PlotType.BarRace:
-                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} MapData={Plot.MapData} />
 
                         default:
                             throw `Plottype: ${Plot.PlotType} not supported`
@@ -50,8 +50,6 @@ export const PlotsContainer = ({ Plots }: PlotsProps) => {
                 :
                 <>
                     <h3>We want to have plots here, but have yet to define plots.</h3>
-                    <p>While we wait for plots to become a thing, have a cat!</p>
-                    <img src="https://blues-dance.com/wp-content/uploads/2021/07/33326dcddbf15c56d631e374b62338dc.jpg" width={200} />
                 </>
             }
         </>

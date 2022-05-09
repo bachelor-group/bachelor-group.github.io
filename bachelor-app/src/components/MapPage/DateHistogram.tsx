@@ -1,17 +1,19 @@
 import { scaleLinear, scaleTime, extent, bin, sum, select, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
 import { useRef, useEffect, useMemo, useState, MouseEvent } from 'react';
+import { DataType } from '../DataContext/MasterDataType';
 import Marks from './Marks';
 
 
-export type EpidemiologyMinimum = {
+export type HistogramData = {
     date: string,
     total_confirmed: number
 }
 
 interface HistogramProps {
-    Data: EpidemiologyMinimum[],
+    Data: HistogramData[],
     width: number,
     height: number,
+    DataTypeProperty: keyof DataType,
     selectedDate: (date: string) => void,
     curDate: string,
 }
@@ -23,11 +25,10 @@ export interface binData {
 }
 
 const margin = { top: 40, right: 50, bottom: 40, left: 50 };
-const yValue = (d: EpidemiologyMinimum) => d.total_confirmed;
-const yAxisLabel = "Total New Cases";
+const yValue = (d: HistogramData) => d.total_confirmed;
 let parseTime = timeParse("%Y-%m-%d")
 
-export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: HistogramProps) => {
+export const DateHistogram = ({ Data, width, height, selectedDate, curDate, DataTypeProperty }: HistogramProps) => {
 
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
@@ -35,6 +36,8 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
     const [dots, setdots] = useState<number[][]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
     const [Tooltipx, setTooltipx] = useState(50);
+    const yAxisLabel = "Global " + DataTypeProperty.replaceAll("_", " ");
+
 
     // xScale
     const xScale = useMemo(() => {
@@ -46,7 +49,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
     const yScale = useMemo(() => {
         const [min, max] = extent(Data, yValue);
         return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
-    }, [Data])
+    }, [Data, innerHeight])
 
 
     const binnedData = useMemo(() => {
@@ -58,7 +61,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
             }]
         }
         const [start, stop] = xScale.domain();
-        const bar = bin<EpidemiologyMinimum, Date>()
+        const bar = bin<HistogramData, Date>()
             .value((d) => parseTime(d.date)!)
             .domain([start, stop])
             .thresholds(timeDays(start, stop))(Data)
@@ -89,7 +92,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
         const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-innerWidth);;
 
         svgElement.append("g").call(yAxisGenerator);
-    }, [xScale, yScale, innerHeight]);
+    }, [xScale, yScale, innerHeight, innerWidth]);
 
 
     function clickedDate(event: MouseEvent<SVGRectElement, globalThis.MouseEvent>) {
@@ -104,7 +107,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
         updateLine(xPos, true)
     }
 
-    function updateLine(xPos: number, hover=false) {
+    function updateLine(xPos: number, hover = false) {
         let data = []
         let containerClass = ".cursor"
         let fill = "red"
@@ -145,10 +148,10 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
 
         line.exit().remove()
 
-        if (hover){
+        if (hover) {
             // Circle
             let circle = tooltipContainer.selectAll("circle").data(data)
-    
+
             circle.enter()
                 .append("circle")
                 .attr("cx", xPos)
@@ -156,23 +159,24 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
                 .attr("r", 4)
                 .attr("fill", "black")
                 .attr("opacity", d => showToolTip ? 1 : 0)
-    
+
             circle
                 .attr("cx", xPos)
                 .attr("cy", d => yScale(yValue(d)!))
                 .attr("r", 4)
                 .attr("fill", "black")
                 .attr("opacity", d => showToolTip ? 1 : 0)
-    
+
             circle.exit().remove()
         }
     }
 
     useEffect(() => {
-        if (Data.length != 0){
+        if (Data.length != 0) {
             updateLine(xScale(parseTime(curDate)!))
         }
-    }, [curDate, Data]) 
+    }, [curDate, Data, width, height])
+
 
     return (
         <>
@@ -223,3 +227,22 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate }: Hi
         </>
     );
 };
+
+
+export function calculateHistData(data: DataType[], datatype: keyof DataType) {
+    var HistogramData = new Map<string, number>()
+    data.forEach(d => {
+        if (HistogramData.has(d.date!)) {
+            if (!isNaN(parseInt(d[datatype]!))) {
+                HistogramData.set(d.date!, HistogramData.get(d.date!)! + parseInt(d[datatype]!))
+            }
+
+        } else {
+            if (!isNaN(parseInt(d[datatype]!))) {
+                HistogramData.set(d.date!, parseInt(d[datatype]!))
+            }
+        }
+    })
+    return Array.from(HistogramData, ([date, total_confirmed]) => ({ date, total_confirmed }))
+
+}

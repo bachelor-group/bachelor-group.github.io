@@ -1,83 +1,97 @@
 import { useEffect, useState } from 'react';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
+import { TagExtended } from '../CountrySelector/SelectCountry';
 import { DataType } from '../DataContext/MasterDataType';
-import { SearchTrendsEnum } from '../DataContext/SearchTrendType';
 import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
 import { Plot, PlotType } from '../Graphs/PlotType';
-import { LoadData as _LoadData } from '../DataContext/LoadData';
 import { SearchTrendsList } from './Old_script';
-import SearchTrendsData from './SearchTrendsData';
 import { Col, ProgressBar, Row } from 'react-bootstrap';
 import BarRace from '../Graphs/BarRace';
+import { hasKey } from '../DataContext/DataTypes';
 
 interface Props {
-    LoadData?: typeof _LoadData
+    MapData: Map<string, DataType[]>,
+    SelectedCountries: TagExtended[],
+    WindowDimensions: { width: number, height: number },
 }
 
+const HARDCODED = SearchTrendsList;
+const LOCATION_KEYS_SEARCH_TRENDS = ["AU", "US", "GB", "SG", "IE", "NZ"];
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
+const SEARCH_TRENDS = [
+    "infection", "common_cold",
+    "fever", "pain",
+    "anosmia", "shortness_of_breath",
+    "cough", "asthma",
+    "anxiety", "depression",
+    "fatigue", "dizziness"
+]
 
-const HARDCODED = SearchTrendsList
+let Graphs = SEARCH_TRENDS.map((st) => {
 
+    let searchTrend: keyof DataType = "search_trends_" + st as keyof DataType
 
-function SearchTrends({ LoadData = _LoadData }: Props) {
-    const [Data, setData] = useState<DataType[]>([])
-    const [Countries, setCountries] = useState<TagExtended[]>([]);
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
+    let plot: Plot = { PlotType: PlotType.LineChart, MapData: new Map<string, DataType[]>(), Axis: ["date", searchTrend], Height: window.innerWidth * 0.20, Width: window.innerWidth * 0.4, Title: `Search Trend ${st.replaceAll("_", " ")}` }
+    return plot
+})
+
+function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
     const [Plots, setPlots] = useState<Plot[]>(
         [
-            { PlotType: PlotType.BarRace, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}` },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            { PlotType: PlotType.LineChart, Data: [], Axis: ["date", "search_trends_infection"], Height: window.innerWidth * 0.15, Width: window.innerWidth * 0.3, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: "location_key" },
-            // { PlotType: PlotType.Lollipop, Data: [], Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends for AU in 2021-12-31` },
+            { PlotType: PlotType.BarRace, MapData: MapData, Axis: HARDCODED, Height: 600, Width: window.innerWidth * 0.8, Title: `Search Trends in ${SelectedCountries[0].name}` },
+            ...Graphs
         ]);
 
-    //let Data = LoadData().then((d) => setData)
+    function SelectedCountrySearchTrendsDataExists(): string[] {
+        if (SelectedCountries.length === 0) {
+            return ["Please select a location"]
+        }
 
-    // Update Data if new Data is requested
-    useEffect(() => {
-        LoadData(Countries, LoadedCountries, Data).then((d) => {
-            setData(d);
-
-            setLoadedCountries(JSON.parse(JSON.stringify(Countries)));
-        })
-    }, [Countries]);
+        // At least one country has search trends
+        for (let country of SelectedCountries) {
+            let countryCode = country.location_key.split("_")[0]
+            if (LOCATION_KEYS_SEARCH_TRENDS.includes(countryCode)) {
+                return []
+            }
+        }
+        return [`None of the selected locations have search trend data`]
+    }
 
     //Handle new Data
     useEffect(() => {
         let newPlots: Plot[] = new Array(Plots.length);
         Plots.forEach((Plot, i) => {
+            let title = Plot.Title;
+            let width = WindowDimensions.width * 0.48
+            let height = WindowDimensions.height * 0.6
 
-            let xAxis = Plot.Axis[0];
-            let yAxis = Plot.Axis[1];
-            let newPlot: Plot;
-            let PlotData: DataType[] = []
+            if (WindowDimensions.width < 750) width = WindowDimensions.width;
+            if (WindowDimensions.width > 1500) width = WindowDimensions.width * 0.3;
 
-            for (let j = 0; j < Data.length; j++) {
-                if (Plot.GroupBy !== undefined) {
-                    PlotData.push({ [xAxis]: Data[j][xAxis], [yAxis]: Data[j][yAxis], [Plot.GroupBy]: Data[j][Plot.GroupBy] })
-                } else {
-                    PlotData.push(Data[j])
-                }
+            if (Plot.PlotType === PlotType.BarRace) {
+                title = `Search Trends in ${SelectedCountries[0].name}`;
+                height = 600;
+                width = WindowDimensions.width;
             }
 
-            newPlot = { PlotType: Plot.PlotType, Data: PlotData, Axis: Plot.Axis, Height: Plot.Height, Width: Plot.Width, Title: `Search Trends in ${Countries[0] !== undefined ? Countries[0].name : "US"}`, GroupBy: Plot.GroupBy };
+            let newPlot: Plot = {
+                PlotType: Plot.PlotType,
+                MapData: MapData,
+                Axis: Plot.Axis,
+                Height: height,
+                Width: width,
+                Title: title
+            };
             newPlots[i] = newPlot;
         })
         setPlots(newPlots);
-    }, [Data]);
+    }, [MapData, WindowDimensions]);
 
-    const selectedCountries = (countries: TagExtended[]) => {
-        setCountries(countries)
-    }
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} LoadCountries={SearchTrendsData} />
             <div id="main">
                 {
-                    Data.length === 0 ?
+                    MapData.size === 0 ?
                         <Row md="auto" className="align-items-center">
                             <Col style={{ width: "500px" }}>
                                 <ProgressBar animated now={100} />
@@ -85,18 +99,24 @@ function SearchTrends({ LoadData = _LoadData }: Props) {
                         </Row>
                         :
                         <>
-                            {Data[0].location_key !== "NO" ?
+                            {SelectedCountrySearchTrendsDataExists().length === 0 ?
                                 <>
-                                    <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} />
+                                    {
+                                        MapData.size !== 1 ? <i className='note' style={{ margin: "20px 0px 20px 0px" }}>Select only one location to see a bar race visualization.</i>
+                                            :
+                                            <>
+                                                <BarRace key={0} Width={Plots[0].Width} Height={Plots[0].Height} Plot={Plots[0]} MapData={MapData} />
+                                                {SelectedCountries[0].location_key === "US" || SelectedCountries[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${SelectedCountries[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
+                                            </>
+                                    }
+
+
                                     <div style={{ display: 'flex', flexDirection: "row", flexWrap: "wrap", justifyContent: "space-evenly" }}>
-                                        < PlotsContainer Plots={Plots.slice(1)} />
+                                        < PlotsContainer Plots={Plots.slice(1)} Colors={COLORS} />
                                     </div>
-
-                                    {Data[0].location_key === "US" || Data[0].location_key === "AU" ? <a href={`#/SearchTrendsMap/${Data[0].location_key}`} className='trends-map-link'>Search Trends Map</a> : <></>}
-
                                 </>
                                 :
-                                <></>
+                                <h2>{SelectedCountrySearchTrendsDataExists()[0]}</h2>
                             }
                         </>
                 }

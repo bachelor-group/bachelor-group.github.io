@@ -10,6 +10,7 @@ import { DataType } from '../DataContext/MasterDataType';
 import { hasKey } from '../DataContext/DataTypes';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { MapComponent } from '../Map/Map';
+import Animator from '../Map/Animator';
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 type SearchTrendsMap = {
@@ -28,11 +29,25 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
     const country = useParams<string>()
 
     //Data
-    const [data, setData] = useState<DataType[]>([]);
+    const [mapData, setData] = useState<Map<string, DataType[]>>(new Map());
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     const [startDate, setStartDate] = useState('2020-01-01');
+    const [maxDate, setMaxDate] = useState('2020-01-01');
+    const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+    //get window size
+    useEffect(() => {
+        window.addEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+        return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth, height: window.innerHeight }));
+
+    }, []);
+
+    useEffect(() => {
+        let newMaxDate = findMaxDate();
+        setMaxDate(newMaxDate);
+    }, [mapData])
 
     function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
         //@ts-ignore
@@ -50,12 +65,28 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
         // }
     }
 
+    function setMapData(data: Map<string, DataType[]>) {
+        setData(data)
+    }
+
+    function findMaxDate(): string {
+        let max = "2020-01-01"
+        let dataList: DataType[] = Array.from(mapData.values()).flat()
+        for (let i = 0; i < dataList.length; i++) {
+            let element = dataList[i]["date"]!;
+            if (element > max) {
+                max = element
+            }
+        }
+        return max;
+    }
+
     function handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (event.target.value < MINDATE) {
             setStartDate(MINDATE);
         }
-        else if (event.target.value > MAXDATE) {
-            setStartDate(MAXDATE);
+        else if (event.target.value > maxDate) {
+            setStartDate(maxDate);
         }
         else {
             setStartDate(event.target.value);
@@ -75,20 +106,21 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
                 </Form.Select>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <label htmlFor="startDate">Start Date:</label>
-                    <input type="date" name="startDate" id="" min={MINDATE} max={MAXDATE} value={startDate}
+                    <input type="date" name="startDate" id="" min={MINDATE} max={maxDate} value={startDate}
                         onChange={(e) => handleDateChange(e)} />
                 </div>
                 {/* {data.length === 0 ? <ProgressBar animated now={100} /> : <></>} */}
             </div>
 
-            <div style={{ position: "relative" }} className='plot-container'>
-                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} Date={startDate} height={500} width={800} LoadData={_LoadData} />
+            <div style={{position: "relative", marginTop: 15}}>
+                <Animator CurDate={startDate} setDate={setStartDate} />
+                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} data={mapData} Date={startDate} height={windowDimensions.height*0.7} width={0.7*windowDimensions.width} LoadData={_LoadData} loadedData={setMapData} />
             </div>
         </div>
     );
 }
 
-const _LoadData = (locations: string[]) => {
+const _LoadData = (datatype: keyof DataType="new_confirmed", locations: string[]=[]) => {
     return new Promise<Map<string, DataType[]>>((resolve) => {
         let newData: Map<string, DataType[]> = new Map();
         let loaded_location = 0

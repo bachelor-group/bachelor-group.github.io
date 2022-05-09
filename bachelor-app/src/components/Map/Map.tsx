@@ -7,12 +7,14 @@ import { ProgressBar } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
 import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DrawMap } from './DrawMap';
-import Translater from './helpers';
+import Translator from './helpers';
+import LoadDataAsMap from '../DataContext/LoadData';
 
 
 // import MapData from '../../geojson/admin_1_topojson.json'
 type MapProps = {
     adminLvl: 0 | 1 | 2,
+    data: Map<string, DataType[]>,
     innerData?: boolean,
     country?: string,
     Date: string,
@@ -20,7 +22,7 @@ type MapProps = {
     height: number,
     width: number,
     scalePer100k?: boolean,
-    loadedData?: (Data: DataType[]) => void
+    loadedData: (Data: Map<string, DataType[]>) => void
     LoadData?: typeof _LoadSmallData,
 }
 
@@ -31,11 +33,11 @@ const MINDATE = "2020-01-01"
 const MAXDATE = "2025-01-01"
 
 
-export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
-    const translater = new Translater(adminLvl);
+export const MapComponent = ({ adminLvl, data, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
+    const translator = new Translator(adminLvl);
 
     //Data
-    const [data, setData] = useState<Map<string, DataType[]>>(new Map());
+    // const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [innerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>();
@@ -82,7 +84,7 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
 
                 for (let i = 0; i < worldData.features.length; i++) {
                     let Feature = worldData.features[i];
-                    if (translater.countryCode(Feature).toLowerCase() === country.toLowerCase()) {
+                    if (translator.countryCode(Feature).toLowerCase() === country.toLowerCase()) {
                         filteredFeatures.push(Feature)
                     }
                 }
@@ -101,18 +103,15 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
             let locations: string[] = []
             for (let i = 0; i < curGeoJson.features.length; i++) {
                 const element = curGeoJson.features[i];
-                locations.push(translater.locationCode(element))
+                locations.push(translator.locationCode(element))
             }
-            LoadData(locations).then(d => {
-                setData(d)
-                // if (loadedData) {
-                //     // loadedData(d)
-                // }
+            LoadData(DataTypeProperty, locations).then(d => {
+                loadedData(d)
             })
         } else {
-            setData(new Map());
+            loadedData(new Map());
         }
-    }, [curGeoJson])
+    }, [curGeoJson, DataTypeProperty])
 
     return (
         <>
@@ -125,29 +124,33 @@ export const MapComponent = ({ adminLvl, innerData = false, country, Date, DataT
     );
 }
 
-const _LoadSmallData = (locations: string[]) => {
+
+const _LoadSmallData = (datatype: keyof DataType = "new_confirmed", locations: string[] = []) => {
     let temp: Map<string, DataType[]> = new Map();
-    return new Promise<Map<string, DataType[]>>((resolve) => {
-        // csv("https://storage.googleapis.com/covid-data-minimized/cases.csv").then(d => {
-        csv("cases.csv").then(d => {
+    if (datatype === "new_confirmed" || datatype === "new_deceased") {
+        return new Promise<Map<string, DataType[]>>((resolve) => {
+            csv("https://storage.googleapis.com/covid-data-minimized/" + datatype + ".csv").then(d => {
 
-            for (let i = 0; i < d.length; i++) {
-                const element = d[i];
+                for (let i = 0; i < d.length; i++) {
+                    const element = d[i];
 
-                if (temp.has(element["location_key"]!)) {
-                    let list = temp.get(element["location_key"]!)!;
-                    list.push(element)
-                    temp.set(element["location_key"]!, list)
+                    if (temp.has(element["location_key"]!)) {
+                        let list = temp.get(element["location_key"]!)!;
+                        list.push(element)
+                        temp.set(element["location_key"]!, list)
+                    }
+                    else {
+                        temp.set(element["location_key"]!, [element])
+                    }
                 }
-                else {
-                    temp.set(element["location_key"]!, [element])
-                }
-            }
-
-            resolve(temp)
+                resolve(temp)
+            })
         })
 
-    });
+    } else {
+        return LoadDataAsMap(locations, new Map())
+
+    };
 }
 
 export default MapComponent;

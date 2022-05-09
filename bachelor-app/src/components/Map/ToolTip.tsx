@@ -3,11 +3,11 @@ import { select } from "d3-selection";
 import { memo, useRef, useState } from "react";
 import { DataType } from "../DataContext/MasterDataType";
 import { FeatureData } from "./DrawMap"
-import Translater from "./helpers";
+import Translator from "./helpers";
 
 interface MapToolTipProps {
     width: number,
-    translater: Translater
+    translator: Translator
     DataTypeProperty: keyof DataType
     divRef: React.MutableRefObject<null>
     scalePer100K: boolean
@@ -18,15 +18,15 @@ interface IMapToolTip {
 }
 
 export class MapToolTip implements IMapToolTip {
-    _translater: Translater;
+    _translator: Translator;
     width: number;
     DataTypeProperty: keyof DataType;
     divRef: React.MutableRefObject<null>
     scalePer100K: boolean
 
-    constructor({ width, translater, DataTypeProperty, divRef, scalePer100K }: MapToolTipProps) {
+    constructor({ width, translator: translator, DataTypeProperty, divRef, scalePer100K }: MapToolTipProps) {
         this.divRef = divRef;
-        this._translater = translater;
+        this._translator = translator;
         this.width = width;
         this.DataTypeProperty = DataTypeProperty;
         this.scalePer100K = scalePer100K;
@@ -53,7 +53,7 @@ export class MapToolTip implements IMapToolTip {
         // Select elements and data
         let toolTipDiv = select(this.divRef.current)
             .selectAll<SVGSVGElement, typeof data>("div")
-            .data([data], d => this._translater.name(d.feature, adminLvl));
+            .data([data], d => this._translator.name(d.feature, adminLvl));
 
         // Append main div
         let toolTipDivEnterSelection = toolTipDiv.enter().append("div")
@@ -68,7 +68,7 @@ export class MapToolTip implements IMapToolTip {
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${this._translater.name(d.feature, adminLvl)} `);
+            .text(d => `${this._translator.name(d.feature, adminLvl)} `);
 
         toolTipDivEnterSelection
             .append("div")
@@ -107,7 +107,7 @@ export class MapToolTip implements IMapToolTip {
         toolTipDivTransitionSelection
             .append("div")
             .attr("class", "popover-header")
-            .text(d => `${this._translater.name(d.feature, adminLvl)} `);
+            .text(d => `${this._translator.name(d.feature, adminLvl)} `);
 
         toolTipDivTransitionSelection
             .append("div")
