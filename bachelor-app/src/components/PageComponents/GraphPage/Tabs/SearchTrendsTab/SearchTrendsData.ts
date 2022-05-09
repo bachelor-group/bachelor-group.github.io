@@ -1,4 +1,4 @@
-import { TagExtended } from "../CountrySelector/SelectCountry";
+import { TagExtended } from "../../../../CountrySelector/SelectCountry";
 
 
 export const SearchTrendsData = () => {

@@ -1,11 +1,11 @@
 import { csv } from 'd3';
 import { useEffect, useMemo, useState } from 'react'
 import { calculateHistData, DateHistogram, HistogramData } from './DateHistogram';
-import { DataType } from '../DataContext/MasterDataType';
-import { MapComponent } from '../Map/Map';
-import SidebarC from '../Sidebar';
-import { Animator as _animator } from '../Map/Animator';
-import { DataFilter } from '../Sidebar'
+import { DataType } from '../../DataContext/MasterDataType';
+import { MapComponent } from '../../Map/Map';
+import SidebarC from '../../Sidebar';
+import { Animator as _animator } from '../../Map/Animator';
+import { DataFilter } from '../../Sidebar'
 
 const dateHistogramSize: number = 0.2;
 

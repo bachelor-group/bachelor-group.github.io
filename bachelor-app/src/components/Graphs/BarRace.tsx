@@ -2,7 +2,7 @@ import { axisTop, descending, easeLinear, format, hsl, HSLColor, interpolate, in
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
+import { SearchTrendsList } from '../DataContext/Old_script';
 import { Plot } from './PlotType';
 
 interface BarRaceProps {

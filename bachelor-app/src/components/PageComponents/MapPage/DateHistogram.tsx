@@ -1,6 +1,6 @@
 import { scaleLinear, scaleTime, extent, bin, sum, select, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
 import { useRef, useEffect, useMemo, useState, MouseEvent } from 'react';
-import { DataType } from '../DataContext/MasterDataType';
+import { DataType } from '../../DataContext/MasterDataType';
 import Marks from './Marks';
 
 

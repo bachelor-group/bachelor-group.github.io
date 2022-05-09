@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { csv } from "d3";
 import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadDataAsMap as _LoadDataAsMap } from '../DataContext/LoadData';
-import { DataType } from '../DataContext/MasterDataType';
-import Epidemiology from '../EpidemiologyContext/Epidemiology';
-import SearchTrends from '../SearchTrends/SearchTrends';
-import Vaccinations from '../Vaccinations/Vaccinations';
-import CustomGraphs from './CustomGraphs';
+import SelectCountry, { TagExtended } from '../../CountrySelector/SelectCountry';
+import { LoadDataAsMap as _LoadDataAsMap } from '../../DataContext/LoadData';
+import { DataType } from '../../DataContext/MasterDataType';
+import Epidemiology from './Tabs/EpidemiologyTab/Epidemiology';
+import SearchTrends from './Tabs/SearchTrendsTab/SearchTrends';
+import Vaccinations from './Tabs/VaccinationsTab/Vaccinations';
+import CustomGraphs from './Tabs/CustomGraphsTab/CustomGraphs';
 import { Tag } from 'react-tag-autocomplete';
 
 

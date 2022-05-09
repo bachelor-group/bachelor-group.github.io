@@ -5,14 +5,12 @@ import { Topology } from 'topojson-specification'
 import { GeoJsonProperties, Feature } from "geojson";
 import { ProgressBar } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
+import { SearchTrendsList } from '../DataContext/Old_script';
 import { DrawMap } from './DrawMap';
 import Translator from './helpers';
 import LoadDataAsMap from '../DataContext/LoadData';
 
-
-// import MapData from '../../geojson/admin_1_topojson.json'
-type MapProps = {
+interface MapProps {
     adminLvl: 0 | 1 | 2,
     data: Map<string, DataType[]>,
     innerData?: boolean,
