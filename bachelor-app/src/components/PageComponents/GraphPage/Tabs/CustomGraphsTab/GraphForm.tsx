@@ -21,13 +21,10 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
 
     useEffect(() => {
         let xAxis = customPlotXaxis;
-        let groupBy: keyof DataType | undefined = undefined;
 
         if (customPlotType === PlotType.LineChart) {
             xAxis = "date"
-            groupBy = "location_key"
         }
-
 
         let curPlot: Plot = {
             PlotType: customPlotType,
@@ -54,7 +51,6 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
         <fieldset>
             <Form.Group className="mb-3">
                 <Form.Label htmlFor="plottypeSelect">Choose plot type: </Form.Label>
-                {/* <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotType(e.target.value))}> */}
                 <Form.Control id="plottypeSelect" as="select" onChange={e => {
 
                     setCustomPlotType(Number(e.target.value))

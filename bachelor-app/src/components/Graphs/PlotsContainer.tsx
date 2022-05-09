@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
-import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 import BarRace from "./BarRace";
 import LineChart from "./LineChart";
 import Lollipop from "./Lollipop";

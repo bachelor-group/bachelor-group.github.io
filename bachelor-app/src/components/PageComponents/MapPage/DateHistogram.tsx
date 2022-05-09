@@ -1,4 +1,4 @@
-import { scaleLinear, scaleTime, extent, bin, sum, select, timeParse, timeDays, axisLeft, axisBottom } from 'd3';
+import { scaleLinear, scaleTime, extent, bin, sum, select, timeParse, timeDays, axisLeft, axisBottom, max } from 'd3';
 import { useRef, useEffect, useMemo, useState, MouseEvent } from 'react';
 import { DataType } from '../../DataContext/MasterDataType';
 import Marks from './Marks';
@@ -33,9 +33,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
     const innerHeight = height - margin.top - margin.bottom;
     const innerWidth = width - margin.left - margin.right;
     const axesRef = useRef(null)
-    const [dots, setdots] = useState<number[][]>([]);
     const [showToolTip, setShowTooltip] = useState(false);
-    const [Tooltipx, setTooltipx] = useState(50);
     const yAxisLabel = "Global " + DataTypeProperty.replaceAll("_", " ");
 
 
@@ -47,8 +45,8 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
 
     // yScale
     const yScale = useMemo(() => {
-        const [min, max] = extent(Data, yValue);
-        return scaleLinear().domain([0, max!]).range([innerHeight, 0]).nice()
+        const maxValue = max(Data, yValue);
+        return scaleLinear().domain([0, maxValue!]).range([innerHeight, 0]).nice()
     }, [Data, innerHeight])
 
 
@@ -78,7 +76,7 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
 
     // Axis
     useEffect(() => {
-        if (yScale == null || xScale == null || innerHeight == null) {
+        if (yScale === null || xScale === null || innerHeight === null) {
             return
         }
         const svgElement = select(axesRef.current);
@@ -117,10 +115,10 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
             fill = "black"
         }
 
-        if (xPos != -1) {
+        if (xPos !== -1) {
             let date = xScale.invert(xPos).toISOString().split("T")[0]
             let id = Data.findIndex((d) => d["date"] === date);
-            if (id != -1) data.push(Data[id])
+            if (id !== -1) data.push(Data[id])
         }
 
 
@@ -165,14 +163,14 @@ export const DateHistogram = ({ Data, width, height, selectedDate, curDate, Data
                 .attr("cy", d => yScale(yValue(d)!))
                 .attr("r", 4)
                 .attr("fill", "black")
-                .attr("opacity", d => showToolTip ? 1 : 0)
+                .attr("opacity", () => showToolTip ? 1 : 0)
 
             circle.exit().remove()
         }
     }
 
     useEffect(() => {
-        if (Data.length != 0) {
+        if (Data.length !== 0) {
             updateLine(xScale(parseTime(curDate)!))
         }
     }, [curDate, Data, width, height])

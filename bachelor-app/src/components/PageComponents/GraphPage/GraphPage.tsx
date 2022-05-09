@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
 import { csv } from "d3";
+import { useEffect, useState } from 'react';
 import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
+import { Tag } from 'react-tag-autocomplete';
 import SelectCountry, { TagExtended } from '../../CountrySelector/SelectCountry';
 import { LoadDataAsMap as _LoadDataAsMap } from '../../DataContext/LoadData';
 import { DataType } from '../../DataContext/MasterDataType';
+import CustomGraphs from './Tabs/CustomGraphsTab/CustomGraphs';
 import Epidemiology from './Tabs/EpidemiologyTab/Epidemiology';
 import SearchTrends from './Tabs/SearchTrendsTab/SearchTrends';
 import Vaccinations from './Tabs/VaccinationsTab/Vaccinations';
-import CustomGraphs from './Tabs/CustomGraphsTab/CustomGraphs';
-import { Tag } from 'react-tag-autocomplete';
 
 
 interface Props {
@@ -26,7 +26,6 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
 
     const [mapData, setMapData] = useState<Map<string, DataType[]>>(new Map());
     const [indexMap, setIndexMap] = useState<Map<number, Map<string, IMap>>>(new Map());
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
     const [SelectedLocations, setSelectedLocations] = useState<TagExtended[]>([]);
 
     const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
@@ -45,7 +44,6 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
 
         LoadDataAsMap(locationKeys, mapData).then((d) => {
             setMapData(d);
-            setLoadedCountries(SelectedLocations);
         })
     }, [SelectedLocations]);
 
@@ -54,8 +52,6 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
             setIndexMap(d);
         })
     }, [])
-
-
 
     return (
         <>
@@ -116,7 +112,6 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
 }
 
 
-
 export interface IMap extends Tag {
     id: number,
     locationKey: string,
@@ -126,7 +121,6 @@ export interface IMap extends Tag {
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
-
 export const _LoadIndex = () => {
     return new Promise<Map<number, Map<string, IMap>>>((resolve) => {
         let IndexMap = new Map<number, Map<string, IMap>>();
@@ -161,4 +155,3 @@ export const _LoadIndex = () => {
         });
     })
 }
-
