@@ -29,7 +29,7 @@ export const PlotsContainer = ({ Plots, Colors = COLORS }: PlotsProps) => {
                         case PlotType.Scatter:
                             return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
-                        case PlotType.WorldCloud:
+                        case PlotType.WordCloud:
                             return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                         case PlotType.LineChart:
