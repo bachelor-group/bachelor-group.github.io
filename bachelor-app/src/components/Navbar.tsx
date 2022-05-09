@@ -1,7 +1,5 @@
-import React, { useState } from "react";
-import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import { Container, Nav, Navbar } from "react-bootstrap";
 import { FaGithub } from 'react-icons/fa';
-import { Link } from "react-router-dom";
 
 function NavbarC() {
   return <>

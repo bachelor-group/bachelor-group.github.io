@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-import { DataType } from '../DataContext/MasterDataType';
-import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
-import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
-import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
+import { useEffect, useState } from 'react';
+import { Col, ProgressBar, Row } from 'react-bootstrap';
+import { DataType } from '../../../../DataContext/MasterDataType';
+import { VaccinationEnum } from '../../../../DataContext/VaccinationTypes';
+import PlotsContainer from '../../../../Graphs/PlotsContainer';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
 
 export interface VaccinationProps {
     MapData: Map<string, DataType[]>,

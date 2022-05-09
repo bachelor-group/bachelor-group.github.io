@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
-import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
-import BarRace from "../Graphs/BarRace";
-import LineChart from "../Graphs/LineChart";
-import Lollipop from "../Graphs/Lollipop";
-import { Plot, PlotType } from "../Graphs/PlotType";
-import Scatter from "../Graphs/Scatter";
-import WordCloud from "../Graphs/WordCloud";
-import { SearchTrendsList } from "../SearchTrends/Old_script";
-
+import BarRace from "./BarRace";
+import LineChart from "./LineChart";
+import Lollipop from "./Lollipop";
+import { Plot, PlotType } from "./PlotType";
+import Scatter from "./Scatter";
+import WordCloud from "./WordCloud";
 
 interface PlotsProps {
     Plots: Plot[],
@@ -41,7 +37,7 @@ export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
                             return <Lollipop key={index} Width={Plot.Width} Height={Plot.Height} YAxis={Plot.Axis} Plot={Plot} />
 
                         case PlotType.BarRace:
-                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} />
+                            return <BarRace key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} MapData={Plot.MapData} />
 
                         default:
                             throw `Plottype: ${Plot.PlotType} not supported`

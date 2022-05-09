@@ -1,14 +1,15 @@
-import { Children, useEffect, useState } from 'react'
 import { csv } from "d3";
+import { useEffect, useState } from 'react';
 import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadDataAsMap as _LoadDataAsMap } from '../DataContext/LoadData';
-import { DataType } from '../DataContext/MasterDataType';
-import Epidemiology from '../EpidemiologyContext/Epidemiology';
-import SearchTrends from '../SearchTrends/SearchTrends';
-import Vaccinations from '../Vaccinations/Vaccinations';
-import CustomGraphs from './CustomGraphs';
+import { Tag } from 'react-tag-autocomplete';
+import SelectCountry, { TagExtended } from '../../CountrySelector/SelectCountry';
+import { LoadDataAsMap as _LoadDataAsMap } from '../../DataContext/LoadData';
+import { DataType } from '../../DataContext/MasterDataType';
+import CustomGraphs from './Tabs/CustomGraphsTab/CustomGraphs';
+import Epidemiology from './Tabs/EpidemiologyTab/Epidemiology';
+import SearchTrends from './Tabs/SearchTrendsTab/SearchTrends';
+import Vaccinations from './Tabs/VaccinationsTab/Vaccinations';
 
 
 interface Props {
@@ -19,12 +20,12 @@ interface Props {
 const H_SCALE = 0.45
 const W_SCALE = 0.8
 
+// TODO: currently loading data even if data was loaded previously... (Hide data)
 export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadIndex }: Props) => {
     const [key, setKey] = useState<string>('epidemiology');
 
     const [mapData, setMapData] = useState<Map<string, DataType[]>>(new Map());
-    const [indexMap, setIndexMap] = useState<Map<string, IMap>>(new Map());
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
+    const [indexMap, setIndexMap] = useState<Map<number, Map<string, IMap>>>(new Map());
     const [SelectedLocations, setSelectedLocations] = useState<TagExtended[]>([]);
 
     const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
@@ -43,24 +44,18 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
 
         LoadDataAsMap(locationKeys, mapData).then((d) => {
             setMapData(d);
-            setLoadedCountries(SelectedLocations);
         })
     }, [SelectedLocations]);
 
     useEffect(() => {
         LoadIndex().then((d) => {
             setIndexMap(d);
-
         })
     }, [])
 
-
-
     return (
         <>
-            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={0} AllLocations={indexMap} />
-            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={1} AllLocations={indexMap} />
-            <SelectCountry SelectedRegions={(countries: TagExtended[])=>setSelectedLocations(countries)} SelectedLocations={SelectedLocations} Key={key} ADMINLVL={2} AllLocations={indexMap} />
+            <SelectCountry SelectedRegions={(countries: TagExtended[]) => setSelectedLocations(countries)} Key={key} AllLocations={indexMap} />
 
             <br></br>
 
@@ -99,7 +94,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                                 <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="SearchTrends">
-                                <SearchTrends MapData={mapData} SelectedCountries={SelectedLocations} />
+                                <SearchTrends MapData={mapData} SelectedCountries={SelectedLocations} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="Vaccinations">
                                 <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />
@@ -117,33 +112,41 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
 }
 
 
-
-export interface IMap {
+export interface IMap extends Tag {
+    id: number,
+    locationKey: string,
     children: string[]
     name: string,
 
 }
 
 const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
-
 export const _LoadIndex = () => {
-    return new Promise<Map<string, IMap>>((resolve) => {
-        let IndexMap = new Map<string, IMap>();
+    return new Promise<Map<number, Map<string, IMap>>>((resolve) => {
+        let IndexMap = new Map<number, Map<string, IMap>>();
         csv(url).then(d => {
-            d.forEach((element) => {
-                let keyLength = element.location_key!.split("_").length
+            d.forEach((element, i) => {
+                let adminLvl = element.location_key!.split("_").length - 1;
+
+                //find name
                 let name = element.country_name;
-                if (keyLength !== 1){
-                    name = element[`subregion${keyLength-1}_name`]
+                if (adminLvl !== 0) {
+                    name = element[`subregion${adminLvl}_name`]
                 }
 
-                IndexMap.set(element.location_key!, { children: [], name: name! })
+
+                if (!IndexMap.has(adminLvl)) {
+                    IndexMap.set(adminLvl, new Map())
+                }
+
+                IndexMap.get(adminLvl)!.set(element.location_key!, { id: i, locationKey: element.location_key!, name: name!, children: [] })
 
                 //  find parent element, and add self to children of parent 
                 let parent: string[] = element.location_key!.split("_").slice(0, -1);
                 if (parent.length > 0) {
+                    let parentLvl = adminLvl - 1;
                     let parentKey = parent.join("_");
-                    let parentEntry = IndexMap.get(parentKey)!;
+                    let parentEntry = IndexMap.get(parentLvl)!.get(parentKey)!;
                     parentEntry.children.push(element.location_key!)
                 }
 
@@ -152,4 +155,3 @@ export const _LoadIndex = () => {
         });
     })
 }
-

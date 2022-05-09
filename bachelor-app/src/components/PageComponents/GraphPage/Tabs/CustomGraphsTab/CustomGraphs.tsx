@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
-import { DataType } from '../DataContext/MasterDataType';
-import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
+import { DataType } from '../../../../DataContext/MasterDataType';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
+import PlotsContainer from '../../../../Graphs/PlotsContainer';
 import GraphForm from './GraphForm';
 
 interface Props {
