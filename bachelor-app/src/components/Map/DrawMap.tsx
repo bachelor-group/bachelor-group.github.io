@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, useRef, memo } from 'react'
-import { GeoJsonProperties, Feature } from "geojson";
-import { select, scaleSequential, geoAlbersUsa, max, csv } from 'd3';
+import { csv, geoAlbersUsa, max, scaleSequential, select } from 'd3';
+import { geoIdentity, geoPath } from 'd3-geo';
+import { interpolateOrRd } from "d3-scale-chromatic";
 import { zoom, zoomIdentity } from 'd3-zoom';
-import { geoIdentity, geoPath } from 'd3-geo'
-import { interpolateOrRd } from "d3-scale-chromatic"
+import { Feature, GeoJsonProperties } from "geojson";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataType } from '../DataContext/MasterDataType';
 import Translator from './helpers';
 import { MapToolTip } from './ToolTip';
@@ -119,12 +119,10 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     }, [data, DataTypeProperty]);
 
     useEffect(() => {
-        // setDataTypeProp(DataTypeProperty);
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width])
+    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width, InnerGeoJson])
 
     useEffect(() => {
-        // setDataTypeProp(DataTypeProperty)
         DrawInnerFeatures();
     }, [selectedInnerFeatures, CurDate])
 
@@ -233,12 +231,11 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             .html(d => CurDate)
     }
 
-    function clicked(event: PointerEvent, d: FeatureData) {
+    const clicked = useCallback((event: PointerEvent, d: FeatureData) => {
         if (InnerGeoJson) {
             innerPaths(d)
         }
-
-    }
+    }, [InnerGeoJson])
 
     // setInnerData after a click event
     function innerPaths(d: FeatureData) {
@@ -289,7 +286,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         setInnerData(Data);
         setSelectedInnerFeatures(innerFeatures);
     }
-    
 
     function DrawInnerFeatures() {
         // Drawing innerFeatures
@@ -322,8 +318,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(data.get(translator.locationCode(featureData)))], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(data.get(translator.locationCode(featureData)))], feature: featureData }, true) });
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) });
 
         // Update
         innerFeaturesSelect
@@ -349,6 +345,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
+            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) })
+            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) });
 
         innerFeaturesSelect.exit().remove()
     }
