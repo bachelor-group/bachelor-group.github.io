@@ -63,11 +63,11 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     const [xAxis, yAxis] = useMemo(() => {
         const svgElement = select(axesRef.current);
         svgElement.selectAll("*").remove();
-        const xAxisGenerator = axisBottom(xScale);
+        const xAxisGenerator = axisBottom(xScale).ticks(10, "s").tickSize(-boundsHeight);
 
-        let AxisBoys = []
+        let Axes = []
 
-        AxisBoys.push(svgElement
+        Axes.push(svgElement
             .append("g")
             .attr("transform", "translate(0," + boundsHeight + ")")
             .call(xAxisGenerator)
@@ -75,8 +75,8 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
 
         const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-boundsWidth);
 
-        AxisBoys.push(svgElement.append("g").call(yAxisGenerator));
-        return AxisBoys
+        Axes.push(svgElement.append("g").call(yAxisGenerator));
+        return Axes
     }, [xScale, yScale, mounted]);
 
     //ZOOM
@@ -100,8 +100,12 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                 setzoomedyScale(newyScale.domain())
 
                 // update axes with these new boundaries
-                xAxis.call(axisBottom(newxScale))
-                yAxis.call(axisLeft(newyScale))
+                let yAxisGenerator = axisLeft(newyScale).tickSize(-boundsWidth)
+                if (typeof yScale.domain()[0] === "number") {
+                    yAxisGenerator = axisLeft(newyScale).ticks(10, "s").tickSize(-boundsWidth)
+                }
+                xAxis.call(axisBottom(newxScale).tickSize(-boundsHeight))
+                yAxis.call(yAxisGenerator)
 
                 // update paths
                 select(svgRef.current)
@@ -124,7 +128,6 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     const reactLine = line<DataType>()
         .x(d => xScale(xValue(d)!))
         .y(d => yScale(yValue(d)!))
-    // .curve(curveBasis);
 
     //Create line-paths
     let paths: string[] = [];
@@ -136,7 +139,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     })
 
     // TODO: NEEDS MAJOR REFACTORING
-    //ToolTip boys
+    //ToolTip
     function updateTooltip(event: MouseEvent<SVGSVGElement, globalThis.MouseEvent>) {
         // Create a scale with zoom
         let currentScale = xScale.copy()
@@ -156,7 +159,6 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
         else {
             displayText = Math.round(hoveredXValue).toString();
         }
-
 
         // Create points dots and move line to pointer
         let newdots: typeof dots = []
