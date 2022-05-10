@@ -205,11 +205,15 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
             {filteredData.size !== 0 && Array.from(filteredData.values()).flat().length !== 0 ?
                 <>
                     <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (updateTooltip(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
+                        <clipPath id={`cut-off-bottom-${Plot.Title.replaceAll(" ", "-")}`}>
+                            <rect x={0} width={boundsWidth} y={0} height={boundsHeight}/>
+                        </clipPath>
                         <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                         <g
                             width={boundsWidth}
                             height={boundsHeight}
                             transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                            clip-path={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
                         >
                             {paths.map((path, index) => (
                                 <path className='line' key={index}
@@ -217,6 +221,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                                 ></path>
                             ))}
 
+                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
 
                             {/* Tooltips */}
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
