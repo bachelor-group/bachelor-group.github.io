@@ -252,19 +252,19 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 const feature: Feature = InnerGeoJson.features[j];
                 // TODO "1" is Hardcoded
                 if (translator.countryCode(feature, 1) === d.data.location_key) {
-                    console.log(feature.properties!.name)
-                    console.log(feature)
-                    if (feature.properties!.LOCATION_KEY)
-                        if (feature.properties!.LOCATION_KEY !== null){
-                            
-                            locations.push(feature.properties!.LOCATION_KEY)
-                        }
-                        else{
-                            locations.push(translator.locationCode(feature, 1))
-                        }
-                    else{
-                        locations.push(translator.locationCode(feature, 1))
+                    // console.log(feature.properties!.name)
+                    if (feature.properties!.LOCATION_KEY){
+                        console.log(feature.properties!.LOCATION_KEY)
+                        locations.push(feature.properties!.LOCATION_KEY)
                     }
+                    // if (feature.properties!.LOCATION_KEY !== null) {
+                    // }
+                    // else {
+                    //     locations.push(translator.locationCode(feature, 1))
+                    // }
+                    // else {
+                    //     locations.push(translator.locationCode(feature, 1))
+                    // }
                     innerFeatures.push(feature);
                 }
             }
@@ -301,7 +301,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         setInnerData(Data);
         setSelectedInnerFeatures(innerFeatures);
     }
-    
+
 
     function DrawInnerFeatures() {
         // Drawing innerFeatures
