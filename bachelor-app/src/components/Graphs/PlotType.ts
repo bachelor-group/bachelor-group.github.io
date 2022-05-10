@@ -3,7 +3,7 @@ import { DataType } from "../DataContext/MasterDataType";
 export enum PlotType {
     Scatter,
     LineChart,
-    WorldCloud,
+    WordCloud,
     Lollipop,
     BarRace,
 }

@@ -1,11 +1,11 @@
 import { csv } from 'd3';
 import { useEffect, useMemo, useState } from 'react'
 import { calculateHistData, DateHistogram, HistogramData } from './DateHistogram';
-import { DataType } from '../DataContext/MasterDataType';
-import { MapComponent } from '../Map/Map';
-import SidebarC from '../Sidebar';
-import { Animator as _animator } from '../Map/Animator';
-import { DataFilter } from '../Sidebar'
+import { DataType } from '../../DataContext/MasterDataType';
+import { MapComponent } from '../../Map/Map';
+import SidebarC from '../../Sidebar';
+import { Animator as _animator } from '../../Map/Animator';
+import { DataFilter } from '../../Sidebar'
 
 const dateHistogramSize: number = 0.2;
 
@@ -13,9 +13,29 @@ type LoadMapDataProps = {
     Animator?: typeof _animator
 }
 
-const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
-
 const ADMINLVL = 0;
+const DATAFILTER: DataFilter[] = [
+    {
+        title: 'New Cases',
+        dataType: 'new_confirmed',
+    },
+    {
+        title: 'New Deceased',
+        dataType: 'new_deceased'
+    },
+    {
+        title: 'New Hospitalized',
+        dataType: 'new_hospitalized_patients'
+    },
+    {
+        title: 'New Tested',
+        dataType: 'new_tested'
+    },
+    {
+        title: 'New Vaccinations',
+        dataType: 'new_persons_vaccinated'
+    },
+]
 
 export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     //Data
@@ -27,28 +47,6 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
     const [HistogramData, setHistogramData] = useState<HistogramData[]>([]);
 
     const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-    const [dataFilter, setDataFilter] = useState<DataFilter[]>([
-        {
-            title: 'New Cases',
-            dataType: 'new_confirmed',
-        },
-        {
-            title: 'New Deceased',
-            dataType: 'new_deceased'
-        },
-        {
-            title: 'New Hospitalized',
-            dataType: 'new_hospitalized_patients'
-        },
-        {
-            title: 'New Tested',
-            dataType: 'new_tested'
-        },
-        {
-            title: 'New Vaccinations',
-            dataType: 'new_persons_vaccinated'
-        },
-    ])
 
     //get window size
     useEffect(() => {
@@ -87,11 +85,11 @@ export const LoadMapData = ({ Animator = _animator }: LoadMapDataProps) => {
 
     return (
         <div style={{ position: "relative" }}>
-            <SidebarC Data={dataFilter} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
+            <SidebarC Data={DATAFILTER} SelectedFilter={SelectedFilter} iconColor={"#212529"} />
             <Animator CurDate={curDate} setDate={setCurDate} />
             <MapComponent adminLvl={ADMINLVL} data={data} Date={curDate} DataTypeProperty={curDataTypeProp} width={windowDimensions.width} height={windowDimensions.height - 56} innerData={true} scalePer100k={true} loadedData={loadedData} />
             {data.size !== 0 ?
-                <svg style={{ backgroundColor: "#21252950" ,position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
+                <svg style={{ backgroundColor: "#21252950", position: "absolute", transform: `translate(0px, -${dateHistogramSize * windowDimensions.height}px)` }} width={windowDimensions.width} height={dateHistogramSize * windowDimensions.height}>
                     <DateHistogram
                         Data={HistogramData}
                         width={windowDimensions.width}

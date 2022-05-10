@@ -1,18 +1,15 @@
 import { csv } from 'd3';
-import { useEffect, useState, useMemo } from 'react'
-import { feature } from 'topojson';
-import { Topology } from 'topojson-specification'
-import { GeoJsonProperties, Feature } from "geojson";
+import { Feature, GeoJsonProperties } from "geojson";
+import { useEffect, useMemo, useState } from 'react';
 import { ProgressBar } from 'react-bootstrap';
+import { feature } from 'topojson';
+import { Topology } from 'topojson-specification';
+import LoadDataAsMap from '../DataContext/LoadData';
 import { DataType } from '../DataContext/MasterDataType';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
 import { DrawMap } from './DrawMap';
 import Translator from './helpers';
-import LoadDataAsMap from '../DataContext/LoadData';
 
-
-// import MapData from '../../geojson/admin_1_topojson.json'
-type MapProps = {
+interface MapProps {
     adminLvl: 0 | 1 | 2,
     data: Map<string, DataType[]>,
     innerData?: boolean,
@@ -26,18 +23,10 @@ type MapProps = {
     LoadData?: typeof _LoadSmallData,
 }
 
-const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
-const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
-
-const MINDATE = "2020-01-01"
-const MAXDATE = "2025-01-01"
-
-
 export const MapComponent = ({ adminLvl, data, innerData = false, country, Date, DataTypeProperty, height, width, scalePer100k = false, loadedData, LoadData = _LoadSmallData }: MapProps) => {
     const translator = new Translator(adminLvl);
 
     //Data
-    // const [data, setData] = useState<Map<string, DataType[]>>(new Map());
     const [worldData, setWorldData] = useState<GeoJsonProperties>();
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [innerGeoJson, setInnerGeoJson] = useState<GeoJsonProperties | undefined>();

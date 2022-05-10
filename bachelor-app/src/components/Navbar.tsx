@@ -1,7 +1,5 @@
-import React, { useState } from "react";
-import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import { Container, Nav, Navbar } from "react-bootstrap";
 import { FaGithub } from 'react-icons/fa';
-import { Link } from "react-router-dom";
 
 function NavbarC() {
   return <>
@@ -15,7 +13,7 @@ function NavbarC() {
             <Nav.Link href="#/Graphs">Graphs</Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link href="#/About">About</Nav.Link>
+            {/* <Nav.Link href="#/About">About</Nav.Link> */}
             <Nav.Link href="https://github.com/bachelor-group/visualizing-covid-search-trends">
               <FaGithub />
             </Nav.Link>

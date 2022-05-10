@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 import ReactTags, { Tag } from "react-tag-autocomplete";
-import { IMap } from "../GraphPage/GraphPage";
+import { IMap } from "../PageComponents/GraphPage/GraphPage";
 
 
 export interface TagExtended extends Tag {
