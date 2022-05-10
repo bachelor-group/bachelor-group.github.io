@@ -215,20 +215,20 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
         textSelection.enter()
             .append('text')
-            .attr("x", d => width / 2)
-            .attr("y", d => 35)
+            .attr("x", () => width / 2)
+            .attr("y", () => 35)
             .attr('text-anchor', 'middle')
             .attr("dominant-baseline", "middle")
             .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
             .html(d => CurDate)
 
         textSelection
-            .attr("x", d => width / 2)
-            .attr("y", d => 35)
+            .attr("x", () => width / 2)
+            .attr("y", () => 35)
             .attr('text-anchor', 'middle')
             .attr("dominant-baseline", "middle")
             .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
-            .html(d => CurDate)
+            .html(() => CurDate)
     }
 
     const clicked = useCallback((event: PointerEvent, d: FeatureData) => {
@@ -341,7 +341,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 },
                     true,
                     1)
-            });
+            })
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });
 
         // Update
         innerFeaturesSelect
@@ -389,7 +390,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 },
                     true,
                     1)
-            });
+            })
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });;
 
         innerFeaturesSelect.exit().remove()
     }
