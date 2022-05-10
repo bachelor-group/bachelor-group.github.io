@@ -29,6 +29,10 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     const [filteredData, setFilteredData] = useState<Map<string, DataType[]>>(new Map());
     const [mounted, setMounted] = useState(false);
 
+    // zoomedScales are the domain of the scales
+    const [zoomedxScale, setzoomedxScale] = useState<Date[] | number[]>([]);
+    const [zoomedyScale, setzoomedyScale] = useState<Date[] | number[]>([]);
+
     useEffect(() => {
         if (!mounted && axesRef.current !== null) setMounted(true);
     });
@@ -55,18 +59,15 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
         return Scale(Plot, boundsWidth, xValue);
     }, [Plot, boundsWidth]);
 
-    // zoomedxScale is currently the domain
-    const [zoomedxScale, setzoomedxScale] = useState<Date[] | number[]>([]);
-
     // Draw Axis
     const [xAxis, yAxis] = useMemo(() => {
         const svgElement = select(axesRef.current);
         svgElement.selectAll("*").remove();
-        const xAxisGenerator = axisBottom(xScale);
+        const xAxisGenerator = axisBottom(xScale).ticks(10, "s").tickSize(-boundsHeight);
 
-        let AxisBoys = []
+        let Axes = []
 
-        AxisBoys.push(svgElement
+        Axes.push(svgElement
             .append("g")
             .attr("transform", "translate(0," + boundsHeight + ")")
             .call(xAxisGenerator)
@@ -74,8 +75,8 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
 
         const yAxisGenerator = axisLeft(yScale).ticks(10, "s").tickSize(-boundsWidth);
 
-        AxisBoys.push(svgElement.append("g").call(yAxisGenerator));
-        return AxisBoys
+        Axes.push(svgElement.append("g").call(yAxisGenerator));
+        return Axes
     }, [xScale, yScale, mounted]);
 
     //ZOOM
@@ -96,10 +97,15 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                 let newyScale = event.transform.rescaleY(yScale);
 
                 setzoomedxScale(newxScale.domain())
+                setzoomedyScale(newyScale.domain())
 
                 // update axes with these new boundaries
-                xAxis.call(axisBottom(newxScale))
-                yAxis.call(axisLeft(newyScale))
+                let yAxisGenerator = axisLeft(newyScale).tickSize(-boundsWidth)
+                if (typeof yScale.domain()[0] === "number") {
+                    yAxisGenerator = axisLeft(newyScale).ticks(10, "s").tickSize(-boundsWidth)
+                }
+                xAxis.call(axisBottom(newxScale).tickSize(-boundsHeight))
+                yAxis.call(yAxisGenerator)
 
                 // update paths
                 select(svgRef.current)
@@ -122,7 +128,6 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     const reactLine = line<DataType>()
         .x(d => xScale(xValue(d)!))
         .y(d => yScale(yValue(d)!))
-    // .curve(curveBasis);
 
     //Create line-paths
     let paths: string[] = [];
@@ -134,11 +139,13 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
     })
 
     // TODO: NEEDS MAJOR REFACTORING
-    //ToolTip boys
+    //ToolTip
     function updateTooltip(event: MouseEvent<SVGSVGElement, globalThis.MouseEvent>) {
         // Create a scale with zoom
         let currentScale = xScale.copy()
         currentScale.domain(zoomedxScale)
+        let currentyScale = yScale.copy()
+        currentyScale.domain(zoomedyScale)
 
         // Find Date of hovered pixel
         let hoveredXValue = currentScale.invert(event.nativeEvent.offsetX - MARGIN.left - 5)
@@ -153,7 +160,6 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
             displayText = Math.round(hoveredXValue).toString();
         }
 
-
         // Create points dots and move line to pointer
         let newdots: typeof dots = []
         let dataPoints: { country: string, data: DataType }[] = []
@@ -162,7 +168,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
 
             if (id !== -1 && yValue(countryData[id])) {
                 dataPoints.push({ country: country!, data: countryData[id] })
-                newdots.push({ x: (event.nativeEvent.offsetX - MARGIN.left - 5), y: yScale(yValue(countryData[id])!), color: colorscale(country!) })
+                newdots.push({ x: (event.nativeEvent.offsetX - MARGIN.left - 5), y: currentyScale(yValue(countryData[id])!), color: colorscale(country!) })
             }
         })
 
@@ -199,11 +205,15 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
             {filteredData.size !== 0 && Array.from(filteredData.values()).flat().length !== 0 ?
                 <>
                     <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (updateTooltip(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
+                        <clipPath id={`cut-off-bottom-${Plot.Title.replaceAll(" ", "-")}`}>
+                            <rect x={0} width={boundsWidth} y={0} height={boundsHeight}/>
+                        </clipPath>
                         <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                         <g
                             width={boundsWidth}
                             height={boundsHeight}
                             transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                            clip-path={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
                         >
                             {paths.map((path, index) => (
                                 <path className='line' key={index}
@@ -211,6 +221,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                                 ></path>
                             ))}
 
+                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
 
                             {/* Tooltips */}
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />

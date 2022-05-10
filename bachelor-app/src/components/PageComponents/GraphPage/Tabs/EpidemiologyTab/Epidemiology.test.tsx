@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { EpidemiologyData, EpidemiologyEnum } from '../DataContext/DataTypes';
+import { EpidemiologyData, EpidemiologyEnum } from '../../../../DataContext/DataTypes';
 import Epidemiology from './Epidemiology';
 
 let data: EpidemiologyData[] = []

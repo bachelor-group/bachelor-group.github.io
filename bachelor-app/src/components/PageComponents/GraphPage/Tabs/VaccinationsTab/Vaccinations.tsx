@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-import { DataType } from '../DataContext/MasterDataType';
-import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
-import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
-import { hasKey, VaccinationEnum } from '../DataContext/VaccinationTypes';
+import { useEffect, useState } from 'react';
+import { Col, ProgressBar, Row } from 'react-bootstrap';
+import { DataType } from '../../../../DataContext/MasterDataType';
+import { VaccinationEnum } from '../../../../DataContext/VaccinationTypes';
+import PlotsContainer from '../../../../Graphs/PlotsContainer';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
 
 export interface VaccinationProps {
     MapData: Map<string, DataType[]>,
@@ -13,16 +13,12 @@ export interface VaccinationProps {
     }
 }
 
-//TODO: This is written several places
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
-
 export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
         [
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered" },
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated" },
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated" },
-            { PlotType: PlotType.Scatter, MapData: MapData, Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
@@ -57,7 +53,7 @@ export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) =>
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} Colors={COLORS} />
+                        <PlotsContainer Plots={Plots} />
                 }
             </div>
         </>

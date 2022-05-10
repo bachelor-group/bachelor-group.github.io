@@ -1,19 +1,13 @@
-import { csv, json } from 'd3';
-import { useEffect, useState, MouseEvent, ChangeEvent, useMemo } from 'react'
-import { feature } from 'topojson';
-import { Topology } from 'topojson-specification'
-import { GeoJsonProperties, Feature, GeometryCollection, GeometryObject, FeatureCollection } from "geojson";
+import { csv } from 'd3';
+import { useEffect, useState, MouseEvent, ChangeEvent } from 'react'
 import { useParams } from 'react-router-dom';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
-import { Form, ProgressBar } from 'react-bootstrap';
-import { DataType } from '../DataContext/MasterDataType';
-import { hasKey } from '../DataContext/DataTypes';
-import { SearchTrendsList } from '../SearchTrends/Old_script';
-import { MapComponent } from '../Map/Map';
-import Animator from '../Map/Animator';
+import { Col, Form, ProgressBar, Row } from 'react-bootstrap';
+import { DataType } from '../../DataContext/MasterDataType';
+import { SearchTrendsList } from '../../DataContext/Old_script';
+import { MapComponent } from '../../Map/Map';
+import Animator from '../../Map/Animator';
 
-// import MapData from '../../geojson/admin_1_topojson.json'
-type SearchTrendsMap = {
+interface SearchTrendsMapProps {
     LoadData?: typeof _LoadData
 }
 
@@ -21,17 +15,13 @@ const url = "https://storage.googleapis.com/covid19-open-data/v3/location/"
 const SEARCHTRENDS = SearchTrendsList.map((e) => e.slice(14).replaceAll("_", " "))
 
 const MINDATE = "2020-01-01"
-const MAXDATE = "2025-01-01"
-
 const ADMINLVL = 1;
 
-export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
+export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMapProps) => {
     const country = useParams<string>()
 
     //Data
     const [mapData, setData] = useState<Map<string, DataType[]>>(new Map());
-    const [worldData, setWorldData] = useState<GeoJsonProperties>();
-    const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties | undefined>();
     const [curSearchTrend, setCurSearchTrend] = useState<keyof DataType>("search_trends_abdominal_obesity");
     const [startDate, setStartDate] = useState('2020-01-01');
     const [maxDate, setMaxDate] = useState('2020-01-01');
@@ -47,13 +37,12 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
     useEffect(() => {
         let newMaxDate = findMaxDate();
         setMaxDate(newMaxDate);
-    }, [mapData])
+    }, [mapData, findMaxDate])
 
     function setSearchTrend(e: MouseEvent<HTMLOptionElement, MouseEvent> | ChangeEvent<HTMLSelectElement>) {
         //@ts-ignore
         let newValue = e.target.value;
         let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
-        let temp: DataType[] = []
 
         // CHECK IF STRING IS KEY NEEDS TO BE DONE
         // @ts-ignore
@@ -91,7 +80,6 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
         else {
             setStartDate(event.target.value);
         }
-
     }
 
     return (
@@ -99,7 +87,6 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
             <div className='col-6'>
                 <Form.Label><b>Search Trend:</b></Form.Label>
                 <Form.Select onChange={(e) => setSearchTrend(e)}>
-                    {/* //disabled={data.length === 0 ? true : false}> */}
                     {SEARCHTRENDS.map((SEARCHTREND) =>
                         <option key={SEARCHTREND} value={SEARCHTREND} className='suggestion'>{SEARCHTREND}</option>
                     )}
@@ -109,18 +96,26 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMap) => {
                     <input type="date" name="startDate" id="" min={MINDATE} max={maxDate} value={startDate}
                         onChange={(e) => handleDateChange(e)} />
                 </div>
-                {/* {data.length === 0 ? <ProgressBar animated now={100} /> : <></>} */}
             </div>
 
-            <div style={{position: "relative", marginTop: 15}}>
-                <Animator CurDate={startDate} setDate={setStartDate} />
-                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} data={mapData} Date={startDate} height={windowDimensions.height*0.7} width={0.7*windowDimensions.width} LoadData={_LoadData} loadedData={setMapData} />
+            <div style={{ position: "relative", marginTop: 15 }}>
+
+                {mapData.size === 0 ?
+                    <Row md="auto" className="align-items-center">
+                        <Col style={{ width: "500px" }}>
+                            <ProgressBar animated now={100} />
+                        </Col>
+                    </Row>
+                    :
+                    <Animator CurDate={startDate} setDate={setStartDate} />
+                }
+                <MapComponent country={country.country ? country.country : ""} DataTypeProperty={curSearchTrend} adminLvl={ADMINLVL} data={mapData} Date={startDate} height={windowDimensions.height * 0.7} width={0.7 * windowDimensions.width} LoadData={LoadData} loadedData={setMapData} />
             </div>
         </div>
     );
 }
 
-const _LoadData = (datatype: keyof DataType="new_confirmed", locations: string[]=[]) => {
+const _LoadData = (datatype: keyof DataType = "new_confirmed", locations: string[] = []) => {
     return new Promise<Map<string, DataType[]>>((resolve) => {
         let newData: Map<string, DataType[]> = new Map();
         let loaded_location = 0
@@ -143,4 +138,4 @@ const _LoadData = (datatype: keyof DataType="new_confirmed", locations: string[]
 }
 
 
-export default SearchTrendsMap;
+export default SearchTrendsMapProps;

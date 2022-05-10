@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
 import { csv } from "d3";
+import { useEffect, useState } from 'react';
 import { Nav } from 'react-bootstrap';
 import Tab from 'react-bootstrap/esm/Tab';
-import SelectCountry, { TagExtended } from '../CountrySelector/SelectCountry';
-import { LoadDataAsMap as _LoadDataAsMap } from '../DataContext/LoadData';
-import { DataType } from '../DataContext/MasterDataType';
-import Epidemiology from '../EpidemiologyContext/Epidemiology';
-import SearchTrends from '../SearchTrends/SearchTrends';
-import Vaccinations from '../Vaccinations/Vaccinations';
-import CustomGraphs from './CustomGraphs';
+import { Tag } from 'react-tag-autocomplete';
+import SelectCountry, { TagExtended } from '../../CountrySelector/SelectCountry';
+import { LoadDataAsMap as _LoadDataAsMap } from '../../DataContext/LoadData';
+import { DataType } from '../../DataContext/MasterDataType';
+import CustomGraphs from './Tabs/CustomGraphsTab/CustomGraphs';
+import Epidemiology from './Tabs/EpidemiologyTab/Epidemiology';
+import SearchTrends from './Tabs/SearchTrendsTab/SearchTrends';
+import Vaccinations from './Tabs/VaccinationsTab/Vaccinations';
 
 
 interface Props {
@@ -19,14 +20,14 @@ interface Props {
 const H_SCALE = 0.45
 const W_SCALE = 0.8
 
+// TODO: currently loading data even if data was loaded previously... (Hide data)
 export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadIndex }: Props) => {
     const [key, setKey] = useState<string>('epidemiology');
 
     const [mapData, setMapData] = useState<Map<string, DataType[]>>(new Map());
-    const [indexMap, setIndexMap] = useState<Map<string, IMap[]>>(new Map());
-    const [subRegions, setSubRegions] = useState<Map<string, IMap[]>>(new Map());
-    const [LoadedCountries, setLoadedCountries] = useState<TagExtended[]>([]);
-    const [SelectedCountries, setSelectedCountries] = useState<TagExtended[]>([]);
+    const [indexMap, setIndexMap] = useState<Map<number, Map<string, IMap>>>(new Map());
+    const [SelectedLocations, setSelectedLocations] = useState<TagExtended[]>([]);
+
     const [WindowDimensions, setWindowDimensions] = useState({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE });
     //get window size
     useEffect(() => {
@@ -34,44 +35,27 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
         return () => window.removeEventListener("resize", () => setWindowDimensions({ width: window.innerWidth * W_SCALE, height: window.innerHeight * H_SCALE }));
     }, []);
 
-    const selectedCountries = (countries: TagExtended[]) => {
-        // when user selects a country
-        // need to find the regions belonging to that country
-        let newMap: Map<string, IMap[]> = new Map();
-
-        setSelectedCountries(countries)
-        console.log(indexMap)
-
-        countries.forEach(country => {
-            let allSubRegions: IMap[] = indexMap.get(country.location_key!)!
-            console.log(allSubRegions)
-            // allSubRegions.push ( {location_key: country.location_key, subregion1_name: indexMap.get(country.location_key!)!.subregion1_name } )
-            newMap.set(country.location_key, allSubRegions)
-            setSubRegions(newMap)
-            console.log("subregion map", subRegions)
-        })
-    };
 
     useEffect(() => {
         let locationKeys: string[] = []
-        SelectedCountries.forEach(element => {
+        SelectedLocations.forEach(element => {
             locationKeys.push(element.location_key)
         });
-        LoadIndex().then((d) => {
-            setIndexMap(d);
-
-        })
 
         LoadDataAsMap(locationKeys, mapData).then((d) => {
             setMapData(d);
-            setLoadedCountries(SelectedCountries);
         })
-    }, [SelectedCountries]);
+    }, [SelectedLocations]);
+
+    useEffect(() => {
+        LoadIndex().then((d) => {
+            setIndexMap(d);
+        })
+    }, [])
 
     return (
         <>
-            <SelectCountry selectedCountries={selectedCountries} Key={key} suggs={indexMap} />
-            <SelectCountry selectedCountries={selectedCountries} Key={key} suggs={subRegions} />
+            <SelectCountry SelectedRegions={(countries: TagExtended[]) => setSelectedLocations(countries)} Key={key} AllLocations={indexMap} />
 
             <br></br>
 
@@ -100,7 +84,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                 </Nav>
 
                 <Tab.Content style={{ margin: "auto" }}>
-                    {SelectedCountries.length === 0 ?
+                    {SelectedLocations.length === 0 ?
                         <div>
                             <h2>Please select a location</h2>
                         </div>
@@ -110,7 +94,7 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
                                 <Epidemiology MapData={mapData} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="SearchTrends">
-                                <SearchTrends MapData={mapData} SelectedCountries={SelectedCountries} />
+                                <SearchTrends MapData={mapData} SelectedCountries={SelectedLocations} WindowDimensions={WindowDimensions} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="Vaccinations">
                                 <Vaccinations MapData={mapData} WindowDimensions={WindowDimensions} />
@@ -127,39 +111,45 @@ export const GraphPage = ({ LoadDataAsMap = _LoadDataAsMap, LoadIndex = _LoadInd
     );
 }
 
-const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
 
-export interface IMap {
-    location_key: string,
-    country_name?: string,
-    subregion2_name?: string,
-    subregion1_name?: string
+export interface IMap extends Tag {
+    id: number,
+    locationKey: string,
+    children: string[]
+    name: string,
+
 }
 
+const url = "https://storage.googleapis.com/covid19-open-data/v3/index.csv"
 export const _LoadIndex = () => {
-    return new Promise<Map<string, IMap[]>>((resolve) => {
-        let IndexMap = new Map<string, IMap[]>();
+    return new Promise<Map<number, Map<string, IMap>>>((resolve) => {
+        let IndexMap = new Map<number, Map<string, IMap>>();
         csv(url).then(d => {
-            d.forEach((element) => {
-                if (IndexMap.has(element.country_code!)) {
-                    let list: IMap[] = []
-                    list = IndexMap.get(element.country_code!)!
+            d.forEach((element, i) => {
+                let adminLvl = element.location_key!.split("_").length - 1;
 
-                    if (element.location_key!.split("_").length == 2) { // SUBREGION 1
-
-                        list.push({ location_key: element.location_key!, subregion1_name: element.subregion1_name! })
-
-                    } else if (element.location_key!.split("_").length == 3) { // SUBREGION 2
-
-                        list.push({ location_key: element.location_key!, subregion2_name: element.subregion2_name! })
-                    }
-
-                    IndexMap.set(element.country_code!, list)
-                } else {
-
-                    // only countries:
-                    IndexMap.set(element.country_code!, [{ country_name: element.country_name!, location_key: element.location_key! }] as IMap[])
+                //find name
+                let name = element.country_name;
+                if (adminLvl !== 0) {
+                    name = element[`subregion${adminLvl}_name`]
                 }
+
+
+                if (!IndexMap.has(adminLvl)) {
+                    IndexMap.set(adminLvl, new Map())
+                }
+
+                IndexMap.get(adminLvl)!.set(element.location_key!, { id: i, locationKey: element.location_key!, name: name!, children: [] })
+
+                //  find parent element, and add self to children of parent 
+                let parent: string[] = element.location_key!.split("_").slice(0, -1);
+                if (parent.length > 0) {
+                    let parentLvl = adminLvl - 1;
+                    let parentKey = parent.join("_");
+                    let parentEntry = IndexMap.get(parentLvl)!.get(parentKey)!;
+                    parentEntry.children.push(element.location_key!)
+                }
+
             });
             resolve(IndexMap);
         });

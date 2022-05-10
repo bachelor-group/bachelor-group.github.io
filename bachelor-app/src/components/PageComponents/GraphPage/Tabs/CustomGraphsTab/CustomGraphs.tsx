@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
-import { DataType } from '../DataContext/MasterDataType';
-import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from '../EpidemiologyContext/PlotsContainer';
+import { DataType } from '../../../../DataContext/MasterDataType';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
+import PlotsContainer from '../../../../Graphs/PlotsContainer';
 import GraphForm from './GraphForm';
 
 interface Props {
@@ -12,8 +12,6 @@ interface Props {
         height: number
     }
 }
-
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 
 export const CustomGraphs = ({ MapData, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>([]);
@@ -82,7 +80,7 @@ export const CustomGraphs = ({ MapData, WindowDimensions }: Props) => {
                             <GraphForm MapData={MapData} AddPlot={addPlot}></GraphForm>
                             <i className='note'>Note: that saved plots will be removed once you leave this page! </i>
                             <h3><br></br><br></br>Your Saved Plots</h3>
-                            <PlotsContainer Plots={Plots} Colors={COLORS} />
+                            <PlotsContainer Plots={Plots} />
                         </>
                 }
             </div>

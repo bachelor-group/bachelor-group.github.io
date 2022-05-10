@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Col, ProgressBar, Row, } from 'react-bootstrap';
-import { EpidemiologyEnum } from '../DataContext/DataTypes';
-import { DataType } from '../DataContext/MasterDataType';
-import { Plot, PlotType } from '../Graphs/PlotType';
-import PlotsContainer from './PlotsContainer';
+import { EpidemiologyEnum } from '../../../../DataContext/DataTypes';
+import { DataType } from '../../../../DataContext/MasterDataType';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
+import PlotsContainer from '../../../../Graphs/PlotsContainer';
 
 
 interface Props {
@@ -13,8 +13,6 @@ interface Props {
         height: number
     }
 }
-
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 
 export const Epidemiology = ({ MapData, WindowDimensions }: Props) => {
     const [Plots, setPlots] = useState<Plot[]>(
@@ -56,7 +54,7 @@ export const Epidemiology = ({ MapData, WindowDimensions }: Props) => {
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} Colors={COLORS} />
+                        <PlotsContainer Plots={Plots}/>
                 }
             </div>
         </>
