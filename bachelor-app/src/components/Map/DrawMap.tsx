@@ -89,9 +89,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 svg
                     .selectAll('.move-on-zoom')
                     .attr('transform', event.transform);
-
-                //@ts-ignore
-                // features.attr("d", path)
             });
 
         // Translate and scale the initial map
@@ -124,8 +121,9 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
     useEffect(() => {
         DrawInnerFeatures();
-    }, [selectedInnerFeatures, CurDate])
+    }, [selectedInnerFeatures, CurDate, height, width])
 
+    // Draw the outer features, also updates and removes them
     function drawMap() {
         if (curGeoJson) {
             let currentData: FeatureData[] = [];
@@ -258,17 +256,17 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             // Check if data is loaded
             let needToLoad = true;
             for (let location of locations) {
-                if (innerData.has(location)) {
+                if (CurrentData.has(location)) {
                     needToLoad = false;
                     break;
                 }
             }
 
             // Add data to loaded data
-            let mergedData = innerData;
+            let mergedData = CurrentData;
             if (needToLoad && locations.length !== 0) {
                 loadInnerData(locations).then(data => {
-                    let oldData = innerData;
+                    let oldData = CurrentData;
                     mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())]);
                     setAllInnerData(mergedData, innerFeatures);
                 })
@@ -368,6 +366,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
+            .attr("d", d => path(d))
             .on("mousemove", (e, featureData) => {
                 Tooltip.updateTooltipdiv(e,
                     {
