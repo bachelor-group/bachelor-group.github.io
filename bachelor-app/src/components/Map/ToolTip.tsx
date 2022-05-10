@@ -1,8 +1,7 @@
 import { format } from "d3";
 import { select } from "d3-selection";
-import { memo, useRef, useState } from "react";
 import { DataType } from "../DataContext/MasterDataType";
-import { FeatureData } from "./DrawMap"
+import { FeatureData } from "./DrawMap";
 import Translator from "./helpers";
 
 interface MapToolTipProps {
@@ -24,7 +23,7 @@ export class MapToolTip implements IMapToolTip {
     divRef: React.MutableRefObject<null>
     scalePer100K: boolean
 
-    constructor({ width, translator: translator, DataTypeProperty, divRef, scalePer100K }: MapToolTipProps) {
+    constructor({ width, translator, DataTypeProperty, divRef, scalePer100K }: MapToolTipProps) {
         this.divRef = divRef;
         this._translator = translator;
         this.width = width;
@@ -33,9 +32,6 @@ export class MapToolTip implements IMapToolTip {
     }
 
     updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean) {
-        // Should really only be one
-        let selectedCountries: DataType[] = [];
-
         //Get Admin lvl
         let adminLvl = data.data.location_key?.split("_").length! - 1
 
@@ -63,7 +59,7 @@ export class MapToolTip implements IMapToolTip {
         toolTipDivEnterSelection
             .append("div")
             .attr("class", "popover-arrow")
-            .attr("style", d => "top: 0px; transform: translate(0px, 37px);");
+            .attr("style", () => "top: 0px; transform: translate(0px, 37px);");
 
         toolTipDivEnterSelection
             .append("div")

@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
-import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 import BarRace from "./BarRace";
 import LineChart from "./LineChart";
 import Lollipop from "./Lollipop";
@@ -10,10 +8,12 @@ import WordCloud from "./WordCloud";
 
 interface PlotsProps {
     Plots: Plot[],
-    Colors: string[]
+    Colors?: string[]
 }
 
-export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
+const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
+
+export const PlotsContainer = ({ Plots, Colors = COLORS }: PlotsProps) => {
     const [temp, setTemp] = useState(Plots)
 
     // Used to make the container Rerender
@@ -29,7 +29,7 @@ export const PlotsContainer = ({ Plots, Colors }: PlotsProps) => {
                         case PlotType.Scatter:
                             return <Scatter key={index} Width={Plot.Width} Height={Plot.Height} Plot={Plot} Colors={Colors} />
 
-                        case PlotType.WorldCloud:
+                        case PlotType.WordCloud:
                             return <WordCloud key={index} Width={Plot.Width} Height={Plot.Height} />
 
                         case PlotType.LineChart:

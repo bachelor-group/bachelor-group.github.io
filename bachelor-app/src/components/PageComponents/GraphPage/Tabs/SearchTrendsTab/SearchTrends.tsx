@@ -15,7 +15,6 @@ interface Props {
 
 const HARDCODED = SearchTrendsList;
 const LOCATION_KEYS_SEARCH_TRENDS = ["AU", "US", "GB", "SG", "IE", "NZ"];
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"];
 const SEARCH_TRENDS = [
     "infection", "common_cold",
     "fever", "pain",
@@ -111,7 +110,7 @@ function SearchTrends({ MapData, SelectedCountries, WindowDimensions }: Props) {
 
 
                                     <div style={{ display: 'flex', flexDirection: "row", flexWrap: "wrap", justifyContent: "space-evenly" }}>
-                                        < PlotsContainer Plots={Plots.slice(1)} Colors={COLORS} />
+                                        < PlotsContainer Plots={Plots.slice(1)} />
                                     </div>
                                 </>
                                 :

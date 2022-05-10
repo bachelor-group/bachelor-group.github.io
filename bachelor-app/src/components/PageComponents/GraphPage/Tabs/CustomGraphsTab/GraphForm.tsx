@@ -10,8 +10,6 @@ interface GraphFormInterface {
     AddPlot: (plotType: PlotType, xAxis: keyof DataType, yAxis: keyof DataType) => void
 }
 
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
-
 export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
     const [customPlotType, setCustomPlotType] = useState<PlotType>(PlotType.Scatter)
     const [customPlotYaxis, setCustomPlotYaxis] = useState<keyof DataType>("new_confirmed")
@@ -21,13 +19,10 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
 
     useEffect(() => {
         let xAxis = customPlotXaxis;
-        let groupBy: keyof DataType | undefined = undefined;
 
         if (customPlotType === PlotType.LineChart) {
             xAxis = "date"
-            groupBy = "location_key"
         }
-
 
         let curPlot: Plot = {
             PlotType: customPlotType,
@@ -54,7 +49,6 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
         <fieldset>
             <Form.Group className="mb-3">
                 <Form.Label htmlFor="plottypeSelect">Choose plot type: </Form.Label>
-                {/* <Form.Control id="plottypeSelect" as="select" onChange={(e => setCustomPlotType(e.target.value))}> */}
                 <Form.Control id="plottypeSelect" as="select" onChange={e => {
 
                     setCustomPlotType(Number(e.target.value))
@@ -62,8 +56,8 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
                 }>
 
                     {Object.keys(PlotType).filter((v) => isNaN(Number(v))).map((d, i) => (
-            
-                        <option key={i} value={i}>{d}</option>
+                          <option key={i} disabled={d == "Lollipop"|| d == "BarRace" || d == "WordCloud" ? 
+                          true : false} value={i}>{d}</option>
                     ))}
 
                 </Form.Control>
@@ -108,7 +102,7 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
             <Button type="submit" onClick={() => AddPlot(customPlotType, customPlotXaxis, customPlotYaxis)}>Save Plot</Button>
         </fieldset>
 
-        <PlotsContainer Plots={plot} Colors={COLORS} />
+        <PlotsContainer Plots={plot} />
     </>)
 }
 

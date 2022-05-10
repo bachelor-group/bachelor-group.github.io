@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
+import { Col, ProgressBar, Row } from 'react-bootstrap';
 import { DataType } from '../../../../DataContext/MasterDataType';
-import { Plot, PlotType } from '../../../../Graphs/PlotType';
+import { VaccinationEnum } from '../../../../DataContext/VaccinationTypes';
 import PlotsContainer from '../../../../Graphs/PlotsContainer';
-import { Row, Col, ProgressBar, Button } from 'react-bootstrap';
-import { hasKey, VaccinationEnum } from '../../../../DataContext/VaccinationTypes';
+import { Plot, PlotType } from '../../../../Graphs/PlotType';
 
 export interface VaccinationProps {
     MapData: Map<string, DataType[]>,
@@ -12,9 +12,6 @@ export interface VaccinationProps {
         height: number
     }
 }
-
-//TODO: This is written several places
-const COLORS = ["Blue", "Coral", "DodgerBlue", "SpringGreen", "YellowGreen", "Green", "OrangeRed", "Red", "GoldenRod", "HotPink", "CadetBlue", "SeaGreen", "Chocolate", "BlueViolet", "Firebrick"]
 
 export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) => {
     const [Plots, setPlots] = useState<Plot[]>(
@@ -57,7 +54,7 @@ export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) =>
                             </Col>
                         </Row>
                         :
-                        <PlotsContainer Plots={Plots} Colors={COLORS} />
+                        <PlotsContainer Plots={Plots} />
                 }
             </div>
         </>
