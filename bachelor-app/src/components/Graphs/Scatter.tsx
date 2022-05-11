@@ -1,10 +1,10 @@
+import { axisBottom, axisLeft, scaleOrdinal, select } from 'd3';
 import { useEffect, useMemo, useRef, useState } from "react";
-import { axisLeft, axisBottom, select, scaleOrdinal } from 'd3';
+import { filterDataBasedOnProps } from "../DataContext/LoadData";
+import { DataType } from "../DataContext/MasterDataType";
 import { Plot } from "./PlotType";
 import { DataAccessor, Scale } from "./Scaling";
 import { GraphTooltip } from "./Tooltip";
-import { filterDataBasedOnProps } from "../DataContext/LoadData";
-import { DataType } from "../DataContext/MasterDataType";
 
 interface ScatterProps {
     Width: number,
@@ -83,7 +83,7 @@ export const Scatter = ({ Width, Height, Plot, Colors }: ScatterProps) => {
                             fill={color}
                             fillOpacity={0.7}
                             strokeWidth={1}
-                        />, locationKey+i
+                        />, locationKey + i, locationKey.split("_").length - 1
                     )
                 )
             });

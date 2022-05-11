@@ -2,15 +2,17 @@ import { OverlayTrigger, Popover } from "react-bootstrap"
 import { DataType } from "../DataContext/MasterDataType"
 import { Plot } from "./PlotType"
 
-const SHOWCOUNTRY = false;
+export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element, reactKey: string, adminLvl: number) => {
+    let regionName = Data["country_name"]
 
-export const GraphTooltip = (Plot: Plot, Data: DataType, Content: JSX.Element, reactKey: string) => {
+    if (adminLvl !== 0) {
+        regionName = Data[`subregion${adminLvl}_name` as keyof DataType]
+    }
+
     return (
         <OverlayTrigger placement="auto" key={reactKey} overlay={
             <Popover id="popover-contained">
-                {SHOWCOUNTRY ? <Popover.Header as="h3">{Data["country_name"]} at {Data["date"]}</Popover.Header> : <></>
-
-                }
+                <Popover.Header as="h3">{regionName} at {Data["date"]}</Popover.Header>
 
                 <Popover.Body>
                     <strong>{Plot.Axis[0].replace("_", " ")}:</strong> {Data[Plot.Axis[0]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
