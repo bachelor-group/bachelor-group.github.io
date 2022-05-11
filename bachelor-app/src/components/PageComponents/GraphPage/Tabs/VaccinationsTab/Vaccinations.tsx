@@ -19,7 +19,6 @@ export const Vaccinations = ({ MapData, WindowDimensions }: VaccinationProps) =>
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_vaccine_doses_administered], Height: 300, Width: 600, Title: "Cumulative Vaccination Doses Administered" },
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.cumulative_persons_vaccinated], Height: 300, Width: 600, Title: "Cumulative Persons Vaccinated" },
             { PlotType: PlotType.LineChart, MapData: MapData, Axis: [VaccinationEnum.date, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "New Persons Vaccinated" },
-            { PlotType: PlotType.Scatter, MapData: MapData, Axis: [VaccinationEnum.cumulative_persons_vaccinated, VaccinationEnum.new_persons_vaccinated], Height: 300, Width: 600, Title: "IDK" },
             // { PlotType: PlotType.Lollipop, Data: [], Axis: [VaccinationEnum.new_confirmed, VaccinationEnum.date], Height: 300, Width: 600, Title: "Lollipop" },
         ]);
 
