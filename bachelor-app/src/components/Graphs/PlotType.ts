@@ -13,7 +13,7 @@ export type PlotDataType = {
     yaxis: string,
 }
 
-export interface Plot {
+export type Plot = {
     PlotType: PlotType,
     MapData: Map<string, DataType[]>,
     Axis: (keyof DataType)[],

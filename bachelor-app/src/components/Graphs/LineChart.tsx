@@ -215,13 +215,13 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                             transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
                             clip-path={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
                         >
+                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
                             {paths.map((path, index) => (
                                 <path className='line' key={index}
                                     d={path} style={{ fill: "none", stroke: colorscale(countries[index]), strokeWidth: 1 }}
                                 ></path>
                             ))}
 
-                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
 
                             {/* Tooltips */}
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
