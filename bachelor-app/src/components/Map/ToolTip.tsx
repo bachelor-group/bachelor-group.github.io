@@ -10,10 +10,11 @@ interface MapToolTipProps {
     DataTypeProperty: keyof DataType
     divRef: React.MutableRefObject<null>
     scalePer100K: boolean
+    adminLvl: number
 }
 
 interface IMapToolTip {
-    updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, dataType: keyof DataType): void
+    updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, adminLvl?: number): void
 }
 
 export class MapToolTip implements IMapToolTip {
@@ -22,18 +23,20 @@ export class MapToolTip implements IMapToolTip {
     DataTypeProperty: keyof DataType;
     divRef: React.MutableRefObject<null>
     scalePer100K: boolean
+    adminLvl: number
 
-    constructor({ width, translator, DataTypeProperty, divRef, scalePer100K }: MapToolTipProps) {
+    constructor({ width, translator, DataTypeProperty, divRef, scalePer100K, adminLvl }: MapToolTipProps) {
         this.divRef = divRef;
         this._translator = translator;
         this.width = width;
         this.DataTypeProperty = DataTypeProperty;
         this.scalePer100K = scalePer100K;
+        this.adminLvl = adminLvl;
     }
 
-    updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean) {
+    updateTooltipdiv(event: PointerEvent, data: FeatureData, show: boolean, adminLvl = this.adminLvl) {
         //Get Admin lvl
-        let adminLvl = data.data.location_key?.split("_").length! - 1
+        // let adminLvl = data.data.location_key?.split("_").length! - 1
 
         if (!show) {
             let test = select(this.divRef.current)
@@ -74,7 +77,7 @@ export class MapToolTip implements IMapToolTip {
                 let selectedData = d.data[this.DataTypeProperty]
                 if (selectedData !== undefined) {
                     html = `<strong> ${this.DataTypeProperty.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`
-                    if (this.scalePer100K){
+                    if (this.scalePer100K) {
                         html += `</br >
                         <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
                     }
@@ -113,7 +116,7 @@ export class MapToolTip implements IMapToolTip {
                 let selectedData = d.data[this.DataTypeProperty]
                 if (selectedData !== undefined) {
                     html = `<strong> ${this.DataTypeProperty.replaceAll("_", " ")}:</strong> ${selectedData.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`
-                    if (this.scalePer100K){
+                    if (this.scalePer100K) {
                         html += `</br >
                         <strong>Per 100k:</strong> ${format(',.2f')(parseFloat(selectedData) / parseFloat(d.data.population!) * 100000).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} `
                     }

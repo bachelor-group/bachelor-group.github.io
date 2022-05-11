@@ -46,9 +46,7 @@ export const PlotsContainer = ({ Plots, Colors = COLORS }: PlotsProps) => {
                     }
                 })
                 :
-                <>
-                    <h3>We want to have plots here, but have yet to define plots.</h3>
-                </>
+                <></>
             }
         </>
     );

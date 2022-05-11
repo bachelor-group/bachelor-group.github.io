@@ -25,6 +25,11 @@ export class Translator {
             case 0:
                 return feature.properties!["ISO_A2_EH"].replaceAll("-", "_")
             case 1:
+                if (feature.properties!["region_cod"] && feature.properties!["region_cod"] !== ""){
+                    let isoArray: string[] = feature.properties!["iso_3166_2"].split("-");
+                    let number: string = isoArray[isoArray.length - 1]
+                    return feature.properties!["region_cod"].replaceAll("-", "_").replaceAll(".","_") + "_" + number;
+                }
                 return feature.properties!["iso_3166_2"].replaceAll("-", "_")
             case 2:
                 return `${feature.properties!["ISO_A2"]}_${feature.properties!["REGION"]}_${feature.properties!["CODE_LOCAL"].replaceAll("-", "_")}`
