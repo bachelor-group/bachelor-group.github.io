@@ -172,9 +172,9 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
             }
         })
 
-        let divxPosFactor = -1
+        let divxPosFactor = 0
         if (event.nativeEvent.offsetX > Width / 2) {
-            divxPosFactor = 0;
+            divxPosFactor = -1;
         }
 
         let divSelect = select(divRef.current).attr("style", `left: 0; transform: translate(calc(${event.nativeEvent.offsetX}px + ${divxPosFactor === 0 ? 1 : -1} * 10px + ${divxPosFactor} * 100%)); top: ${event.nativeEvent.offsetY}px; position: absolute`)
@@ -220,7 +220,7 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                             width={boundsWidth}
                             height={boundsHeight}
                             transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-                            clip-path={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
+                            clipPath={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
                         >
                             {paths.map((path, index) => (
                                 <path className='line' key={index}

@@ -99,7 +99,7 @@ export const GraphForm = ({ MapData, AddPlot }: GraphFormInterface) => {
             </> : <></>}
 
 
-            <Button type="submit" onClick={() => AddPlot(customPlotType, customPlotXaxis, customPlotYaxis)}>Save Plot</Button>
+            <Button type="submit" onClick={() => AddPlot(customPlotType, customPlotXaxis, customPlotYaxis)}>Add Plot</Button>
         </fieldset>
 
         <PlotsContainer Plots={plot} />
