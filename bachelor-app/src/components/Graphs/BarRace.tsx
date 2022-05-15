@@ -2,7 +2,7 @@ import { axisTop, descending, easeLinear, format, hsl, HSLColor, interpolate, in
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { DataType } from '../DataContext/MasterDataType';
-import { SearchTrendsList } from '../DataContext/Old_script';
+import { SearchTrendsList } from '../DataContext/_old/Old_script';
 import { Plot } from './PlotType';
 
 interface BarRaceProps {
@@ -251,12 +251,19 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
 
         let currentSlice = barsData[cursor].sorted.slice(0, top_n)
 
-        let date = select(titleRef.current)//.data(barsData[cursor].Data["date"]!)
+        let date = select(titleRef.current)
 
         date.text(`${Plot.Title} Current Date: ${barsData[cursor].Data["date"]}`)
 
-        // @ts-ignore
-        let bars = select(boundsRef.current).selectAll("rect").data(currentSlice, d => d.property);
+        let bars = select(boundsRef.current).selectAll<SVGSVGElement, {
+            property: keyof DataType;
+            lastValue: number;
+            value: number;
+            colour: HSLColor;
+            rank: number;
+        }>("rect")
+        .data(currentSlice, d => d.property);
+        
         bars
             .enter()
             .append('rect')
@@ -291,8 +298,13 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
             .attr("y", yScale(top_n) + 10)
             .remove();
 
-        // @ts-ignore
-        let labels = select(boundsRef.current).selectAll('.label').data(currentSlice, d => d.property);
+        let labels = select(boundsRef.current).selectAll<SVGSVGElement, {
+            property: keyof DataType;
+            lastValue: number;
+            value: number;
+            colour: HSLColor;
+            rank: number;
+        }>('.label').data(currentSlice, d => d.property);
 
         labels
             .enter()
@@ -322,13 +334,17 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
             .transition()
             .duration(tickDuration)
             .ease(easeLinear)
-            //@ts-ignore
             .attr("x", d => xScale(currentSlice[top_n - 1]["value"]) - 8)
             .attr("y", d => yScale(top_n) + (yScale(1) - yScale(0)) / 2)
             .remove();
 
-        // @ts-ignore
-        let valueLabels = select(boundsRef.current).selectAll('.valueLabel').data(currentSlice, d => d.property);
+        let valueLabels = select(boundsRef.current).selectAll<SVGSVGElement, {
+            property: keyof DataType;
+            lastValue: number;
+            value: number;
+            colour: HSLColor;
+            rank: number;
+        }>('.valueLabel').data(currentSlice, d => d.property);
 
         valueLabels
             .enter()
@@ -456,7 +472,10 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
                                 transform={`translate(${[MARGIN.left].join(",")})`}
                             />
                         </svg >
-                        <p><i className='note'>*Note that the numbers are from 0 to 100. </i></p>
+                        <p><i className='note'>*Note that the numbers are from 0 to 100.
+                            <br>
+                            </br>
+                            *For information on what the numbers mean, read <a href="https://github.com/GoogleCloudPlatform/covid-19-open-data/blob/main/docs/table-search-trends.md#covid-19-search-trends-symptoms-dataset" target="_blank" rel="noreferrer">documentation.</a></i></p>
                     </>
                     : <></>
             }

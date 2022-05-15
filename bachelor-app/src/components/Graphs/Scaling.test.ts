@@ -36,7 +36,6 @@ test('DataAccessor Non Dates', () => {
 // test('Data Accessor Date', () => {
 //     let Accessor = DataAccessor(EpidemiologyEnum.date);
 //     //expect(Accessor(data[0])).toBe(new Date("1999-12-31"))
-//     console.log(Accessor(DateData[1]));
 //     expect(Accessor(DateData[0]).getYear()).toBe("2000-01-01T23:00");
 // });
 

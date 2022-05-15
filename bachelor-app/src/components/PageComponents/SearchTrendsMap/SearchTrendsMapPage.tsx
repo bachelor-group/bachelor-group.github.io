@@ -3,7 +3,7 @@ import { useEffect, useState, MouseEvent, ChangeEvent } from 'react'
 import { useParams } from 'react-router-dom';
 import { Col, Form, ProgressBar, Row } from 'react-bootstrap';
 import { DataType } from '../../DataContext/MasterDataType';
-import { SearchTrendsList } from '../../DataContext/Old_script';
+import { SearchTrendsList } from '../../DataContext/_old/Old_script';
 import { MapComponent } from '../../Map/Map';
 import Animator from '../../Map/Animator';
 
@@ -44,14 +44,7 @@ export const SearchTrendsMap = ({ LoadData = _LoadData }: SearchTrendsMapProps) 
         let newValue = e.target.value;
         let newKey = `search_trends_${newValue.replaceAll(" ", "_")}`
 
-        // CHECK IF STRING IS KEY NEEDS TO BE DONE
-        // @ts-ignore
-        setCurSearchTrend(newKey)
-
-        // Old method of keys...
-        // if (hasKey(temp[0], newKey)) {
-        //     setCurSearchTrend(newKey)
-        // }
+        setCurSearchTrend(newKey as keyof DataType)
     }
 
     function setMapData(data: Map<string, DataType[]>) {

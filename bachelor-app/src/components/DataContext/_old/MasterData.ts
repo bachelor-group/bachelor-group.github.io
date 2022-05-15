@@ -6,6 +6,5 @@
 //     enumboyy += `${element} = string ,\n`
 // });
 
-// console.log(enumboyy)
 
 export default null;
