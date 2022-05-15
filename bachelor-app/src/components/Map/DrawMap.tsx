@@ -101,18 +101,22 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     }, []);
 
     let colorScale = useMemo(() => {
-        //TODO per 100K,
-        let maxa: number
+        let maxValue: number
         let dataList: DataType[] = Array.from(data.values()).flat()
 
         if (scalePer100K) {
-            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000)!
+            maxValue = max(dataList, d => {
+                if (parseFloat(d["population"]!) > 1_000_000) {
+                    return parseFloat(d[DataTypeProperty]!) / parseFloat(d["population"]!) * 100_000
+                }
+                return -1
+            })!
         }
         else {
-            maxa = max(dataList, d => parseFloat(d[DataTypeProperty]!))!
+            maxValue = max(dataList, d => parseFloat(d[DataTypeProperty]!))!
         }
 
-        return scaleSequential(interpolateOrRd).domain([0, maxa])
+        return scaleSequential(interpolateOrRd).domain([0, maxValue])
     }, [data, DataTypeProperty]);
 
     useEffect(() => {
@@ -340,7 +344,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     true,
                     1)
             })
-            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, { data: {}, feature: data }, false) });
 
         // Update
         innerFeaturesSelect
@@ -390,7 +394,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     true,
                     1)
             })
-            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });;
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, { data: {}, feature: data }, false) });;
 
         innerFeaturesSelect.exit().remove()
     }
