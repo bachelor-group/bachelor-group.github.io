@@ -185,9 +185,11 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
 
         header.exit().remove()
 
-        let div = divSelect.selectAll(".tooltip-body")
-            //@ts-ignore
-            .data(dataPoints, d => d.location_key)
+        let div = divSelect.selectAll<HTMLDivElement, {
+            country: string;
+            data: DataType;
+        }>(".tooltip-body")
+            .data(dataPoints, d => d.data.location_key!)
 
         div
             .enter()
