@@ -20,7 +20,6 @@ function Lollipop({ Width, Height, YAxis, Plot }: LollipopProps) {
     const boundsHeight = Height - MARGIN.top - MARGIN.bottom;
     const Data = Plot.MapData;
     const DataAsArray = Array.from(Plot.MapData.values()).flat()
-    //TODO Remove
     let HARDCODED_INDEX = 730;
 
 
