@@ -3,7 +3,7 @@ import { TagExtended } from '../../../../CountrySelector/SelectCountry';
 import { DataType } from '../../../../DataContext/MasterDataType';
 import PlotsContainer from '../../../../Graphs/PlotsContainer';
 import { Plot, PlotType } from '../../../../Graphs/PlotType';
-import { SearchTrendsList } from '../../../../DataContext/Old_script';
+import { SearchTrendsList } from '../../../../DataContext/_old/Old_script';
 import { Col, ProgressBar, Row } from 'react-bootstrap';
 import BarRace from '../../../../Graphs/BarRace';
 

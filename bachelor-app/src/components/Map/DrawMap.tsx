@@ -317,7 +317,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: ${fill} `
                 }
                 else {
-                    // TODO Colour for missing datapoint...
                     return `fill: magenta`
                 }
             })
@@ -366,7 +365,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: ${fill} `
                 }
                 else {
-                    // TODO Colour for missing datapoint...
                     return `fill: magenta`
                 }
             })

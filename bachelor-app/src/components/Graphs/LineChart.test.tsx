@@ -6,7 +6,6 @@ import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import LineChart from "./LineChart";
 import { Plot, PlotType } from "./PlotType";
-import { SearchTrendData, SearchTrendsEnum } from "../DataContext/SearchTrendType";
 import { EpidemiologyData, EpidemiologyEnum } from "../DataContext/DataTypes";
 
 let container: HTMLDivElement | null = null;

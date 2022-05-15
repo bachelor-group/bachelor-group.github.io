@@ -3,7 +3,7 @@ import { useEffect, useState, MouseEvent, ChangeEvent } from 'react'
 import { useParams } from 'react-router-dom';
 import { Col, Form, ProgressBar, Row } from 'react-bootstrap';
 import { DataType } from '../../DataContext/MasterDataType';
-import { SearchTrendsList } from '../../DataContext/Old_script';
+import { SearchTrendsList } from '../../DataContext/_old/Old_script';
 import { MapComponent } from '../../Map/Map';
 import Animator from '../../Map/Animator';
 
