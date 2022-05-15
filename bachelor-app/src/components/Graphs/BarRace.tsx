@@ -456,7 +456,10 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
                                 transform={`translate(${[MARGIN.left].join(",")})`}
                             />
                         </svg >
-                        <p><i className='note'>*Note that the numbers are from 0 to 100. </i></p>
+                        <p><i className='note'>*Note that the numbers are from 0 to 100.
+                            <br>
+                            </br>
+                            *For information on what the numbers mean, read <a href="https://github.com/GoogleCloudPlatform/covid-19-open-data/blob/main/docs/table-search-trends.md#covid-19-search-trends-symptoms-dataset" target="_blank" rel="noreferrer">documentation.</a></i></p>
                     </>
                     : <></>
             }
