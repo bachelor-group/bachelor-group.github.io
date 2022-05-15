@@ -36,7 +36,7 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
     const dateTextRef = useRef(null);
 
     // ToolTip
-    const Tooltip = new MapToolTip({ width, translator: translator, DataTypeProperty, divRef: toolTipdivRef, scalePer100K });
+    const Tooltip = new MapToolTip({ width, translator: translator, DataTypeProperty, divRef: toolTipdivRef, scalePer100K, adminLvl });
 
     //Data
     const [curGeoJson, setCurGeoJson] = useState<GeoJsonProperties>();
@@ -89,9 +89,6 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                 svg
                     .selectAll('.move-on-zoom')
                     .attr('transform', event.transform);
-
-                //@ts-ignore
-                // features.attr("d", path)
             });
 
         // Translate and scale the initial map
@@ -120,12 +117,13 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
     useEffect(() => {
         drawMap();
-    }, [curGeoJson, data, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width, InnerGeoJson])
+    }, [curGeoJson, data, innerData, colorScale, DataTypeProperty, CurDate, selectedInnerFeatures, height, width, InnerGeoJson])
 
     useEffect(() => {
         DrawInnerFeatures();
-    }, [selectedInnerFeatures, CurDate])
+    }, [selectedInnerFeatures, CurDate, height, width])
 
+    // Draw the outer features, also updates and removes them
     function drawMap() {
         if (curGeoJson) {
             let currentData: FeatureData[] = [];
@@ -215,30 +213,30 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
 
         textSelection.enter()
             .append('text')
-            .attr("x", d => width / 2)
-            .attr("y", d => 35)
+            .attr("x", () => width / 2)
+            .attr("y", () => 35)
             .attr('text-anchor', 'middle')
             .attr("dominant-baseline", "middle")
             .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
             .html(d => CurDate)
 
         textSelection
-            .attr("x", d => width / 2)
-            .attr("y", d => 35)
+            .attr("x", () => width / 2)
+            .attr("y", () => 35)
             .attr('text-anchor', 'middle')
             .attr("dominant-baseline", "middle")
             .attr("style", "fill: white; stroke: black; stroke-width: 1; font-size: 2rem;")
-            .html(d => CurDate)
+            .html(() => CurDate)
     }
 
     const clicked = useCallback((event: PointerEvent, d: FeatureData) => {
         if (InnerGeoJson) {
             innerPaths(d)
         }
-    }, [InnerGeoJson])
+    }, [InnerGeoJson, innerData])
 
     // setInnerData after a click event
-    function innerPaths(d: FeatureData) {
+    const innerPaths = useCallback((d: FeatureData) => {
         if (InnerGeoJson) {
             let innerFeatures: Feature[] = [];
             let CurrentData: Map<string, DataType[]> = innerData;
@@ -247,28 +245,28 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
             // FIND INNERDATA
             for (let j = 0; j < InnerGeoJson.features.length; j++) {
                 const feature: Feature = InnerGeoJson.features[j];
-                // TODO "1" is Hardcoded
-                if (translator.countryCode(feature, 1) === d.data.location_key) {
-                    locations.push(translator.locationCode(feature, 1))
+                if (translator.countryCode(feature, adminLvl + 1 as 0 | 1 | 2) === d.data.location_key) {
+                    if (feature.properties!.LOCATION_KEY) {
+                        locations.push(feature.properties!.LOCATION_KEY)
+                    }
                     innerFeatures.push(feature);
                 }
             }
 
             // Check if data is loaded
             let needToLoad = true;
-            for (let entry of Array.from(CurrentData.entries())) {
-                let countryCode = entry[0].split("_")[0]
-                if (countryCode === d.data.country_code) {
+            for (let location of locations) {
+                if (CurrentData.has(location)) {
                     needToLoad = false;
                     break;
                 }
             }
 
             // Add data to loaded data
-            let mergedData = innerData;
-            if (needToLoad) {
+            let mergedData = CurrentData;
+            if (needToLoad && locations.length !== 0) {
                 loadInnerData(locations).then(data => {
-                    let oldData = innerData;
+                    let oldData = CurrentData;
                     mergedData = new Map([...Array.from(oldData.entries()), ...Array.from(data.entries())]);
                     setAllInnerData(mergedData, innerFeatures);
                 })
@@ -280,7 +278,8 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
         else {
             throw 'innerPaths was called, but InnerGeoJsonProps was undefined'
         }
-    }
+    }, [innerData, InnerGeoJson])
+
 
     function setAllInnerData(Data: Map<string, DataType[]>, innerFeatures: Feature[]) {
         setInnerData(Data);
@@ -318,8 +317,30 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) });
+            .on("mousemove", (e, featureData) => {
+                Tooltip.updateTooltipdiv(e,
+                    {
+                        data: innerData.get(featureData.properties!.LOCATION_KEY) ?
+                            innerData.get(featureData.properties!.LOCATION_KEY)![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))]
+                            :
+                            {},
+                        feature: featureData
+                    },
+                    true,
+                    1)
+            })
+            .on("mouseleave", (e, featureData) => {
+                Tooltip.updateTooltipdiv(e, {
+                    data: innerData.get(featureData.properties!.LOCATION_KEY) ?
+                        innerData.get(featureData.properties!.LOCATION_KEY)![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))]
+                        :
+                        {},
+                    feature: featureData
+                },
+                    true,
+                    1)
+            })
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });
 
         // Update
         innerFeaturesSelect
@@ -345,8 +366,31 @@ export const DrawMap = ({ GeoJson, InnerGeoJsonProp, country = "", DataTypePrope
                     return `fill: magenta`
                 }
             })
-            .on("mousemove", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) })
-            .on("mouseleave", (e, featureData) => { Tooltip.updateTooltipdiv(e, { data: innerData.get(translator.locationCode(featureData, 1))![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))], feature: featureData }, true) });
+            .attr("d", d => path(d))
+            .on("mousemove", (e, featureData) => {
+                Tooltip.updateTooltipdiv(e,
+                    {
+                        data: innerData.get(featureData.properties!.LOCATION_KEY) ?
+                            innerData.get(featureData.properties!.LOCATION_KEY)![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))]
+                            :
+                            {},
+                        feature: featureData
+                    },
+                    true,
+                    1)
+            })
+            .on("mouseleave", (e, featureData) => {
+                Tooltip.updateTooltipdiv(e, {
+                    data: innerData.get(featureData.properties!.LOCATION_KEY) ?
+                        innerData.get(featureData.properties!.LOCATION_KEY)![findIndexToDate(innerData.get(translator.locationCode(featureData, 1)))]
+                        :
+                        {},
+                    feature: featureData
+                },
+                    true,
+                    1)
+            })
+            .on("mouseleave", (e, data) => { Tooltip.updateTooltipdiv(e, {data: {}, feature: data}, false) });;
 
         innerFeaturesSelect.exit().remove()
     }

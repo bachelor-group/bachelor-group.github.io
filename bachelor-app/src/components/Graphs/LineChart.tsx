@@ -1,10 +1,10 @@
 import { axisBottom, axisLeft, line, scaleOrdinal, select, zoom } from 'd3';
-import { useEffect, useMemo, useRef, useState, MouseEvent } from 'react';
 import { zoomIdentity } from 'd3-zoom';
+import { MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { filterDataBasedOnProps } from '../DataContext/LoadData';
+import { DataType } from '../DataContext/MasterDataType';
 import { Plot } from './PlotType';
 import { DataAccessor, Scale } from './Scaling';
-import { DataType } from '../DataContext/MasterDataType';
-import { filterDataBasedOnProps } from '../DataContext/LoadData';
 
 
 interface LineChartProps {
@@ -172,21 +172,28 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
             }
         })
 
-        let divHtml = "";
-        dataPoints.forEach((e) => {
-            divHtml += `<strong>${e.country}</strong>: ${e.data[Plot.Axis[1]]}`
-        })
+        let divxPosFactor = 0
+        if (event.nativeEvent.offsetX > Width / 2) {
+            divxPosFactor = -1;
+        }
 
-        let div = select(divRef.current)
-            .attr("style", `left: ${event.nativeEvent.offsetX + 10}px; top: ${event.nativeEvent.offsetY}px; position: absolute`)
+        let divSelect = select(divRef.current).attr("style", `left: 0; transform: translate(calc(${event.nativeEvent.offsetX}px + ${divxPosFactor === 0 ? 1 : -1} * 10px + ${divxPosFactor} * 100%)); top: ${event.nativeEvent.offsetY}px; position: absolute`)
+
+
+        let header = divSelect.selectAll(".popover-header")
             .html(`<strong>${displayText}</strong>`)
-            .selectAll("div")
+
+        header.exit().remove()
+
+        let div = divSelect.selectAll(".tooltip-body")
             //@ts-ignore
             .data(dataPoints, d => d.location_key)
 
         div
             .enter()
             .append("div")
+            .attr("class", "tooltip-body")
+            .attr("style", "text-align: center;")
             .text(d => `${d.country}: ${d.data[Plot.Axis[1]]!.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`)
             .style("color", d => colorscale(d.country))
 
@@ -206,22 +213,22 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                 <>
                     <svg className="plot" width={Width} height={Height} ref={svgRef} onMouseMove={(event) => (updateTooltip(event))} onMouseEnter={() => (setShowTooltip(true))} onMouseLeave={() => (setShowTooltip(false))}>
                         <clipPath id={`cut-off-bottom-${Plot.Title.replaceAll(" ", "-")}`}>
-                            <rect x={0} width={boundsWidth} y={0} height={boundsHeight}/>
+                            <rect x={0} width={boundsWidth} y={0} height={boundsHeight} />
                         </clipPath>
                         <text x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
                         <g
                             width={boundsWidth}
                             height={boundsHeight}
                             transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-                            clip-path={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
+                            clipPath={`url(#cut-off-bottom-${Plot.Title.replaceAll(" ", "-")})`}
                         >
+                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
                             {paths.map((path, index) => (
                                 <path className='line' key={index}
                                     d={path} style={{ fill: "none", stroke: colorscale(countries[index]), strokeWidth: 1 }}
                                 ></path>
                             ))}
 
-                            <line className='line' x1={0} x2={boundsWidth} y1={yScale(0)} y2={yScale(0)} strokeWidth={0.5} stroke="black" />
 
                             {/* Tooltips */}
                             <line x1={Tooltipx} x2={Tooltipx} y1={0} y2={boundsHeight} stroke='black' opacity={showToolTip ? 1 : 0} />
@@ -250,7 +257,9 @@ export const LineChart = ({ Width, Height, Plot, Colors }: LineChartProps) => {
                             )}
                         </g>
                     </svg>
-                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip fade show popover bs-popover-end'></div>
+                    <div ref={divRef} style={{ display: showToolTip ? "block" : "none" }} className='tool-tip fade show popover bs-popover-end'>
+                        <div className='popover-header'></div>
+                    </div>
                 </>
                 :
                 <>

@@ -437,7 +437,7 @@ function BarRace({ Width, Height, Plot, MapData }: BarRaceProps) {
                                     onChange={(e) => handleNumberBarsChange(e)} />
                             </div>
 
-                            <Button onClick={() => Animate()}>{ticker === undefined ? "Start me" : "Stop me"}</Button>
+                            <Button onClick={() => Animate()}>{ticker === undefined ? "Start Animation" : "Stop Animation"}</Button>
                         </div>
                         < svg width={Width} height={Height} style={{ display: "inline-block" }} ref={svgRef}>
                             <text ref={titleRef} x={"50%"} y={MARGIN.top * 0.5} textAnchor="middle" dominantBaseline='middle'>{Plot.Title}</text>
